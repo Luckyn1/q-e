@@ -100,7 +100,7 @@ MODULE bfgs_module
                           ! set to the minimum value at the previous step
                           ! set to 2 if trust_radius is reset again: exit
    LOGICAL :: &
-      conv_bfgs           ! .TRUE. when bfgs convergence has been achieved
+      conv_bfgs = .FALSE. ! .TRUE. when bfgs convergence has been achieved
    !
    ! ... default values for the following variables are set in
    ! ... Modules/read_namelist.f90 (SUBROUTINE ions_defaults)

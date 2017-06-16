@@ -52,8 +52,7 @@ SUBROUTINE summary()
   USE martyna_tuckerman,ONLY: do_comp_mt
   USE realus,          ONLY : real_space
   USE exx,             ONLY : ecutfock
-  USE fcp_variables,   ONLY : lfcpopt, lfcpdyn
-  USE fcp,             ONLY : fcp_summary
+  USE fcp_module,      ONLY : lfcp, fcp_summary
   !
   IMPLICIT NONE
   !
@@ -155,7 +154,7 @@ SUBROUTINE summary()
   !
   ! ... FCP (Ficticious charge particle)
   !
-  IF ( lfcpopt .or. lfcpdyn )  CALL fcp_summary()
+  IF ( lfcp )  CALL fcp_summary()
   !
   IF ( do_comp_mt )  WRITE( stdout, &
             '(5X, "Assuming isolated system, Martyna-Tuckerman method",/)')

@@ -10,7 +10,7 @@
 MODULE mdiis
   !--------------------------------------------------------------------------
   !
-  ! ... this module keeps data for MDIIS algorism.
+  ! ... this module keeps data for MDIIS algorithm.
   ! ... (A.Kovalenko et al., J. Comput. Chem. 1999, 20, 928-936)
   !
   USE kinds, ONLY : DP

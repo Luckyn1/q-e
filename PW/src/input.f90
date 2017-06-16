@@ -65,17 +65,6 @@ SUBROUTINE iosys()
                               nraise_     => nraise, &
                               refold_pos_ => refold_pos
   !
-  USE fcp_variables, ONLY : lfcpopt_ => lfcpopt, &
-                            lfcpdyn_ => lfcpdyn, &
-                            fcp_mu_ => fcp_mu, &
-                            fcp_mass_ => fcp_mass, &
-                            fcp_temperature, &
-                            fcp_relax_ => fcp_relax, &
-                            fcp_relax_step_ => fcp_relax_step, &
-                            fcp_relax_crit_ => fcp_relax_crit, &
-                            fcp_mdiis_size_ => fcp_mdiis_size, &
-                            fcp_mdiis_step_ => fcp_mdiis_step
-  !
   USE extfield,      ONLY : tefield_  => tefield, &
                             dipfield_ => dipfield, &
                             edir_     => edir, &
@@ -216,6 +205,8 @@ SUBROUTINE iosys()
 
   USE qmmm, ONLY : qmmm_config
 
+  USE fcp_module, ONLY : fcp_iosys
+
   USE rism_module, ONLY : rism_iosys
 
   !
@@ -227,7 +218,7 @@ SUBROUTINE iosys()
                                pseudo_dir, disk_io, tefield, dipfield, lberry, &
                                gdir, nppstr, wf_collect,lelfield,lorbm,efield, &
                                nberrycyc, lkpoint_dir, efield_cart, lecrpa,    &
-                               vdw_table_name, memory, tqmmm,                  &
+                               lfcp, vdw_table_name, memory, tqmmm,            &
                                efield_phase, monopole, trism
 
   !
@@ -259,9 +250,6 @@ SUBROUTINE iosys()
                                xdm, xdm_a1, xdm_a2, lforcet,                  &
                                one_atom_occupations,                          &
                                esm_bc, esm_efield, esm_w, esm_nfit, esm_a,    &
-                               lfcpopt, lfcpdyn, fcp_mu, fcp_mass, fcp_tempw, &
-                               fcp_relax, fcp_relax_step, fcp_relax_crit,     &
-                               fcp_mdiis_size, fcp_mdiis_step,                &
                                space_group, uniqueb, origin_choice,           &
                                rhombohedral, zmon, relaxz, block, block_1,    &
                                block_2, block_height
@@ -1397,31 +1385,6 @@ SUBROUTINE iosys()
     ENDIF
   ENDIF
   !
-  ! ... FCP
-  !
-  lfcpopt_        = lfcpopt
-  lfcpdyn_        = lfcpdyn
-  fcp_mu_         = fcp_mu
-  fcp_mass_       = fcp_mass
-  fcp_temperature = fcp_tempw
-  !
-  IF ( lfcpopt .or. lfcpdyn ) THEN
-     IF ( .not. do_comp_esm ) THEN
-        CALL errore ('iosys','FCP optimise/dynamics currently not available without ESM',1)
-     ENDIF
-     IF ( trim( calculation ).NE.'relax'.AND.trim( calculation ).NE.'md')THEN
-        CALL errore ('iosys',"FCP optimise/dynamics only available with calculation = 'relax' and 'md'",1)
-     ENDIF
-  ENDIF
-  !
-  IF ( fcp_temperature == 0.0_DP ) &
-     fcp_temperature = temperature
-  fcp_relax_      = fcp_relax
-  fcp_relax_step_ = fcp_relax_step
-  fcp_relax_crit_ = fcp_relax_crit
-  fcp_mdiis_size_ = fcp_mdiis_size
-  fcp_mdiis_step_ = fcp_mdiis_step
-  !
   CALL plugin_read_input()
   !
   ! ... read following cards
@@ -1616,6 +1579,10 @@ SUBROUTINE iosys()
   ! ... set variables for RISM
   !
   CALL rism_iosys(trism)
+  !
+  ! ... set variables for FCP (this must be after RISM, to check condition)
+  !
+  CALL fcp_iosys(lfcp)
   !
   ! ... End of reading input parameters
   !

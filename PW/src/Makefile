@@ -78,7 +78,10 @@ esm.o \
 ewald.o \
 ewald_dipole.o \
 exx.o \
-fcp.o \
+fcp_dynamics.o \
+fcp_input.o \
+fcp_module.o \
+fcp_relaxation.o \
 find_group.o \
 forces_bp_efield.o \
 force_cc.o \

@@ -729,14 +729,15 @@ CONTAINS
    SUBROUTINE terminate_verlet
      !------------------------------------------------------------------------
      !
-     USE io_global, ONLY : stdout
+     USE io_global,     ONLY : stdout
+     USE control_flags, ONLY : istep
      !
      WRITE( UNIT = stdout, &
           FMT = '(/,5X,"The maximum number of steps has been reached.")' )
      WRITE( UNIT = stdout, &
           FMT = '(/,5X,"End of molecular dynamics calculation")' )
      !
-     CALL print_averages()
+     IF (istep > 0) CALL print_averages()
      !
    END SUBROUTINE terminate_verlet
    !

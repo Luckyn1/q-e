@@ -92,8 +92,8 @@ SUBROUTINE setup()
   USE exx,                ONLY : ecutfock, exx_grid_init, exx_mp_init, exx_div_check
   USE funct,              ONLY : dft_is_meta, dft_is_hybrid, dft_is_gradient
   USE paw_variables,      ONLY : okpaw
-  USE fcp_variables,      ONLY : lfcpopt, lfcpdyn
   USE extfield,           ONLY : monopole
+  USE fcp_module,         ONLY : lfcp
   USE rism_module,        ONLY : lrism, rism_calc1d
   !
   IMPLICIT NONE
@@ -170,18 +170,18 @@ SUBROUTINE setup()
   nelec = ionic_charge - tot_charge
   !
 #if defined (__XSD)
-  IF ( lbands .OR. ( (lfcpopt .OR. lfcpdyn ) .AND. restart )) THEN 
+  IF ( lbands .OR. ( lfcp .AND. restart )) THEN
      ALLOCATE ( output_obj, parinfo_obj, geninfo_obj )
      CALL pw_readschema_file( ierr , output_obj, parinfo_obj, geninfo_obj )
   END IF
   !
   ! 
-  IF ( (lfcpopt .OR. lfcpdyn) .AND. restart ) THEN
+  IF ( lfcp .AND. restart ) THEN
      CALL init_vars_from_schema( 'ef', ierr,  output_obj, parinfo_obj, geninfo_obj)
      tot_charge = ionic_charge - nelec
   END IF
 #else 
-  IF ( (lfcpopt .OR. lfcpdyn) .AND. restart ) THEN
+  IF ( lfcp .AND. restart ) THEN
      CALL pw_readfile( 'ef', ierr )
      tot_charge = ionic_charge - nelec
   END IF
@@ -596,7 +596,7 @@ SUBROUTINE setup()
      !
   END IF
 #if defined(__XSD) 
-  IF ( lbands .OR. ( (lfcpopt .OR. lfcpdyn ) .AND. restart ) ) THEN 
+  IF ( lbands .OR. ( lfcp .AND. restart ) ) THEN
      CALL qes_reset_output ( output_obj ) 
      CALL qes_reset_parallel_info ( parinfo_obj ) 
      CALL qes_reset_general_info ( geninfo_obj ) 

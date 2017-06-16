@@ -14,7 +14,7 @@ SUBROUTINE iosys_3drism(laue, linit)
   ! ...  stored in modules input_parameters into internal modules
   ! ...  Note: this subroutine requires nsp(ions_base), ecutrho(gvect), dual(gvecs), alat(cell_base).
   !
-  USE cell_base,        ONLY : alat, at
+  USE cell_base,        ONLY : alat
   USE gvecs,            ONLY : dual
   USE gvect,            ONLY : ecutrho
   USE ions_base,        ONLY : nsp

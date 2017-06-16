@@ -28,7 +28,7 @@ SUBROUTINE move_ions ( idone )
   USE cell_base,              ONLY : alat, at, bg, omega, cell_force, &
                                      fix_volume, fix_area
   USE cellmd,                 ONLY : omega_old, at_old, press, lmovecell, calc
-  USE ions_base,              ONLY : nat, ityp, zv, tau, if_pos
+  USE ions_base,              ONLY : nat, ityp, tau, if_pos
   USE fft_base,               ONLY : dfftp
   USE fft_base,               ONLY : dffts
   USE fft_types,              ONLY : fft_type_allocate
@@ -50,12 +50,9 @@ SUBROUTINE move_ions ( idone )
   USE basic_algebra_routines, ONLY : norm
   USE dynamics_module,        ONLY : verlet, terminate_verlet, proj_verlet
   USE dynamics_module,        ONLY : smart_MC, langevin_md
-  USE fcp                ,    ONLY : fcp_verlet, fcp_line_minimisation, &
-                                     fcp_mdiis_update, fcp_mdiis_end
-  USE fcp_variables,          ONLY : lfcpopt, lfcpdyn, fcp_mu, &
-                                     fcp_relax, fcp_relax_crit
-  USE klist,                  ONLY : nelec
+  USE klist,                  ONLY : nelec, tot_charge
   USE dfunct,                 only : newd
+  USE fcp_module,             ONLY : lfcp, fcp_relax, fcp_verlet, fcp_terminate, fcp_new_conv_thr
   USE rism_module,            ONLY : lrism, rism_new_conv_thr
   !
   IMPLICIT NONE
@@ -71,7 +68,6 @@ SUBROUTINE move_ions ( idone )
   REAL(DP), ALLOCATABLE :: pos(:), grad(:)
   REAL(DP)              :: h(3,3), fcell(3,3)=0.d0, epsp1
   INTEGER,  ALLOCATABLE :: fixion(:)
-  LOGICAL               :: conv_fcp
   !
   ! ... only one node does the calculation in the parallel case
   !
@@ -116,21 +112,16 @@ SUBROUTINE move_ions ( idone )
            epsp1 = epsp / ry_kbar
         END IF
         !
-        CALL bfgs( pos, h, etot, grad, fcell, fixion, tmp_dir, stdout, epse,&
-                   epsf, epsp1,  energy_error, gradient_error, cell_error,  &
-                   lmovecell, step_accepted, conv_ions, istep )
-        !
-        ! ... relax for FCP
-        !
-        IF ( lfcpopt ) THEN
-           IF ( TRIM(fcp_relax) == 'lm' ) THEN
-              CALL fcp_line_minimisation( conv_fcp )
-           ELSE IF ( TRIM(fcp_relax) == 'mdiis' ) THEN
-              CALL fcp_mdiis_update( conv_fcp )
-           END IF
-           IF ( .not. conv_fcp .and. idone < nstep ) THEN
-             conv_ions = .FALSE.
-           END IF
+        IF ( ANY( if_pos(:,:) == 1 ) .OR. lmovecell ) THEN
+           !
+           CALL bfgs( pos, h, etot, grad, fcell, fixion, tmp_dir, stdout, epse,&
+                      epsf, epsp1,  energy_error, gradient_error, cell_error,  &
+                      lmovecell, step_accepted, conv_ions, istep )
+           !
+        ELSE
+           !
+           conv_ions = .TRUE.
+           !
         END IF
         !
         IF ( lmovecell ) THEN
@@ -146,6 +137,11 @@ SUBROUTINE move_ions ( idone )
         tau    =   RESHAPE( pos, (/ 3 , nat /) )
         CALL cryst_to_cart( nat, grad, bg, 1 )
         force = - RESHAPE( grad, (/ 3, nat /) )
+        !
+        ! ... the relaxation of FCP
+        ! ... NOTE: this will be removed.
+        !
+        IF ( lfcp ) CALL fcp_relax( conv_ions )
         !
         IF ( conv_ions ) THEN
            !
@@ -173,17 +169,9 @@ SUBROUTINE move_ions ( idone )
               !
            END IF
            !
-           ! ... FCP output
+           ! ... finalize FCP
            !
-           IF ( lfcpopt ) THEN
-             WRITE( stdout, '(/,5X, "FCP Optimisation : converged ", &
-               & "( criteria force < ",ES8.1," )")') fcp_relax_crit
-             WRITE( stdout, '(5X,"FCP Optimisation : tot_charge =",F12.6,/)') &
-               SUM( zv(ityp(1:nat)) ) - nelec
-             IF ( TRIM(fcp_relax) == 'mdiis' ) THEN
-                CALL fcp_mdiis_end()
-             END IF
-           END IF
+           IF ( lfcp ) CALL fcp_terminate()
            !
         ELSE
            !
@@ -230,35 +218,39 @@ SUBROUTINE move_ions ( idone )
         !
         IF ( calc == 'vm' ) THEN
            !
-           CALL proj_verlet( conv_ions )
-           !
-           ! ... relax for FCP
-           !
-           IF ( lfcpopt ) THEN
-              IF ( TRIM(fcp_relax) == 'lm' ) THEN
-                 CALL fcp_line_minimisation( conv_fcp )
-              ELSE IF ( TRIM(fcp_relax) == 'mdiis' ) THEN
-                 CALL fcp_mdiis_update( conv_fcp )
-              END IF
-              IF ( .not. conv_fcp .and. idone < nstep ) conv_ions = .FALSE.
+           IF ( ANY( if_pos(:,:) == 1 ) ) THEN
               !
-              ! ... FCP output
+              CALL proj_verlet( conv_ions )
               !
-              IF ( conv_ions ) THEN
-                 WRITE( stdout, '(5X,"FCP : converged ", &
-                      & "( criteria force < ", ES8.1," )")') fcp_relax_crit
-                 WRITE( stdout, '(5X,"FCP : final tot_charge =",F12.6,/)') &
-                      SUM( zv(ityp(1:nat)) ) - nelec
-                 IF ( TRIM(fcp_relax) == 'mdiis' ) THEN
-                    CALL fcp_mdiis_end()
-                 END IF
-              END IF
+           ELSE
+              !
+              conv_ions = .TRUE.
+              !
            END IF
+           !
+           ! ... the relaxation of FCP
+           !
+           IF ( lfcp ) THEN
+              !
+              CALL fcp_relax( conv_ions )
+              !
+              ! ... finalize FCP
+              !
+              IF ( conv_ions ) CALL fcp_terminate()
+              !
+           END IF
+           !
            IF ( .NOT. conv_ions .AND. idone >= nstep ) THEN
+              !
               WRITE( UNIT = stdout, FMT =  &
                    '(/,5X,"The maximum number of steps has been reached.")' )
               WRITE( UNIT = stdout, &
                    FMT = '(/,5X,"End of molecular dynamics calculation")' )
+              !
+              ! ... finalize FCP
+              !
+              IF ( lfcp ) CALL fcp_terminate()
+              !
            END IF
            !
         ELSE IF ( calc(1:1) == 'l' ) THEN
@@ -269,9 +261,11 @@ SUBROUTINE move_ions ( idone )
            !
            CALL langevin_md()
            !
-           ! ... dynamics for FCP
+           ! ... FCP does not support Langevin-dynamics
            !
-           IF ( lfcpdyn ) CALL fcp_verlet()
+           IF ( lfcp ) CALL errore('move_ions', &
+                         & 'FCP does not support Langevin-dynamics', 1)
+           !
            IF ( idone >= nstep ) THEN
               WRITE( UNIT = stdout, FMT =  &
                    '(/,5X,"The maximum number of steps has been reached.")' )
@@ -282,14 +276,26 @@ SUBROUTINE move_ions ( idone )
            !
         ELSE IF ( calc == 'vd' ) THEN
            !
-           CALL verlet()
+           IF ( ANY( if_pos(:,:) == 1 ) ) THEN
+              !
+              CALL verlet()
+              !
+           END IF
            !
-           ! ... dynamics for FCP
+           ! ... the dynamics of FCP
            !
-           IF ( lfcpdyn ) CALL fcp_verlet()
+           IF ( lfcp ) CALL fcp_verlet()
+           !
            IF ( idone >= nstep) THEN
+              !
               CALL terminate_verlet()
+              !
+              ! ... finalize FCP
+              !
+              IF ( lfcp ) CALL fcp_terminate()
+              !
               conv_ions = .true.
+              !
            END IF
            !
         ELSE
@@ -297,6 +303,11 @@ SUBROUTINE move_ions ( idone )
            ! ... variable cell shape md
            !
            CALL vcsmd( conv_ions )
+           !
+           ! ... FCP does not support cell shape md
+           !
+           IF ( lfcp ) CALL errore('move_ions', &
+                         & 'FCP does not support cell shape MD', 1)
            !
            ! ... after nstep, set conv_ions to T for MD, to F for damped MD
            !
@@ -319,7 +330,11 @@ SUBROUTINE move_ions ( idone )
 
   CALL mp_bcast(restart_with_starting_magnetiz,ionode_id,intra_image_comm)
   CALL mp_bcast(final_cell_calculation,ionode_id,intra_image_comm)
-  IF ( lfcpopt .or. lfcpdyn ) CALL mp_bcast(nelec,ionode_id,intra_image_comm)
+  !
+  IF ( lfcp ) THEN
+     CALL mp_bcast(nelec,ionode_id,intra_image_comm)
+     CALL mp_bcast(tot_charge,ionode_id,intra_image_comm)
+  END IF
   !
   IF ( final_cell_calculation ) THEN
      ! 
@@ -399,6 +414,14 @@ SUBROUTINE move_ions ( idone )
      CALL mp_bcast( omega_old, ionode_id, intra_image_comm )
      CALL mp_bcast( bg,        ionode_id, intra_image_comm )
      !
+  END IF
+  !
+  ! ... update convergence threshold of FCP
+  !
+  IF ( lfcp ) THEN
+     IF ( tr2 < starting_scf_threshold ) THEN
+       CALL fcp_new_conv_thr()
+     END IF
   END IF
   !
   ! ... update convergence threshold of 3D-RISM

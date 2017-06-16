@@ -47,7 +47,7 @@
                                 ip_nosym => nosym, ip_noinv => noinv, ip_nosym_evc => nosym_evc,                      &
                                 ip_no_t_rev => no_t_rev, ip_force_symmorphic => force_symmorphic,                     &
                                 ip_use_all_frac=>use_all_frac, assume_isolated, esm_bc, esm_w, esm_nfit, esm_efield,  &
-                                ip_lfcpopt => lfcpopt, ip_fcp_mu => fcp_mu,                                           &
+                                ip_lfcpopt => lfcp, ip_fcp_mu => fcp_mu,                                              &
                                 ecfixed, qcutz, q2sigma,                                                              &
                                 tforces, rd_for,                                                                      &
                                 if_pos,                                                                               &
