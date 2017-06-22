@@ -39,7 +39,7 @@ MODULE fcp_module
   USE funct,           ONLY : exx_is_active
   USE io_global,       ONLY : stdout
   USE kinds,           ONLY : DP
-  USE klist,           ONLY : tot_charge
+  USE klist,           ONLY : tot_charge, lgauss
   USE relax,           ONLY : starting_scf_threshold
   USE rism_module,     ONLY : lrism
   !
@@ -105,6 +105,12 @@ CONTAINS
     !
     IF (exx_is_active() .AND. (.NOT. x_gamma_extrapolation)) THEN
        CALL errore('fcp_check', 'FCP calculation requires Vexx(G=0)', 1)
+    END IF
+    !
+    ! ... only for metallic system
+    !
+    IF (.NOT. lgauss) THEN
+       CALL errore('fcp_check', 'please set occupations = "smearing", for FCP', 1)
     END IF
     !
     ! ... must be relax or md
