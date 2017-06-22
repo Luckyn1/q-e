@@ -14,7 +14,6 @@ SUBROUTINE iosys_fcp()
   !
   USE cell_base,             ONLY : alat, at
   USE constants,             ONLY : RYTOEV
-  USE control_flags,         ONLY : lbfgs, lmd
   USE ions_base,             ONLY : if_pos
   USE kinds,                 ONLY : DP
   USE fcp_module,            ONLY : fcp_mu_ => fcp_mu, &
@@ -22,7 +21,7 @@ SUBROUTINE iosys_fcp()
                                   & solvation_radius_ => solvation_radius, &
                                   & fcp_is_dynamics
   USE fcp_relaxation,        ONLY : fcprlx_init, fcprlx_prm_line_min, &
-                                  & fcprlx_prm_mdiis
+                                  & fcprlx_prm_mdiis, fcprlx_prm_newton
   USE fcp_dynamics,          ONLY : fcpdyn_init, fcpdyn_prm_mass, &
                                   & fcpdyn_prm_velocity, fcpdyn_prm_temp
   USE read_namelists_module, ONLY : fcp_not_set
@@ -97,9 +96,9 @@ SUBROUTINE iosys_fcp()
         !
         fcp_calc = 'damp'
         !
-     CASE('bfgs')
+     CASE('newton')
         !
-        fcp_calc = 'bfgs'
+        fcp_calc = 'newton'
         !
      CASE DEFAULT
         !
@@ -108,22 +107,6 @@ SUBROUTINE iosys_fcp()
                   & ' not supported', 1 )
         !
      END SELECT
-     !
-     IF (lbfgs .AND. TRIM(fcp_calc) /= 'bfgs') THEN
-        !
-        CALL infomsg('iosys', 'fcp_dynamics=' // TRIM(fcp_dynamics_) // &
-                   & " ignored, 'bfgs' assumed")
-        !
-     END IF
-     !
-     IF (lmd .AND. TRIM(fcp_calc) == 'bfgs') THEN
-        !
-        fcp_calc = 'damp'
-        !
-        CALL infomsg('iosys', 'fcp_dynamics=' // TRIM(fcp_dynamics_) // &
-                   & " ignored, 'damp' assumed")
-        !
-     END IF
      !
   CASE ('md')
      !
@@ -185,6 +168,8 @@ SUBROUTINE iosys_fcp()
      CALL fcprlx_prm_line_min(fcp_relax_step)
      !
      CALL fcprlx_prm_mdiis(fcp_mdiis_size, fcp_relax_step)
+     !
+     CALL fcprlx_prm_newton(fcp_relax_step)
      !
   END IF
   !

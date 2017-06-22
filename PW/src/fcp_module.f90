@@ -35,13 +35,12 @@ MODULE fcp_module
   USE fcp_dynamics,    ONLY : fcpdyn_final, fcpdyn_update, &
                             & fcpdyn_set_verlet, fcpdyn_set_proj_verlet
   USE fcp_relaxation,  ONLY : fcprlx_final, fcprlx_update, &
-                            & fcprlx_set_line_min, fcprlx_set_mdiis
+                            & fcprlx_set_line_min, fcprlx_set_mdiis, fcprlx_set_newton
   USE fixed_occ,       ONLY : tfixed_occ
   USE funct,           ONLY : exx_is_active
   USE io_global,       ONLY : stdout
   USE kinds,           ONLY : DP
-  USE klist,           ONLY : tot_charge, lgauss, degauss, &
-                            & ltetra, two_fermi_energies
+  USE klist,           ONLY : tot_charge, lgauss, degauss, ltetra, two_fermi_energies
   USE relax,           ONLY : starting_scf_threshold
   USE rism_module,     ONLY : lrism
   !
@@ -54,7 +53,7 @@ MODULE fcp_module
   REAL(DP)         :: fcp_mu           = 0.0_DP   ! target Fermi energy (in Ry)
   REAL(DP)         :: fcp_eps          = 0.0_DP   ! convergence threshold (in Ry)
   REAL(DP)         :: fcp_eps0         = 0.0_DP   ! initial convergence threshold (in Ry)
-  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation ( lm | mdiis | damp | verlet )
+  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation {lm|mdiis|newton|damp|verlet}
   REAL(DP)         :: solvation_radius = 0.0_DP   ! solvation radius to estimate capacity (in bohr)
   !
   ! ... public components
@@ -234,6 +233,15 @@ CONTAINS
        CALL fcprlx_set_mdiis(fcp_eps, step_max)
        !
        CALL fcprlx_update(fcp_mu, conv)
+       !
+    ELSE IF (TRIM(fcp_calc) == 'newton') THEN
+       !
+       ! ... update nelec by Newton-Raphson
+       !
+       CALL fcprlx_set_newton(fcp_eps, step_max)
+       !
+       CALL fcprlx_update(fcp_mu, conv)
+       !
        !
     ELSE IF (TRIM(fcp_calc) == 'damp') THEN
        !

@@ -139,7 +139,6 @@ SUBROUTINE move_ions ( idone )
         force = - RESHAPE( grad, (/ 3, nat /) )
         !
         ! ... the relaxation of FCP
-        ! ... NOTE: this will be removed.
         !
         IF ( lfcp ) CALL fcp_relax( conv_ions )
         !

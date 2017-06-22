@@ -680,7 +680,7 @@ MODULE read_namelists_module
        !
        IF ( .NOT. ions_are_set ) THEN
           !
-          ! ... ( 'none' | 'lm' | 'mdiis' | 'bfgs' | 'damp' | 'verlet' )
+          ! ... ( 'none' | 'lm' | 'mdiis' | 'newton' | 'damp' | 'verlet' )
           !
           fcp_dynamics = 'none'
           !
@@ -2155,7 +2155,7 @@ MODULE read_namelists_module
                 ion_dynamics      = 'damp'
              ELSE IF( prog == 'PW' ) THEN
                 ion_dynamics = 'bfgs'
-                IF (lfcp) fcp_dynamics = 'bfgs'
+                IF (lfcp) fcp_dynamics = 'newton'
              END IF
           CASE ( 'md', 'cp' )
              IF( prog == 'CP' ) THEN
@@ -2173,7 +2173,7 @@ MODULE read_namelists_module
              ELSE IF( prog == 'PW' ) THEN
                 ion_dynamics = 'bfgs'
                 cell_dynamics= 'bfgs'
-                IF (lfcp) fcp_dynamics = 'bfgs'
+                IF (lfcp) fcp_dynamics = 'newton'
              END IF
           CASE ( 'vc-md', 'vc-cp' )
              IF( prog == 'CP' ) THEN

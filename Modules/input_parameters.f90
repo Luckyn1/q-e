@@ -1361,12 +1361,12 @@ MODULE input_parameters
           ! 'none':   Not specified
           ! 'lm':     Line-Minimization
           ! 'mdiis':  MDIIS algorithm
-          ! 'bfgs':   BFGS algorithm, coupled with ions and cell
+          ! 'newton': Newton-Raphson algorithm, coupled with ions and cell
           ! 'damp':   Damped dynamics (quick-min Verlet)
           ! 'verlet': Verlet dynamics
 
         CHARACTER(LEN=8) :: fcp_dynamics_allowed(6)
-        DATA fcp_dynamics_allowed / 'none', 'lm', 'mdiis', 'bfgs', 'damp', 'verlet' /
+        DATA fcp_dynamics_allowed / 'none', 'lm', 'mdiis', 'newton', 'damp', 'verlet' /
 
         REAL(DP) :: fcp_conv_thr = 1.0E-3_DP
           ! convergence threshold for FCP relaxation
