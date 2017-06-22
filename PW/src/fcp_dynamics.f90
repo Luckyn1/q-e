@@ -284,7 +284,7 @@ CONTAINS
     ! ... set the type of dynamics to projected-Verlet
     ! ...
     ! ... Variables:
-    ! ...   epsf: convergende threshold (in Ry/e)
+    ! ...   eps:  convergende threshold (in Ry/e)
     ! ...   smax: maximum step (in e)
     !
     IMPLICIT NONE

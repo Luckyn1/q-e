@@ -25,7 +25,7 @@ MODULE fcp_relaxation
   ! ...   This module performes relaxation of FCP.
   ! ... . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
   !
-  USE constants,     ONLY : eps16, RYTOEV
+  USE constants,     ONLY : eps4, eps16, RYTOEV
   USE control_flags, ONLY : iverbosity
   USE ener,          ONLY : ef
   USE io_global,     ONLY : stdout
@@ -478,13 +478,16 @@ CONTAINS
     !
     CALL calc_hess(hess)
     !
-    IF () THEN
+    IF (ABS(hess) > eps4) THEN
        !
-       nelec0 = nelec + force * hess
+       nelec0 = nelec + hess * force
        !
     ELSE
        !
-       nelec0 = nelec + force * hess
+       nelec0 = nelec + newton_step * force
+       !
+       WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is zero")')
+       WRITE(stdout, '(  5X,"FCP: -> steepest descent algorithm is used.")')
        !
     END IF
     !
