@@ -482,6 +482,8 @@ CONTAINS
        !
        nelec0 = nelec + hess * force
        !
+       WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is ",1PE12.2)') hess
+       !
     ELSE
        !
        nelec0 = nelec + newton_step * force
@@ -552,7 +554,7 @@ CONTAINS
        DO ibnd = 1, nbnd
           !
           hess = hess + wk (ik) * &
-               & degauss * w0gauss((ef - et(ibnd, ik)) / degauss, ngauss)
+               & w0gauss((ef - et(ibnd, ik)) / degauss, ngauss) / degauss
           !
        END DO
        !
