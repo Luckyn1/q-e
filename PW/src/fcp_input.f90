@@ -35,7 +35,7 @@ SUBROUTINE iosys_fcp()
   !
   USE input_parameters,      ONLY : fcp_mu, fcp_dynamics_ => fcp_dynamics, fcp_conv_thr, &
                                   & fcp_relax_step, fcp_mdiis_size, fcp_mass, fcp_velocity, &
-                                  % fcp_temperature, fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
+                                  & fcp_temperature, fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                                   & freeze_all_atoms, solvation_radius
   !
   IMPLICIT NONE
