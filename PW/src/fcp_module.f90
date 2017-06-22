@@ -39,7 +39,7 @@ MODULE fcp_module
   USE funct,           ONLY : exx_is_active
   USE io_global,       ONLY : stdout
   USE kinds,           ONLY : DP
-  USE klist,           ONLY : tot_charge, lgauss
+  USE klist,           ONLY : tot_charge, lgauss, two_fermi_energies
   USE relax,           ONLY : starting_scf_threshold
   USE rism_module,     ONLY : lrism
   !
@@ -111,6 +111,12 @@ CONTAINS
     !
     IF (.NOT. lgauss) THEN
        CALL errore('fcp_check', 'please set occupations = "smearing", for FCP', 1)
+    END IF
+    !
+    ! ... only one Fermi energy
+    !
+    IF (two_fermi_energies) THEN
+       CALL errore('fcp_check', 'please do not set tot_magnetization, for FCP', 1)
     END IF
     !
     ! ... must be relax or md
