@@ -36,10 +36,12 @@ MODULE fcp_module
                             & fcpdyn_set_verlet, fcpdyn_set_proj_verlet
   USE fcp_relaxation,  ONLY : fcprlx_final, fcprlx_update, &
                             & fcprlx_set_line_min, fcprlx_set_mdiis
+  USE fixed_occ,       ONLY : tfixed_occ
   USE funct,           ONLY : exx_is_active
   USE io_global,       ONLY : stdout
   USE kinds,           ONLY : DP
-  USE klist,           ONLY : tot_charge, lgauss, two_fermi_energies
+  USE klist,           ONLY : tot_charge, lgauss, degauss, &
+                            & ltetra, two_fermi_energies
   USE relax,           ONLY : starting_scf_threshold
   USE rism_module,     ONLY : lrism
   !
@@ -109,7 +111,7 @@ CONTAINS
     !
     ! ... only for metallic system
     !
-    IF (.NOT. lgauss) THEN
+    IF (tfixed_occ .OR. ltetra .OR. (.NOT. lgauss) .OR. (degauss <= 0.0_DP)) THEN
        CALL errore('fcp_check', 'please set occupations = "smearing", for FCP', 1)
     END IF
     !
