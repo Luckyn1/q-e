@@ -2585,7 +2585,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
         var fcp_relax_step -type REAL {
             default {
                 1.D-3 * (xy area) for ESM only;
-                1.D-2 * (xy area) for ESM-RISM
+                1.D-1 * (xy area) for ESM-RISM
             }
             info {
                 Step of Modified DIIS (MDIIS) for FCP relaxation.
@@ -2607,7 +2607,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             var fcp_mass -type REAL {
                 default {
                     1.D+6 / (xy area) for ESM only;
-                    1.D+5 / (xy area) for ESM-RISM
+                    1.D+4 / (xy area) for ESM-RISM
                 }
                 info {
                     Mass of the FCP.
