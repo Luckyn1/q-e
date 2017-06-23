@@ -2550,16 +2550,13 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                     @b CASE ( @ref calculation == 'relax' )
                 }
                 opt -val 'newton' {
-                    @b (default) Newton-Raphson algorithm
+                    @b (default) Newton-Raphson algorithm with DIIS
                 }
                 opt -val 'damp' {
                     damped (quick-min Verlet) dynamics for FCP relaxation
                 }
                 opt -val 'lm' {
                     Line-Minimization algorithm for FCP relaxation
-                }
-                opt -val 'mdiis' {
-                    MDIIS algorithm for FCP relaxation
                 }
                 info {
                     @b CASE ( @ref calculation == 'md' )
@@ -2578,20 +2575,11 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             }
         }
 
-        var fcp_relax_step -type REAL {
-            default {
-                1.D-3 * (xy area) for ESM only;
-                1.D-1 * (xy area) for ESM-RISM
-            }
-            info {
-                Step of Modified DIIS (MDIIS) for FCP relaxation.
-            }
-        }
-
-        var fcp_mdiis_size -type INTEGER {
+        var fcp_ndiis -type INTEGER {
             default { 4 }
             info {
-                Size of Modified DIIS (MDIIS) for FCP relaxation.
+                Size of DIIS for FCP relaxation,
+                used only if @ fcp_dynamics = 'newton'.
             }
         }
 

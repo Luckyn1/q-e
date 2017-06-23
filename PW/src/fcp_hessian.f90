@@ -14,6 +14,10 @@ SUBROUTINE fcp_hessian(hess)
   ! ...     d^2E/dN^2 = d(ef)/dN = 1/DOS(ef)
   ! ...
   !
+  USE ener,  ONLY : ef
+  USE klist, ONLY : nkstot, wk, degauss, ngauss
+  USE wvfct, ONLY : nbnd, et
+  !
   IMPLICIT NONE
   !
   REAL(DP), INTENT(OUT) :: hess

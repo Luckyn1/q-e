@@ -53,7 +53,7 @@ MODULE fcp_module
   REAL(DP)         :: fcp_mu           = 0.0_DP   ! target Fermi energy (in Ry)
   REAL(DP)         :: fcp_eps          = 0.0_DP   ! convergence threshold (in Ry)
   REAL(DP)         :: fcp_eps0         = 0.0_DP   ! initial convergence threshold (in Ry)
-  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation {lm|mdiis|newton|damp|verlet}
+  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation {lm|newton|damp|verlet}
   REAL(DP)         :: solvation_radius = 0.0_DP   ! solvation radius to estimate capacity (in bohr)
   !
   ! ... public components
@@ -222,15 +222,6 @@ CONTAINS
        ! ... update nelec by Line-Minimization
        !
        CALL fcprlx_set_line_min(fcp_eps, step_max)
-       !
-       CALL fcprlx_update(fcp_mu, conv)
-       !
-       !
-    ELSE IF (TRIM(fcp_calc) == 'mdiis') THEN
-       !
-       ! ... update nelec by MDIIS
-       !
-       CALL fcprlx_set_mdiis(fcp_eps, step_max)
        !
        CALL fcprlx_update(fcp_mu, conv)
        !

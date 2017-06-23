@@ -31,9 +31,8 @@ MODULE fcp_relaxation
   USE io_global,     ONLY : stdout
   USE ions_base,     ONLY : nat, ityp, zv
   USE kinds,         ONLY : DP
-  USE klist,         ONLY : nelec, tot_charge, nkstot, wk, degauss, ngauss
+  USE klist,         ONLY : nelec, tot_charge
   USE mdiis,         ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis
-  USE wvfct,         ONLY : nbnd, et
   !
   IMPLICIT NONE
   SAVE
@@ -52,23 +51,17 @@ MODULE fcp_relaxation
   REAL(DP)         :: step_max       ! maximum step (in number of charge)
   REAL(DP)         :: nelec_old      ! old number of electrons
   REAL(DP)         :: force_old      ! old force acting on FCP
-  REAL(DP)         :: line_min_step  ! step of Line-Minimization
   LOGICAL          :: line_min_init  ! init Line-Minimization, or not ?
-  INTEGER          :: mdiis_size     ! size of MDIIS
-  REAL(DP)         :: mdiis_step     ! step of MDIIS
-  LOGICAL          :: mdiis_init     ! init MDIIS, or not ?
-  REAL(DP)         :: newton_step    ! step of Newton-Raphson
   LOGICAL          :: newton_init    ! init Newton-Raphson, or not ?
+  REAL(DP)         :: slope          ! slope of force, only for insulator
+  INTEGER          :: ndiis          ! size of DIIS
   TYPE(mdiis_type) :: mdiist         ! data of MDIIS
   !
   ! ... public components
   PUBLIC :: fcprlx_init
   PUBLIC :: fcprlx_final
-  PUBLIC :: fcprlx_prm_line_min
-  PUBLIC :: fcprlx_prm_mdiis
-  PUBLIC :: fcprlx_prm_newton
+  PUBLIC :: fcprlx_prm
   PUBLIC :: fcprlx_set_line_min
-  PUBLIC :: fcprlx_set_mdiis
   PUBLIC :: fcprlx_set_newton
   PUBLIC :: fcprlx_update
   !
@@ -88,12 +81,10 @@ CONTAINS
     step_max      = 0.0_DP
     nelec_old     = 0.0_DP
     force_old     = 0.0_DP
-    line_min_step = 0.5_DP
-    mdiis_size    = 4
-    mdiis_step    = 0.5_DP
-    mdiis_init    = .FALSE.
-    newton_step   = 0.5_DP
+    line_min_init = .FALSE.
     newton_init   = .FALSE.
+    slope         = 0.5_DP
+    ndiis         = 4
     !
   END SUBROUTINE fcprlx_init
   !
@@ -113,69 +104,34 @@ CONTAINS
        !
     END IF
     !
-    IF (mdiis_init) THEN
-       !
-       mdiis_init = .FALSE.
-       nelec_old  = 0.0_DP
-       CALL deallocate_mdiis(mdiist)
-       !
-    END IF
-    !
     IF (newton_init) THEN
        !
        newton_init = .FALSE.
        nelec_old   = 0.0_DP
+       CALL deallocate_mdiis(mdiist)
        !
     END IF
     !
   END SUBROUTINE fcprlx_final
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE fcprlx_prm_line_min(step)
+  SUBROUTINE fcprlx_prm(slope_, ndiis_)
     !----------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL(DP), INTENT(IN) :: step
+    REAL(DP), INTENT(IN) :: slope_
+    INTEGER,  INTENT(IN) :: ndiis_
     !
-    IF (step > 0.0_DP) THEN
-       line_min_step = step
+    IF (slope_ > 0.0_DP) THEN
+       slope = slope_
     END IF
     !
-  END SUBROUTINE fcprlx_prm_line_min
-  !
-  !----------------------------------------------------------------------------
-  SUBROUTINE fcprlx_prm_mdiis(nsize, step)
-    !----------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    INTEGER,  INTENT(IN) :: nsize
-    REAL(DP), INTENT(IN) :: step
-    !
-    IF (nsize > 0) THEN
-       mdiis_size = nsize
+    IF (ndiis_ > 0) THEN
+       ndiis = ndiis_
     END IF
     !
-    IF (step > 0.0_DP) THEN
-       mdiis_step = step
-    END IF
-    !
-  END SUBROUTINE fcprlx_prm_mdiis
-  !
-  !----------------------------------------------------------------------------
-  SUBROUTINE fcprlx_prm_newton(step)
-    !----------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    REAL(DP), INTENT(IN) :: step
-    !
-    IF (step > 0.0_DP) THEN
-       newton_step = step
-    END IF
-    !
-  END SUBROUTINE fcprlx_prm_newton
+  END SUBROUTINE fcprlx_prm
   !
   !----------------------------------------------------------------------------
   SUBROUTINE fcprlx_set_line_min(eps, smax)
@@ -197,27 +153,6 @@ CONTAINS
     CALL set_eps_smax(eps, smax, 'fcprlx_set_line_min')
     !
   END SUBROUTINE fcprlx_set_line_min
-  !
-  !----------------------------------------------------------------------------
-  SUBROUTINE fcprlx_set_mdiis(eps, smax)
-    !----------------------------------------------------------------------------
-    !
-    ! ... set the type of relaxation to MDIIS
-    ! ...
-    ! ... Variables:
-    ! ...   eps:  convergende threshold (in Ry/e)
-    ! ...   smax: maximum step (in e)
-    !
-    IMPLICIT NONE
-    !
-    REAL(DP), INTENT(IN) :: eps
-    REAL(DP), INTENT(IN) :: smax
-    !
-    irelax = IRELAX_MDIIS
-    !
-    CALL set_eps_smax(eps, smax, 'fcprlx_set_mdiis')
-    !
-  END SUBROUTINE fcprlx_set_mdiis
   !
   !----------------------------------------------------------------------------
   SUBROUTINE fcprlx_set_newton(eps, smax)
@@ -363,6 +298,7 @@ CONTAINS
     REAL(DP), INTENT(IN) :: force
     !
     REAL(DP) :: nelec0
+    REAL(DP) :: step
     !
     ! ... initialize
     !
@@ -383,7 +319,9 @@ CONTAINS
     !
     IF (ABS(force_old - force) < eps16) THEN
        !
-       nelec0 = nelec + line_min_step * force
+       CALL step_newton(force, step)
+       !
+       nelec0 = nelec + step
        !
     ELSE
        !
@@ -401,10 +339,10 @@ CONTAINS
   END SUBROUTINE line_minimization
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE do_mdiis(force)
+  SUBROUTINE do_newton(force)
     !----------------------------------------------------------------------------
     !
-    ! ... perform one step of relaxation, using MDIIS algorithm.
+    ! ... perform one step of relaxation, using Newton-Raphson algorithm with DIIS.
     !
     IMPLICIT NONE
     !
@@ -412,52 +350,8 @@ CONTAINS
     !
     REAL(DP) :: nelec0
     REAL(DP) :: nelec1(1)
-    REAL(DP) :: force1(1)
-    !
-    ! ... initialize
-    !
-    IF (.NOT. mdiis_init) THEN
-       !
-       mdiis_init = .TRUE.
-       !
-       WRITE(stdout, '(/,5X,"FCP Relaxation Calculation")')
-       WRITE(stdout, '(/,5X,"FCP: MDIIS Algorithm is used.")')
-       WRITE(stdout, '(  5X,"FCP: MDIIS Size   = ",I3           )') mdiis_size
-       WRITE(stdout, '(  5X,"FCP: MDIIS Step   = ",F7.3," Ry^-1")') mdiis_step
-       !
-       CALL allocate_mdiis(mdiist, mdiis_size, 1, mdiis_step, 1)
-       !
-    END IF
-    !
-    ! ... save number of electrons
-    !
-    nelec_old = nelec
-    !
-    ! ... perform MDIIS
-    !
-    nelec1(1) = nelec
-    force1(1) = force
-    CALL update_by_mdiis(mdiist, nelec1, force1)
-    nelec0 = nelec1(1)
-    !
-    ! ... update number of electrons
-    !
-    CALL update_nelec(nelec0)
-    !
-  END SUBROUTINE do_mdiis
-  !
-  !----------------------------------------------------------------------------
-  SUBROUTINE do_newton(force)
-    !----------------------------------------------------------------------------
-    !
-    ! ... perform one step of relaxation, using Newton-Raphson algorithm.
-    !
-    IMPLICIT NONE
-    !
-    REAL(DP), INTENT(IN) :: force
-    !
-    REAL(DP) :: nelec0
-    REAL(DP) :: hess
+    REAL(DP) :: step
+    REAL(DP) :: step1(1)
     !
     ! ... initialize
     !
@@ -467,6 +361,9 @@ CONTAINS
        !
        WRITE(stdout, '(/,5X,"FCP Relaxation Calculation")')
        WRITE(stdout, '(/,5X,"FCP: Newton-Raphson Algorithm is used.")')
+       WRITE(stdout, '(  5X,"FCP: Size of DIIS = ",I3)') ndiis
+       !
+       CALL allocate_mdiis(mdiist, ndiis, 1, 1.0_DP, 1)
        !
     END IF
     !
@@ -476,28 +373,51 @@ CONTAINS
     !
     ! ... perform Newton-Raphson
     !
-    CALL calc_hess(hess)
+    CALL step_newton(force, step)
     !
-    IF (ABS(hess) > eps4) THEN
-       !
-       nelec0 = nelec + hess * force
-       !
-       WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is ",1PE12.2)') hess
-       !
-    ELSE
-       !
-       nelec0 = nelec + newton_step * force
-       !
-       WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is zero")')
-       WRITE(stdout, '(  5X,"FCP: -> steepest descent algorithm is used.")')
-       !
-    END IF
+    ! ... perform DIIS
+    !
+    nelec1(1) = nelec
+    step1 (1) = step
+    CALL update_by_mdiis(mdiist, nelec1, step1)
+    nelec0 = nelec1(1)
     !
     ! ... update number of electrons
     !
     CALL update_nelec(nelec0)
     !
   END SUBROUTINE do_newton
+  !
+  !----------------------------------------------------------------------------
+  SUBROUTINE step_newton(force, step)
+    !----------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL(DP), INTENT(IN)  :: force
+    REAL(DP), INTENT(OUT) :: step
+    !
+    REAL(DP) :: hess
+    !
+    hess = 0.0_DP
+    CALL fcp_hessian(hess)
+    !
+    IF (ABS(hess) > eps4) THEN
+       !
+       step = hess * force
+       !
+       WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is ",1PE12.2)') hess
+       !
+    ELSE
+       !
+       step = slope * force
+       !
+       WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is zero")')
+       WRITE(stdout, '(  5X,"FCP: -> steepest descent algorithm is used.")')
+       !
+    END IF
+    !
+  END SUBROUTINE step_newton
   !
   !----------------------------------------------------------------------------
   SUBROUTINE update_nelec(nelec0)
@@ -528,38 +448,5 @@ CONTAINS
     END IF
     !
   END SUBROUTINE update_nelec
-  !
-  !----------------------------------------------------------------------------
-  SUBROUTINE calc_hess(hess)
-    !----------------------------------------------------------------------------
-    !
-    ! ... calculate Hessian:
-    ! ...
-    ! ...     d^2E/dN^2 = d(ef)/dN = 1/DOS(ef)
-    ! ...
-    !
-    IMPLICIT NONE
-    !
-    REAL(DP), INTENT(OUT) :: hess
-    !
-    INTEGER :: ik
-    INTEGER :: ibnd
-    !
-    REAL(DP), EXTERNAL :: w0gauss
-    !
-    hess = 0.0_DP
-    !
-    DO ik = 1, nkstot
-       !
-       DO ibnd = 1, nbnd
-          !
-          hess = hess + wk (ik) * &
-               & w0gauss((ef - et(ibnd, ik)) / degauss, ngauss) / degauss
-          !
-       END DO
-       !
-    END DO
-    !
-  END SUBROUTINE calc_hess
   !
 END MODULE fcp_relaxation

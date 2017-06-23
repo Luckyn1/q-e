@@ -1360,23 +1360,21 @@ MODULE input_parameters
         CHARACTER(LEN=8) :: fcp_dynamics = 'none'
           ! 'none':   Not specified
           ! 'lm':     Line-Minimization
-          ! 'mdiis':  MDIIS algorithm
-          ! 'newton': Newton-Raphson algorithm, coupled with ions and cell
+          ! 'newton': Newton-Raphson algorithm (with DIIS)
           ! 'damp':   Damped dynamics (quick-min Verlet)
           ! 'verlet': Verlet dynamics
 
-        CHARACTER(LEN=8) :: fcp_dynamics_allowed(6)
-        DATA fcp_dynamics_allowed / 'none', 'lm', 'mdiis', 'newton', 'damp', 'verlet' /
+        CHARACTER(LEN=8) :: fcp_dynamics_allowed(5)
+        DATA fcp_dynamics_allowed / 'none', 'lm', 'newton', 'damp', 'verlet' /
 
         REAL(DP) :: fcp_conv_thr = 1.0E-3_DP
           ! convergence threshold for FCP relaxation
 
-        REAL(DP) :: fcp_relax_step = -1.0_DP
-          ! step of relaxation used for
-          ! Line-Minimization and MDIIS algorithms
+        REAL(DP) :: fcp_slope = -1.0_DP
+          ! slope of relaxation used if insulator
 
-        INTEGER :: fcp_mdiis_size = 4
-          ! size of MDIIS algorithm
+        INTEGER :: fcp_ndiis = 4
+          ! size of DIIS for Newton-Raphson algorithm
 
         REAL(DP) :: fcp_mass = -1.0_DP
           ! mass for the FCP
@@ -1425,8 +1423,8 @@ MODULE input_parameters
         REAL(DP) :: solvation_radius = 6.0_DP
           ! solvation radius (in bohr)
 
-        NAMELIST / fcp / fcp_mu, fcp_dynamics, fcp_conv_thr, fcp_relax_step, &
-                         fcp_mdiis_size, fcp_mass, fcp_velocity, fcp_temperature, &
+        NAMELIST / fcp / fcp_mu, fcp_dynamics, fcp_conv_thr, fcp_slope, &
+                         fcp_ndiis, fcp_mass, fcp_velocity, fcp_temperature, &
                          fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                          freeze_all_atoms, solvation_radius
 

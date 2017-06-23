@@ -20,8 +20,7 @@ SUBROUTINE iosys_fcp()
                                   & fcp_eps, fcp_eps0, fcp_calc, fcp_check, &
                                   & solvation_radius_ => solvation_radius, &
                                   & fcp_is_dynamics
-  USE fcp_relaxation,        ONLY : fcprlx_init, fcprlx_prm_line_min, &
-                                  & fcprlx_prm_mdiis, fcprlx_prm_newton
+  USE fcp_relaxation,        ONLY : fcprlx_init, fcprlx_prm
   USE fcp_dynamics,          ONLY : fcpdyn_init, fcpdyn_prm_mass, &
                                   & fcpdyn_prm_velocity, fcpdyn_prm_temp
   USE read_namelists_module, ONLY : fcp_not_set
@@ -34,7 +33,7 @@ SUBROUTINE iosys_fcp()
   ! ... FCP namelist
   !
   USE input_parameters,      ONLY : fcp_mu, fcp_dynamics_ => fcp_dynamics, fcp_conv_thr, &
-                                  & fcp_relax_step, fcp_mdiis_size, fcp_mass, fcp_velocity, &
+                                  & fcp_slope, fcp_ndiis, fcp_mass, fcp_velocity, &
                                   & fcp_temperature, fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                                   & freeze_all_atoms, solvation_radius
   !
@@ -48,15 +47,15 @@ SUBROUTINE iosys_fcp()
   !
   area_xy = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
   !
-  ! ... modify fcp_relax_step
+  ! ... modify fcp_slope
   !
-  IF (fcp_relax_step <= 0.0_DP) THEN
+  IF (fcp_slope <= 0.0_DP) THEN
      !
-     fcp_relax_step = RELAX_STEP_DEF * area_xy
+     fcp_slope = RELAX_STEP_DEF * area_xy
      !
      IF (lrism) THEN
         !
-        fcp_relax_step = fcp_relax_step * SCALE_RISM
+        fcp_slope = fcp_slope * SCALE_RISM
         !
      END IF
      !
@@ -87,10 +86,6 @@ SUBROUTINE iosys_fcp()
      CASE('lm', 'line-min', 'line-minimization', 'line-minimisation')
         !
         fcp_calc = 'lm'
-        !
-     CASE('mdiis')
-        !
-        fcp_calc = 'mdiis'
         !
      CASE('damp')
         !
@@ -165,11 +160,7 @@ SUBROUTINE iosys_fcp()
      !
      ! ... set parameters of fcp_relaxation
      !
-     CALL fcprlx_prm_line_min(fcp_relax_step)
-     !
-     CALL fcprlx_prm_mdiis(fcp_mdiis_size, fcp_relax_step)
-     !
-     CALL fcprlx_prm_newton(fcp_relax_step)
+     CALL fcprlx_prm(fcp_slope, fcp_ndiis)
      !
   END IF
   !
