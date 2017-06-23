@@ -41,8 +41,7 @@ MODULE fcp_relaxation
   ! ... define parameters
   INTEGER, PARAMETER :: IRELAX_NULL     = 0
   INTEGER, PARAMETER :: IRELAX_LINE_MIN = 1
-  INTEGER, PARAMETER :: IRELAX_MDIIS    = 2
-  INTEGER, PARAMETER :: IRELAX_NEWTON   = 3
+  INTEGER, PARAMETER :: IRELAX_NEWTON   = 2
   !
   ! ... define variables
   INTEGER          :: irelax         ! type of relaxation
@@ -250,10 +249,6 @@ CONTAINS
           !
           CALL line_minimization(force)
           !
-       ELSE IF (irelax == IRELAX_MDIIS) THEN
-          !
-          CALL do_mdiis(force)
-          !
        ELSE IF (irelax == IRELAX_NEWTON) THEN
           !
           CALL do_newton(force)
@@ -308,7 +303,6 @@ CONTAINS
        !
        WRITE(stdout, '(/,5X,"FCP Relaxation Calculation")')
        WRITE(stdout, '(/,5X,"FCP: Line-Minimization Algorithm is used.")')
-       WRITE(stdout, '(  5X,"FCP: Initial Step = ",F7.3," Ry^-1")') line_min_step
        !
        nelec_old = nelec
        force_old = force

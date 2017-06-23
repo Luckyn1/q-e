@@ -35,7 +35,7 @@ MODULE fcp_module
   USE fcp_dynamics,    ONLY : fcpdyn_final, fcpdyn_update, &
                             & fcpdyn_set_verlet, fcpdyn_set_proj_verlet
   USE fcp_relaxation,  ONLY : fcprlx_final, fcprlx_update, &
-                            & fcprlx_set_line_min, fcprlx_set_mdiis, fcprlx_set_newton
+                            & fcprlx_set_line_min, fcprlx_set_newton
   USE fixed_occ,       ONLY : tfixed_occ
   USE funct,           ONLY : exx_is_active
   USE io_global,       ONLY : stdout

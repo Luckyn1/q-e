@@ -79,6 +79,7 @@ ewald.o \
 ewald_dipole.o \
 exx.o \
 fcp_dynamics.o \
+fcp_hessian.o \
 fcp_input.o \
 fcp_module.o \
 fcp_relaxation.o \

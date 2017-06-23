@@ -16,13 +16,13 @@ SUBROUTINE iosys_fcp()
   USE constants,             ONLY : RYTOEV
   USE ions_base,             ONLY : if_pos
   USE kinds,                 ONLY : DP
+  USE fcp_dynamics,          ONLY : fcpdyn_init, fcpdyn_prm_mass, &
+                                  & fcpdyn_prm_velocity, fcpdyn_prm_temp
   USE fcp_module,            ONLY : fcp_mu_ => fcp_mu, &
                                   & fcp_eps, fcp_eps0, fcp_calc, fcp_check, &
                                   & solvation_radius_ => solvation_radius, &
                                   & fcp_is_dynamics
   USE fcp_relaxation,        ONLY : fcprlx_init, fcprlx_prm
-  USE fcp_dynamics,          ONLY : fcpdyn_init, fcpdyn_prm_mass, &
-                                  & fcpdyn_prm_velocity, fcpdyn_prm_temp
   USE read_namelists_module, ONLY : fcp_not_set
   USE rism_module,           ONLY : lrism
   !

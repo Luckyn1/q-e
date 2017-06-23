@@ -15,6 +15,7 @@ SUBROUTINE fcp_hessian(hess)
   ! ...
   !
   USE ener,  ONLY : ef
+  USE kinds, ONLY : DP
   USE klist, ONLY : nkstot, wk, degauss, ngauss
   USE wvfct, ONLY : nbnd, et
   !
