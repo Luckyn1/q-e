@@ -2579,7 +2579,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             default { 4 }
             info {
                 Size of DIIS for FCP relaxation,
-                used only if @ fcp_dynamics = 'newton'.
+                used only if @ref fcp_dynamics = 'newton'.
             }
         }
 
