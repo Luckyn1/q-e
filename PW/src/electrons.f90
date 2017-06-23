@@ -371,7 +371,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
-  USE fcp_variables,        ONLY : lfcpopt, lfcpdyn, fcp_mu
+  USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
   !
@@ -789,7 +789,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
         hwf_energy = hwf_energy + etotmonofield
      END IF
      !
-     IF ( lfcpopt .or. lfcpdyn ) THEN
+     IF ( lfcp ) THEN
         etot = etot + fcp_mu * tot_charge
         hwf_energy = hwf_energy + fcp_mu * tot_charge
      END IF
