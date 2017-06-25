@@ -313,6 +313,7 @@ CONTAINS
     !
     IF (ABS(force_old - force) < eps16) THEN
        !
+       step = 0.0_DP
        CALL step_newton(force, step)
        !
        nelec0 = nelec + step
@@ -367,6 +368,7 @@ CONTAINS
     !
     ! ... perform Newton-Raphson
     !
+    step = 0.0_DP
     CALL step_newton(force, step)
     !
     ! ... perform DIIS

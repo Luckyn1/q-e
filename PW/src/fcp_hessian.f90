@@ -12,7 +12,6 @@ SUBROUTINE fcp_hessian(hess)
   ! ... calculate inverse of the Hessian:
   ! ...
   ! ...     d^2E/dN^2 = d(ef)/dN = 1/DOS(ef)
-  ! ...
   !
   USE ener,  ONLY : ef
   USE kinds, ONLY : DP
