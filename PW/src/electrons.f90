@@ -1174,7 +1174,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
           ! ... potential energy Omega = E - muN, -muN is the potentiostat
           ! ... contribution.
           !
-          IF ( lfcpopt .OR. lfcpdyn ) WRITE( stdout, 9072 ) fcp_mu*tot_charge
+          IF ( lfcp ) WRITE( stdout, 9072 ) fcp_mu*tot_charge
           !
        ELSE IF ( conv_elec ) THEN
           !
