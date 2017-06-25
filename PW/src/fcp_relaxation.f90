@@ -271,7 +271,7 @@ CONTAINS
        WRITE(stdout, '(/,5X,"FCP: iteration #",I5)') iter
        WRITE(stdout, '(  5X,"FCP: Total Charge = ",F12.6,"  -> ",F12.6)') tot_charge_, tot_charge
     ELSE
-       WRITE(stdout, '(/,5X,"FCP: Total Charge = ",F12.6)') tot_charge_
+       WRITE(stdout, '(/,5X,"FCP: Total Charge = ",F12.6)') tot_charge
     END IF
     !
     WRITE(stdout, '(5X,"FCP: Fermi Energy = ",F12.6," Ry (",F12.6," eV)")') ef,    ef    * RYTOEV

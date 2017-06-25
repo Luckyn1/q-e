@@ -2549,21 +2549,28 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
 
                     @b CASE ( @ref calculation == 'relax' )
                 }
+                opt -val 'bfgs' {
+                    @b (default) BFGS quasi-newton algorithm, coupling with ions relaxation
+                    @ref ion_dynamics must be @b 'bfgs' too
+                }
                 opt -val 'newton' {
-                    @b (default) Newton-Raphson algorithm with DIIS
+                    Newton-Raphson algorithm with DIIS
+                    @ref ion_dynamics must be @b 'damp' too
                 }
                 opt -val 'damp' {
                     damped (quick-min Verlet) dynamics for FCP relaxation
+                    @ref ion_dynamics must be @b 'damp' too
                 }
                 opt -val 'lm' {
                     Line-Minimization algorithm for FCP relaxation
+                    @ref ion_dynamics must be @b 'damp' too
                 }
                 info {
                     @b CASE ( @ref calculation == 'md' )
                 }
                 opt -val 'verlet' {
-                    @b (default) Verlet algorithm to integrate
-                    Newton's equation. @ref ion_dynamics must be @b 'verlet' too
+                    @b (default) Verlet algorithm to integrate Newton's equation.
+                    @ref ion_dynamics must be @b 'verlet' too
                 }
             }
         }

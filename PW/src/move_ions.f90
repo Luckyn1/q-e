@@ -28,7 +28,7 @@ SUBROUTINE move_ions ( idone )
   USE cell_base,              ONLY : alat, at, bg, omega, cell_force, &
                                      fix_volume, fix_area
   USE cellmd,                 ONLY : omega_old, at_old, press, lmovecell, calc
-  USE ions_base,              ONLY : nat, ityp, tau, if_pos
+  USE ions_base,              ONLY : nat, zv, ityp, tau, if_pos
   USE fft_base,               ONLY : dfftp
   USE fft_base,               ONLY : dffts
   USE fft_types,              ONLY : fft_type_allocate
@@ -52,7 +52,8 @@ SUBROUTINE move_ions ( idone )
   USE dynamics_module,        ONLY : smart_MC, langevin_md
   USE klist,                  ONLY : nelec, tot_charge
   USE dfunct,                 only : newd
-  USE fcp_module,             ONLY : lfcp, fcp_relax, fcp_verlet, fcp_terminate, fcp_new_conv_thr
+  USE fcp_module,             ONLY : lfcp, fcp_esp, fcp_mu, fcp_relax, fcp_verlet, &
+                                     fcp_terminate, fcp_new_conv_thr, output_fcp
   USE rism_module,            ONLY : lrism, rism_new_conv_thr
   !
   IMPLICIT NONE
@@ -63,10 +64,11 @@ SUBROUTINE move_ions ( idone )
                            restart_with_starting_magnetiz = .FALSE., &
                            lcheck_cell= .TRUE., &
                            final_cell_calculation=.FALSE.
-  REAL(DP)              :: energy_error, gradient_error, cell_error
+  REAL(DP)              :: energy_error, gradient_error, cell_error, fcp_error
   LOGICAL               :: step_accepted, exst
   REAL(DP), ALLOCATABLE :: pos(:), grad(:)
   REAL(DP)              :: h(3,3), fcell(3,3)=0.d0, epsp1
+  REAL(DP)              :: relec, felec, tot_charge_
   INTEGER,  ALLOCATABLE :: fixion(:)
   !
   ! ... only one node does the calculation in the parallel case
@@ -112,11 +114,19 @@ SUBROUTINE move_ions ( idone )
            epsp1 = epsp / ry_kbar
         END IF
         !
-        IF ( ANY( if_pos(:,:) == 1 ) .OR. lmovecell ) THEN
+        relec = 0.0_DP
+        felec = 0.0_DP
+        IF ( lfcp ) THEN
+           relec = nelec
+           felec = (ef - fcp_mu)
+           tot_charge_ = tot_charge
+        END IF
+        !
+        IF ( ANY( if_pos(:,:) == 1 ) .OR. lmovecell .OR. lfcp ) THEN
            !
-           CALL bfgs( pos, h, etot, grad, fcell, fixion, tmp_dir, stdout, epse,&
-                      epsf, epsp1,  energy_error, gradient_error, cell_error,  &
-                      lmovecell, step_accepted, conv_ions, istep )
+           CALL bfgs( pos, h, relec, etot, grad, fcell, felec, fixion, tmp_dir, stdout, epse, &
+                      epsf, epsp1, fcp_eps, energy_error, gradient_error, cell_error, fcp_error, &
+                      lmovecell, lfcp, step_accepted, conv_ions, istep )
            !
         ELSE
            !
@@ -133,14 +143,15 @@ SUBROUTINE move_ions ( idone )
            CALL volume( alat, at(1,1), at(1,2), at(1,3), omega )
         END IF
         !
+        IF ( lfcp ) THEN
+           nelec = relec
+           tot_charge = SUM(zv(ityp(1:nat))) - nelec
+        END IF
+        !
         CALL cryst_to_cart( nat, pos, at, 1 )
         tau    =   RESHAPE( pos, (/ 3 , nat /) )
         CALL cryst_to_cart( nat, grad, bg, 1 )
         force = - RESHAPE( grad, (/ 3, nat /) )
-        !
-        ! ... the relaxation of FCP
-        !
-        IF ( lfcp ) CALL fcp_relax( conv_ions )
         !
         IF ( conv_ions ) THEN
            !
@@ -158,19 +169,15 @@ SUBROUTINE move_ions ( idone )
               !  cell.
               !
               final_cell_calculation=.TRUE.
-              CALL terminate_bfgs ( etot, epse, epsf, epsp, lmovecell, &
-                                    stdout, tmp_dir )
+              CALL terminate_bfgs ( etot, epse, epsf, epsp, fcp_eps, &
+                                    lmovecell, lfcp, stdout, tmp_dir )
               !
            ELSE
               !
-              CALL terminate_bfgs ( etot, epse, epsf, epsp, lmovecell, &
-                                    stdout, tmp_dir )
+              CALL terminate_bfgs ( etot, epse, epsf, epsp, fcp_eps, &
+                                    lmovecell, lfcp, stdout, tmp_dir )
               !
            END IF
-           !
-           ! ... finalize FCP
-           !
-           IF ( lfcp ) CALL fcp_terminate()
            !
         ELSE
            !
@@ -203,6 +210,8 @@ SUBROUTINE move_ions ( idone )
         END IF
         !
         CALL output_tau( lmovecell, conv_ions )
+        !
+        IF ( lfcp ) CALL output_fcp( tot_charge_, conv_ions )
         !
         DEALLOCATE( pos, grad, fixion )
         !

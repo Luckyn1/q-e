@@ -72,6 +72,7 @@ MODULE fcp_module
   PUBLIC :: fcp_terminate
   PUBLIC :: fcp_new_conv_thr
   PUBLIC :: fcp_is_dynamics
+  PUBLIC :: output_fcp
   !
 CONTAINS
   !
@@ -342,5 +343,33 @@ CONTAINS
     END IF
     !
   END FUNCTION fcp_is_dynamics
+  !
+  !----------------------------------------------------------------------------
+  SUBROUTINE output_fcp(tot_charge_, conv)
+    !----------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL(DP), INTENT(IN) :: tot_charge_
+    LOGICAL,  INTENT(IN) :: conv
+    !
+    REAL(DP) :: force
+    !
+    IF (.NOT. lfcp) RETURN
+    !
+    IF (.NOT. conv) THEN
+       WRITE(stdout, '(/,5X,"FCP: Total Charge = ",F12.6,"  -> ",F12.6)') tot_charge_, tot_charge
+    ELSE
+       WRITE(stdout, '(/,5X,"FCP: Total Charge = ",F12.6)') tot_charge
+    END IF
+    !
+    force = fcp_mu - ef
+    !
+    WRITE(stdout, '(5X,"FCP: Fermi Energy = ",F12.6," Ry (",F12.6," eV)")') ef,     ef     * RYTOEV
+    WRITE(stdout, '(5X,"FCP: Target Level = ",F12.6," Ry (",F12.6," eV)")') fcp_mu, fcp_mu * RYTOEV
+    WRITE(stdout, '(5X,"FCP: Force on FCP = ",F12.6," Ry (",F12.6," eV)")') force,  force  * RYTOEV
+    WRITE(stdout, '(/)')
+    !
+  END SUBROUTINE output_fcp
   !
 END MODULE fcp_module
