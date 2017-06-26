@@ -352,9 +352,10 @@ CONTAINS
     !
     force = fcp_mu - ef
     !
-    WRITE(stdout, '(5X,"FCP: Fermi Energy = ",F12.6," Ry (",F12.6," eV)")') ef,     ef     * RYTOEV
-    WRITE(stdout, '(5X,"FCP: Target Level = ",F12.6," Ry (",F12.6," eV)")') fcp_mu, fcp_mu * RYTOEV
-    WRITE(stdout, '(5X,"FCP: Force on FCP = ",F12.6," Ry (",F12.6," eV)")') force,  force  * RYTOEV
+    WRITE(stdout, '(5X,"FCP: Fermi Energy = ",F12.6," Ry (",F12.6," eV)")') ef,      ef      * RYTOEV
+    WRITE(stdout, '(5X,"FCP: Target Level = ",F12.6," Ry (",F12.6," eV)")') fcp_mu,  fcp_mu  * RYTOEV
+    WRITE(stdout, '(5X,"FCP: Force on FCP = ",F12.6," Ry (",F12.6," eV)")') force,   force   * RYTOEV
+    WRITE(stdout, '(5X,"FCP: Force Thr.   = ",F12.6," Ry (",F12.6," eV)")') fcp_eps, fcp_eps * RYTOEV
     WRITE(stdout, '(/)')
     !
   END SUBROUTINE output_fcp
