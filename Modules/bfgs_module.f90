@@ -1208,9 +1208,10 @@ CONTAINS
               & FMT = '(5X,"(criteria: energy < ",ES8.1," Ry, force < ",ES8.1,&
               &            " Ry/Bohr)")') energy_thr, grad_thr
          END IF
+         !
          IF ( lfcp ) THEN
             WRITE( UNIT = stdout, &
-              & FMT = '(5X,"(          force on FCP < ",ES8.1," Ry")') fcp_thr
+              & FMT = '(5X,"(criteria: force on FCP < ",ES8.1," Ry)")') fcp_thr
          END IF
          WRITE( UNIT = stdout, &
               & FMT = '(/,5X,"End of BFGS Geometry Optimization")' )
