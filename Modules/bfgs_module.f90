@@ -175,6 +175,9 @@ CONTAINS
       ! ... for scaled coordinates
       REAL(DP) :: hinv(3,3),g(3,3),ginv(3,3), omega
       !
+      ! ... for metric of FCP
+      REAL(DP) :: fcp_cap
+      !
       ! ... additional dimensions of cell and FCP
       INTEGER, PARAMETER :: NADD = 9 + 1
       !
@@ -220,7 +223,13 @@ CONTAINS
       metric = 0.d0
       FORALL ( k=0:nat-1,   i=1:3, j=1:3 ) metric(i+3*k,j+3*k) = g(i,j)
       FORALL ( k=nat:nat+2, i=1:3, j=1:3 ) metric(i+3*k,j+3*k) = 0.04d0 * omega * ginv(i,j)
-      metric(n,n) = 1.d0 ! TODO unit is bohr^2
+      !
+      IF (lfcp) THEN
+         CALL fcp_capacitance(fcp_cap)
+         metric(n,n) = (0.5d0 / felec / fcp_cap) ** 2
+      ELSE
+         metric(n,n) = 1.d0
+      END IF
       !
       ! ... generate bfgs vectors for the degrees of freedom and their gradients
       pos = 0.d0
@@ -1163,7 +1172,7 @@ CONTAINS
          scnorm = MAX (scnorm, SQRT (ss) )
       end do
       !
-      ss = SQRT (vect(ndim) * metric(ndim,ndim) * vect(ndim))
+      ss = vect(ndim) * metric(ndim,ndim) * vect(ndim)
       scnorm = MAX (scnorm, SQRT (ss) )
       !
    END FUNCTION scnorm
