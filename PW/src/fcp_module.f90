@@ -19,7 +19,7 @@ MODULE fcp_module
   ! ... description of the system connected to a potentiostat which preserves
   ! ... the Fermi energy of the system as the target Fermi energy (mu).
   ! ...
-  ! ... MDIIS and BFGS algorithms are implemented by S. Nishihara (2016-2017)
+  ! ... Newton and BFGS algorithms are implemented by S. Nishihara (2016-2017)
   ! ...
   ! ... . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
   ! ...   This module is the facade of FCP calculations.
