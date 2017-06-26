@@ -278,7 +278,7 @@ CONTAINS
     WRITE(stdout, '(5X,"FCP: Target Level = ",F12.6," Ry (",F12.6," eV)")') mu,    mu    * RYTOEV
     WRITE(stdout, '(5X,"FCP: Force on FCP = ",F12.6," Ry (",F12.6," eV)")') force, force * RYTOEV
     WRITE(stdout, '(5X,"FCP: Force Thr.   = ",F12.6," Ry (",F12.6," eV)")') epsf,  epsf  * RYTOEV
-    WRITE(stdout, '()')
+    WRITE(stdout, '(/)')
     !
   END SUBROUTINE fcprlx_update
   !

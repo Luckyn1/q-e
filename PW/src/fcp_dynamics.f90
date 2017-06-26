@@ -382,7 +382,7 @@ CONTAINS
        WRITE(stdout, '(5X,"FCP: Force Thr.   = ",F12.6," Ry (",F12.6," eV)")') epsf, epsf * RYTOEV
     END IF
     !
-    WRITE(stdout, '()')
+    WRITE(stdout, '(/)')
     !
     IF (PRESENT(conv)) THEN
       conv = conv_
