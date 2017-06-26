@@ -883,7 +883,9 @@ CONTAINS
       LOGICAL,  INTENT(IN)  :: lfcp
       INTEGER,  INTENT(IN)  :: stdout
       !
+      REAL(DP), ALLOCATABLE :: s0(:)
       REAL(DP), ALLOCATABLE :: z(:)
+      REAL(DP), ALLOCATABLE :: z0(:)
       REAL(DP), ALLOCATABLE :: Bs(:)
       REAL(DP)              :: sdoty, sBs
       REAL(DP)              :: sdots, zdotz, sdotz
@@ -891,20 +893,28 @@ CONTAINS
       REAL(DP)              :: phi2
       REAL(DP), ALLOCATABLE :: B1(:,:) ! SR1's hessian
       REAL(DP), ALLOCATABLE :: B2(:,:) ! BFGS's hessian
+      REAL(DP), ALLOCATABLE :: inv_metric(:,:)
       LOGICAL               :: lerr
       !
       lerr = .FALSE.
       !
-      ALLOCATE( z( n ), Bs( n ) )
+      ALLOCATE( s0( n ) )
+      ALLOCATE( z( n ), z0( n ) )
+      ALLOCATE( Bs( n ) )
       ALLOCATE( B1( n, n ), B2( n, n ) )
+      ALLOCATE( inv_metric( n, n ) )
       !
-      Bs(:) = ( fwd_hess .times. s(:) )
+      CALL invmat(n, metric, inv_metric)
+      !
+      s0(:) = ( metric .times. s(:) )
       z (:) = y(:) - Bs(:)
+      z0(:) = ( inv_metric .times. z(:) )
+      Bs(:) = ( fwd_hess .times. s(:) )
       !
       sBs   = ( s(:) .dot. Bs(:) )
       sdoty = ( s(:) .dot. y(:) )
-      sdots = ( s(:) .dot. s(:) )
-      zdotz = ( z(:) .dot. z(:) )
+      sdots = ( s(:) .dot. s0(:) )
+      zdotz = ( z(:) .dot. z0(:) )
       sdotz = ( s(:) .dot. z(:) )
       !
       ! ... coupling rates
@@ -963,8 +973,11 @@ CONTAINS
       fwd_hess = fwd_hess + phi1 * B1 + phi2 * B2
       !
 1100  CONTINUE
-      DEALLOCATE( z, Bs )
+      DEALLOCATE( s0 )
+      DEALLOCATE( z, z0 )
+      DEALLOCATE( Bs )
       DEALLOCATE( B1, B2 )
+      DEALLOCATE( inv_metric )
       !
       IF ( lerr ) THEN
          !
