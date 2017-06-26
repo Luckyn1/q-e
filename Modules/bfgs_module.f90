@@ -227,7 +227,7 @@ CONTAINS
       IF ( lfcp ) THEN
          CALL fcp_capacitance(fcp_cap)
          IF ( ABS(felec * fcp_cap) > eps8 ) THEN
-            metric(n,n) = (1.0d0 / (felec * fcp_cap)) ** 2
+            metric(n,n) = (0.25d0 / (felec * fcp_cap)) ** 2
          ELSE
             metric(n,n) = 1.d0
          END IF
