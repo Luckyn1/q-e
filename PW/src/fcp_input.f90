@@ -104,7 +104,7 @@ SUBROUTINE iosys_fcp()
         !
         CALL errore('iosys', 'calculation=' // TRIM(calculation) // &
                   & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
-                  & ' not supported', 1 )
+                  & ' not supported', 1)
         !
      END SELECT
      !
@@ -118,11 +118,11 @@ SUBROUTINE iosys_fcp()
      !
      IF (lmd .AND. TRIM(fcp_calc) == 'bfgs') THEN
         !
-        fcp_calc = 'damp'
+        fcp_calc = 'newton'
         !
         CALL infomsg('iosys', 'calculation='// TRIM(calculation) // &
                    & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
-                   & " ignored, 'damp' assumed")
+                   & " ignored, 'newton' assumed")
         !
      END IF
      !

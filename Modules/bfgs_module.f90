@@ -224,9 +224,13 @@ CONTAINS
       FORALL ( k=0:nat-1,   i=1:3, j=1:3 ) metric(i+3*k,j+3*k) = g(i,j)
       FORALL ( k=nat:nat+2, i=1:3, j=1:3 ) metric(i+3*k,j+3*k) = 0.04d0 * omega * ginv(i,j)
       !
-      IF (lfcp) THEN
+      IF ( lfcp ) THEN
          CALL fcp_capacitance(fcp_cap)
-         metric(n,n) = (0.5d0 / felec / fcp_cap) ** 2
+         IF ( ABS(felec * fcp_cap) > eps8 ) THEN
+            metric(n,n) = (0.5d0 / (felec * fcp_cap)) ** 2
+         ELSE
+            metric(n,n) = 1.d0
+         END IF
       ELSE
          metric(n,n) = 1.d0
       END IF
@@ -244,7 +248,7 @@ CONTAINS
       ! if the cell moves the quantity to be minimized is the enthalpy
       fname = "energy"
       IF ( lmovecell ) fname = "enthalpy"
-      IF ( lfcp ) fname = "grand-" + TRIM(fname)
+      IF ( lfcp ) fname = "grand-" // TRIM(fname)
       !
       CALL read_bfgs_file( pos, grad, fixion, energy, scratch, n, lfcp, stdout )
       !
@@ -276,7 +280,7 @@ CONTAINS
       END IF
       !
       IF( lfcp ) THEN
-          fcp_error = ABS( grad(n:n) )
+          fcp_error = ABS( grad( n ) )
           conv_bfgs = conv_bfgs .AND. ( fcp_error < fcp_thr )
       END IF
       !

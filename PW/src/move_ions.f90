@@ -52,7 +52,7 @@ SUBROUTINE move_ions ( idone )
   USE dynamics_module,        ONLY : smart_MC, langevin_md
   USE klist,                  ONLY : nelec, tot_charge
   USE dfunct,                 only : newd
-  USE fcp_module,             ONLY : lfcp, fcp_esp, fcp_mu, fcp_relax, fcp_verlet, &
+  USE fcp_module,             ONLY : lfcp, fcp_eps, fcp_mu, fcp_relax, fcp_verlet, &
                                      fcp_terminate, fcp_new_conv_thr, output_fcp
   USE rism_module,            ONLY : lrism, rism_new_conv_thr
   !
