@@ -345,9 +345,9 @@ CONTAINS
     IF (.NOT. lfcp) RETURN
     !
     IF (.NOT. conv) THEN
-       WRITE(stdout, '(/,5X,"FCP: Total Charge = ",F12.6,"  -> ",F12.6)') tot_charge_, tot_charge
+       WRITE(stdout, '(5X,"FCP: Total Charge = ",F12.6,"  -> ",F12.6)') tot_charge_, tot_charge
     ELSE
-       WRITE(stdout, '(/,5X,"FCP: Total Charge = ",F12.6)') tot_charge
+       WRITE(stdout, '(5X,"FCP: Total Charge = ",F12.6)') tot_charge
     END IF
     !
     force = fcp_mu - ef
