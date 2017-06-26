@@ -227,7 +227,7 @@ CONTAINS
       IF ( lfcp ) THEN
          CALL fcp_capacitance(fcp_cap)
          IF ( ABS(felec * fcp_cap) > eps8 ) THEN
-            metric(n,n) = (0.25d0 / (felec * fcp_cap)) ** 2
+            metric(n,n) = (0.5d0 / (felec * fcp_cap)) ** 2
          ELSE
             metric(n,n) = 1.d0
          END IF
@@ -883,9 +883,7 @@ CONTAINS
       LOGICAL,  INTENT(IN)  :: lfcp
       INTEGER,  INTENT(IN)  :: stdout
       !
-      REAL(DP), ALLOCATABLE :: s0(:)
       REAL(DP), ALLOCATABLE :: z(:)
-      REAL(DP), ALLOCATABLE :: z0(:)
       REAL(DP), ALLOCATABLE :: Bs(:)
       REAL(DP)              :: sdoty, sBs
       REAL(DP)              :: sdots, zdotz, sdotz
@@ -893,28 +891,21 @@ CONTAINS
       REAL(DP)              :: phi2
       REAL(DP), ALLOCATABLE :: B1(:,:) ! SR1's hessian
       REAL(DP), ALLOCATABLE :: B2(:,:) ! BFGS's hessian
-      REAL(DP), ALLOCATABLE :: inv_metric(:,:)
       LOGICAL               :: lerr
       !
       lerr = .FALSE.
       !
-      ALLOCATE( s0( n ) )
-      ALLOCATE( z( n ), z0( n ) )
+      ALLOCATE( z( n ) )
       ALLOCATE( Bs( n ) )
       ALLOCATE( B1( n, n ), B2( n, n ) )
-      ALLOCATE( inv_metric( n, n ) )
       !
-      CALL invmat(n, metric, inv_metric)
-      !
-      s0(:) = ( metric .times. s(:) )
       z (:) = y(:) - Bs(:)
-      z0(:) = ( inv_metric .times. z(:) )
       Bs(:) = ( fwd_hess .times. s(:) )
       !
       sBs   = ( s(:) .dot. Bs(:) )
       sdoty = ( s(:) .dot. y(:) )
-      sdots = ( s(:) .dot. s0(:) )
-      zdotz = ( z(:) .dot. z0(:) )
+      sdots = ( s(:) .dot. s(:) )
+      zdotz = ( z(:) .dot. z(:) )
       sdotz = ( s(:) .dot. z(:) )
       !
       ! ... coupling rates
@@ -973,11 +964,9 @@ CONTAINS
       fwd_hess = fwd_hess + phi1 * B1 + phi2 * B2
       !
 1100  CONTINUE
-      DEALLOCATE( s0 )
-      DEALLOCATE( z, z0 )
+      DEALLOCATE( z )
       DEALLOCATE( Bs )
       DEALLOCATE( B1, B2 )
-      DEALLOCATE( inv_metric )
       !
       IF ( lerr ) THEN
          !
@@ -1030,7 +1019,7 @@ CONTAINS
       !
       DO i = 1, n
          !
-         IF ( eval(i) > eps16 ) THEN
+         IF ( eval(i) > eps8 ) THEN
             evec2(:, i) = evec1(:, i) / eval(i)
          ELSE
             evec2(:, i) = 0.0_DP
