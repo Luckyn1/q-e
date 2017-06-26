@@ -2878,7 +2878,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
         }
 
         var rism3d_conv_thr -type REAL {
-            default { 1.D-5 }
+            default { 1.D-4 }
             info {
                 Convergence threshold for 3D-RISM.
             }
