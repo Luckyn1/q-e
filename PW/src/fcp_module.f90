@@ -25,11 +25,10 @@ MODULE fcp_module
   ! ...   This module is the facade of FCP calculations.
   ! ... . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
   !
-  USE constants,       ONLY : fpi, e2, RYTOEV
+  USE constants,       ONLY : RYTOEV
   USE control_flags,   ONLY : lbfgs, lmd, tr2
-  USE cell_base,       ONLY : alat, at
   USE dynamics_module, ONLY : dt
-  USE esm,             ONLY : do_comp_esm, esm_bc, esm_w
+  USE esm,             ONLY : do_comp_esm, esm_bc
   USE ener,            ONLY : ef
   USE exx,             ONLY : x_gamma_extrapolation
   USE fcp_dynamics,    ONLY : fcpdyn_final, fcpdyn_update, &
@@ -189,9 +188,7 @@ CONTAINS
     LOGICAL, INTENT(INOUT) :: conv
     !
     REAL(DP) :: force
-    REAL(DP) :: z0
-    REAL(DP) :: area_xy
-    REAL(DP) :: capacity
+    REAL(DP) :: capacitance
     REAL(DP) :: step_max
     !
     IF (.NOT. lfcp) RETURN
@@ -202,19 +199,9 @@ CONTAINS
     !
     force = fcp_mu - ef
     !
-    IF (TRIM(esm_bc) == 'bc2' .OR. TRIM(esm_bc) == 'bc3' .OR. TRIM(esm_bc) == 'bc4') THEN
-       z0 = 0.5_DP * alat * at(3, 3) + esm_w
-    ELSE IF (lrism .AND. (solvation_radius > 0.0_DP)) THEN
-       z0 = solvation_radius
-    ELSE
-       z0 = 0.5_DP * alat * at(3, 3)
-    END IF
+    CALL fcp_capacitance(capacitance)
     !
-    area_xy  = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
-    !
-    capacity = (1.0_DP / fpi / e2) * area_xy / z0
-    !
-    step_max = ABS(capacity * force)
+    step_max = ABS(capacitance * force)
     !
     ! ... perform each algorithm
     !
