@@ -717,7 +717,7 @@ MODULE read_namelists_module
        END IF
        !
        freeze_all_atoms = .FALSE.
-       solvation_radius = 4.0_DP
+       solvation_radius = 6.0_DP
        !
        RETURN
        !
