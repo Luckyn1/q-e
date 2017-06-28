@@ -26,7 +26,7 @@ MODULE fcp_dynamics
   ! ... . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
   !
   USE constants,      ONLY : RYTOEV, ry_to_kelvin
-  USE control_flags,  ONLY : lmd, istep, iverbosity
+  USE control_flags,  ONLY : iverbosity
   USE ener,           ONLY : ef
   USE io_files,       ONLY : seqopn
   USE io_global,      ONLY : stdout
@@ -455,15 +455,7 @@ CONTAINS
     !
     ! ... update counter
     !
-    IF (lmd .AND. istep > 0) THEN
-       !
-       iter = istep
-       !
-    ELSE
-       !
-       iter = iter + 1
-       !
-    END IF
+    iter = iter + 1
     !
     ! ... control the temperature
     !
@@ -861,15 +853,7 @@ CONTAINS
     !
     ! ... update counter
     !
-    IF (lmd .AND. istep > 0) THEN
-       !
-       iter = istep
-       !
-    ELSE
-       !
-       iter = iter + 1
-       !
-    END IF
+    iter = iter + 1
     !
     ! ... calculate force and acceleration
     !
