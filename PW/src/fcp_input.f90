@@ -43,7 +43,7 @@ SUBROUTINE iosys_fcp()
   REAL(DP) :: area_xy
   !
   REAL(DP), PARAMETER :: RELAX_STEP_DEF = 1.0E-3_DP
-  REAL(DP), PARAMETER :: MASS_DEF       = 1.0E+6_DP
+  REAL(DP), PARAMETER :: MASS_DEF       = 5.0E+6_DP
   REAL(DP), PARAMETER :: SCALE_RISM     = 100.0_DP
   !
   area_xy = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
