@@ -197,7 +197,8 @@ CONTAINS
     !
     ! ... evaluate maximum step
     !
-    force = fcp_mu - ef
+    !force = fcp_mu - ef
+    force = 0.1_DP
     !
     CALL fcp_capacitance(capacitance)
     !
