@@ -130,13 +130,9 @@ SUBROUTINE move_ions ( idone )
            !
         ELSE
            !
-           energy_error   = 0.0_DP
-           gradient_error = 0.0_DP
-           cell_error     = 0.0_DP
-           fcp_error      = 0.0_DP
-           step_accepted  = .FALSE.
-           conv_ions      = .TRUE.
-           istep          = istep + 1
+           step_accepted = .FALSE.
+           conv_ions     = .TRUE.
+           istep         = istep + 1
            !
         END IF
         !
