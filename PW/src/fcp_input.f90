@@ -108,13 +108,13 @@ SUBROUTINE iosys_fcp()
         !
      END SELECT
      !
-     IF (lbfgs .AND. TRIM(fcp_calc) /= 'bfgs') THEN
-        !
-        CALL infomsg('iosys', 'calculation='// TRIM(calculation) // &
-                   & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
-                   & " ignored, 'bfgs' assumed")
-        !
-     END IF
+     !IF (lbfgs .AND. TRIM(fcp_calc) /= 'bfgs') THEN
+     !   !
+     !   CALL infomsg('iosys', 'calculation='// TRIM(calculation) // &
+     !              & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
+     !              & " ignored, 'bfgs' assumed")
+     !   !
+     !END IF
      !
      IF (lmd .AND. TRIM(fcp_calc) == 'bfgs') THEN
         !

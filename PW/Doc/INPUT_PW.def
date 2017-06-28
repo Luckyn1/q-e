@@ -2555,15 +2555,12 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 }
                 opt -val 'newton' {
                     Newton-Raphson algorithm with DIIS
-                    @ref ion_dynamics must be @b 'damp' too
                 }
                 opt -val 'damp' {
                     damped (quick-min Verlet) dynamics for FCP relaxation
-                    @ref ion_dynamics must be @b 'damp' too
                 }
                 opt -val 'lm' {
                     Line-Minimization algorithm for FCP relaxation
-                    @ref ion_dynamics must be @b 'damp' too
                 }
                 info {
                     @b CASE ( @ref calculation == 'md' )

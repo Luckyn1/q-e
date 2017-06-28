@@ -52,7 +52,7 @@ MODULE fcp_module
   REAL(DP)         :: fcp_mu           = 0.0_DP   ! target Fermi energy (in Ry)
   REAL(DP)         :: fcp_eps          = 0.0_DP   ! convergence threshold (in Ry)
   REAL(DP)         :: fcp_eps0         = 0.0_DP   ! initial convergence threshold (in Ry)
-  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation {lm|newton|damp|verlet}
+  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation {bfgs|lm|newton|damp|verlet}
   REAL(DP)         :: solvation_radius = 0.0_DP   ! solvation radius to estimate capacity (in bohr)
   !
   ! ... public components

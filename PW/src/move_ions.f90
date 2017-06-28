@@ -52,7 +52,7 @@ SUBROUTINE move_ions ( idone )
   USE dynamics_module,        ONLY : smart_MC, langevin_md
   USE klist,                  ONLY : nelec, tot_charge
   USE dfunct,                 only : newd
-  USE fcp_module,             ONLY : lfcp, fcp_eps, fcp_mu, fcp_relax, fcp_verlet, &
+  USE fcp_module,             ONLY : lfcp, fcp_eps, fcp_mu, fcp_calc, fcp_relax, fcp_verlet, &
                                      fcp_terminate, fcp_new_conv_thr, output_fcp
   USE rism_module,            ONLY : lrism, rism_new_conv_thr
   !
@@ -116,13 +116,13 @@ SUBROUTINE move_ions ( idone )
         !
         relec = 0.0_DP
         felec = 0.0_DP
-        IF ( lfcp ) THEN
+        IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
            relec = nelec
            felec = (ef - fcp_mu)
            tot_charge_ = tot_charge
         END IF
         !
-        IF ( ANY( if_pos(:,:) == 1 ) .OR. lmovecell .OR. lfcp ) THEN
+        IF ( ANY( if_pos(:,:) == 1 ) .OR. lmovecell .OR. (lfcp .AND. TRIM(fcp_calc) == 'bfgs') ) THEN
            !
            CALL bfgs( pos, h, relec, etot, grad, fcell, felec, fixion, tmp_dir, stdout, epse, &
                       epsf, epsp1, fcp_eps, energy_error, gradient_error, cell_error, fcp_error, &
@@ -130,7 +130,13 @@ SUBROUTINE move_ions ( idone )
            !
         ELSE
            !
-           conv_ions = .TRUE.
+           energy_error   = 0.0_DP
+           gradient_error = 0.0_DP
+           cell_error     = 0.0_DP
+           fcp_error      = 0.0_DP
+           step_accepted  = .FALSE.
+           conv_ions      = .TRUE.
+           istep          = istep + 1
            !
         END IF
         !
@@ -143,15 +149,27 @@ SUBROUTINE move_ions ( idone )
            CALL volume( alat, at(1,1), at(1,2), at(1,3), omega )
         END IF
         !
-        IF ( lfcp ) THEN
-           nelec = relec
-           tot_charge = SUM(zv(ityp(1:nat))) - nelec
-        END IF
-        !
         CALL cryst_to_cart( nat, pos, at, 1 )
         tau    =   RESHAPE( pos, (/ 3 , nat /) )
         CALL cryst_to_cart( nat, grad, bg, 1 )
         force = - RESHAPE( grad, (/ 3, nat /) )
+        !
+        IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
+           !
+           ! ... update FCP (with BFGS)
+           !
+           nelec = relec
+           tot_charge = SUM(zv(ityp(1:nat))) - nelec
+           !
+        END IF
+        !
+        IF ( lfcp .AND. TRIM(fcp_calc) /= 'bfgs' ) THEN
+           !
+           ! ... update FCP (without BFGS)
+           !
+           CALL fcp_relax( conv_ions )
+           !
+        END IF
         !
         IF ( conv_ions ) THEN
            !
@@ -176,6 +194,14 @@ SUBROUTINE move_ions ( idone )
               !
               CALL terminate_bfgs ( etot, epse, epsf, epsp, fcp_eps, &
                                     lmovecell, lfcp, stdout, tmp_dir )
+              !
+           END IF
+           !
+           IF ( lfcp .AND. TRIM(fcp_calc) /= 'bfgs' ) THEN
+              !
+              ! ... finalize FCP (without BFGS)
+              !
+              CALL fcp_terminate()
               !
            END IF
            !
@@ -211,7 +237,9 @@ SUBROUTINE move_ions ( idone )
         !
         CALL output_tau( lmovecell, conv_ions )
         !
-        IF ( lfcp ) CALL output_fcp( tot_charge_, conv_ions )
+        IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
+           CALL output_fcp( tot_charge_, conv_ions )
+        END IF
         !
         DEALLOCATE( pos, grad, fixion )
         !
