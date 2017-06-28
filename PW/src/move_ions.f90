@@ -52,8 +52,8 @@ SUBROUTINE move_ions ( idone )
   USE dynamics_module,        ONLY : smart_MC, langevin_md
   USE klist,                  ONLY : nelec, tot_charge
   USE dfunct,                 only : newd
-  USE fcp_module,             ONLY : lfcp, fcp_eps, fcp_mu, fcp_calc, fcp_relax, fcp_verlet, &
-                                     fcp_terminate, fcp_new_conv_thr, output_fcp
+  USE fcp_module,             ONLY : lfcp, fcp_eps, fcp_mu, fcp_calc, fcp_relax, &
+                                     fcp_verlet, fcp_terminate, output_fcp
   USE rism_module,            ONLY : lrism, rism_new_conv_thr
   !
   IMPLICIT NONE
@@ -69,6 +69,7 @@ SUBROUTINE move_ions ( idone )
   REAL(DP), ALLOCATABLE :: pos(:), grad(:)
   REAL(DP)              :: h(3,3), fcell(3,3)=0.d0, epsp1
   REAL(DP)              :: relec, felec, tot_charge_
+  LOGICAL               :: conv_fcp
   INTEGER,  ALLOCATABLE :: fixion(:)
   !
   ! ... only one node does the calculation in the parallel case
@@ -93,6 +94,15 @@ SUBROUTINE move_ions ( idone )
      !
      bfgs_minimization : &
      IF ( lbfgs ) THEN
+        !
+        IF ( lfcp .AND. TRIM(fcp_calc) /= 'bfgs' ) THEN
+           !
+           ! ... update FCP (without BFGS)
+           !
+           conv_fcp = .TRUE.
+           CALL fcp_relax( conv_fcp )
+           !
+        END IF
         !
         ! ... the bfgs procedure is used
         !  
@@ -126,7 +136,8 @@ SUBROUTINE move_ions ( idone )
            !
            CALL bfgs( pos, h, relec, etot, grad, fcell, felec, fixion, tmp_dir, stdout, epse, &
                       epsf, epsp1, fcp_eps, energy_error, gradient_error, cell_error, fcp_error, &
-                      lmovecell, lfcp, step_accepted, conv_ions, istep )
+                      lmovecell, (lfcp .AND. TRIM(fcp_calc) == 'bfgs'), &
+                      step_accepted, conv_ions, istep )
            !
         ELSE
            !
@@ -151,23 +162,28 @@ SUBROUTINE move_ions ( idone )
         force = - RESHAPE( grad, (/ 3, nat /) )
         !
         IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
-           !
-           ! ... update FCP (with BFGS)
-           !
+           ! update FCP with BFGS
            nelec = relec
            tot_charge = SUM(zv(ityp(1:nat))) - nelec
-           !
         END IF
         !
         IF ( lfcp .AND. TRIM(fcp_calc) /= 'bfgs' ) THEN
            !
-           ! ... update FCP (without BFGS)
+           ! ... check convergence of FCP (without BFGS)
            !
-           CALL fcp_relax( conv_ions )
+           conv_ions = conv_ions .AND. conv_fcp
            !
         END IF
         !
         IF ( conv_ions ) THEN
+           !
+           IF ( lfcp .AND. TRIM(fcp_calc) /= 'bfgs' ) THEN
+              !
+              ! ... finalize FCP (without BFGS)
+              !
+              CALL fcp_terminate()
+              !
+           END IF
            !
            IF ( ( lsda .AND. ( absmag < eps6 ) .AND. lcheck_mag ) ) THEN
               !
@@ -183,21 +199,18 @@ SUBROUTINE move_ions ( idone )
               !  cell.
               !
               final_cell_calculation=.TRUE.
+              !
+              IF ( ANY( if_pos(:,:) == 1 ) .OR. lmovecell .OR. (lfcp .AND. TRIM(fcp_calc) == 'bfgs') ) &
               CALL terminate_bfgs ( etot, epse, epsf, epsp, fcp_eps, &
-                                    lmovecell, lfcp, stdout, tmp_dir )
+                                    lmovecell, (lfcp .AND. TRIM(fcp_calc) == 'bfgs'), &
+                                    stdout, tmp_dir )
               !
            ELSE
               !
+              IF ( ANY( if_pos(:,:) == 1 ) .OR. lmovecell .OR. (lfcp .AND. TRIM(fcp_calc) == 'bfgs') ) &
               CALL terminate_bfgs ( etot, epse, epsf, epsp, fcp_eps, &
-                                    lmovecell, lfcp, stdout, tmp_dir )
-              !
-           END IF
-           !
-           IF ( lfcp .AND. TRIM(fcp_calc) /= 'bfgs' ) THEN
-              !
-              ! ... finalize FCP (without BFGS)
-              !
-              CALL fcp_terminate()
+                                    lmovecell, (lfcp .AND. TRIM(fcp_calc) == 'bfgs'), &
+                                    stdout, tmp_dir )
               !
            END IF
            !
@@ -446,14 +459,6 @@ SUBROUTINE move_ions ( idone )
      CALL mp_bcast( omega_old, ionode_id, intra_image_comm )
      CALL mp_bcast( bg,        ionode_id, intra_image_comm )
      !
-  END IF
-  !
-  ! ... update convergence threshold of FCP
-  !
-  IF ( lfcp ) THEN
-     IF ( tr2 < starting_scf_threshold ) THEN
-       CALL fcp_new_conv_thr()
-     END IF
   END IF
   !
   ! ... update convergence threshold of 3D-RISM
