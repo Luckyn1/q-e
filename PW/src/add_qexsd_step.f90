@@ -25,7 +25,7 @@ USE ener,         ONLY: etot, eband, ehart, etxc, vtxc, ewld, demet, ef
 USE klist,        ONLY: degauss, tot_charge
 USE force_mod,    ONLY: force, sigma
 USE control_flags,ONLY: nstep, n_scf_steps, scf_error
-USE fcp_variables,ONLY: fcp_mu, lfcpopt, lfcpdyn 
+USE fcp_module,   ONLY: fcp_mu, lfcp
 !-----------------------------------------------------------------------------
 !   END_GLOBAL_VARIABLES
 !----------------------------------------------------------------------------- 
@@ -47,7 +47,7 @@ INTEGER,INTENT(IN)        ::   i_step
 !-------------------------------------------------------------------------------- 
 REAL(DP) :: potstat, fcp_for
 !            
-IF ( lfcpopt .OR. lfcpdyn ) THEN 
+IF ( lfcp ) THEN
    potstat = fcp_mu * tot_charge
    fcp_for = fcp_mu - ef
    !

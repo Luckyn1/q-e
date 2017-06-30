@@ -115,7 +115,7 @@ MODULE pw_restart_new
       USE rap_point_group_so,   ONLY : elem_so, nelem_so, name_class_so
       USE bfgs_module,          ONLY : bfgs_get_n_iter
       USE qexsd_module,         ONLY : qexsd_dipol_obj, qexsd_bp_obj
-      USE fcp_variables,        ONLY : lfcpopt, lfcpdyn, fcp_mu  
+      USE fcp_module,           ONLY : lfcp, fcp_mu
       !
       IMPLICIT NONE
       !
@@ -351,7 +351,7 @@ MODULE pw_restart_new
             CALL  qexsd_init_total_energy(output%total_energy,etot,eband,ehart,vtxc,etxc, &
                  ewld,degauss,demet)
          END IF
-         IF (lfcpopt .OR. lfcpdyn ) THEN 
+         IF (lfcp) THEN
             output%total_energy%potentiostat_contr_ispresent = .TRUE.
             output%total_energy%potentiostat_contr = fcp_mu * tot_charge/e2
             output%FCP_tot_charge = tot_charge
