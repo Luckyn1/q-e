@@ -76,13 +76,21 @@ MODULE fcp_module
 CONTAINS
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE fcp_check()
+  SUBROUTINE fcp_check(lneb)
     !----------------------------------------------------------------------------
     !
     ! ... check conditions,
     ! ... and stop program if incorrect conditions.
     !
     IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN), OPTIONAL :: lneb
+    LOGICAL                       :: lneb_
+    !
+    lneb_ = .FALSE.
+    IF (PRESENT(lneb)) THEN
+       lneb_ = lneb
+    END IF
     !
     ! ... only ESM
     !
@@ -120,9 +128,9 @@ CONTAINS
        CALL errore('fcp_check', 'please do not set tot_magnetization, for FCP', 1)
     END IF
     !
-    ! ... must be relax or md
+    ! ... must be relax or md or NEB
     !
-    IF (.NOT. (lbfgs .OR. lmd)) THEN
+    IF (.NOT. (lbfgs .OR. lmd .OR. lneb_)) THEN
        CALL errore('fcp_check', 'calculation has to be relax or md, for FCP', 1)
     END IF
     !

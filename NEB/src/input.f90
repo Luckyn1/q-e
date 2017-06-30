@@ -19,6 +19,8 @@ SUBROUTINE ioneb()
   USE constants,     ONLY : autoev, eV_to_kelvin, rytoev
   USE io_global,     ONLY : stdout
   USE io_files,      ONLY : tmp_dir
+  USE fcp_module,    ONLY : fcp_check
+  !
   USE path_variables, ONLY : lsteep_des, lquick_min, &
                              lbroyden, lbroyden2, llbfgs, llsr1, &
                              llangevin, lneb, lsmd, restart
@@ -229,6 +231,8 @@ SUBROUTINE ioneb()
   fcp_ndiis_        = fcp_ndiis
   tot_charge_first_ = tot_charge_first
   tot_charge_last_  = tot_charge_last
+  !
+  IF ( lfcp_ ) CALL fcp_check( .TRUE. )
   !
   CALL verify_neb_tmpdir( tmp_dir )
   !
