@@ -415,7 +415,6 @@ electrons.o : ../../Modules/cell_base.o
 electrons.o : ../../Modules/check_stop.o
 electrons.o : ../../Modules/constants.o
 electrons.o : ../../Modules/control_flags.o
-electrons.o : ../../Modules/fcp_variables.o
 electrons.o : ../../Modules/fft_base.o
 electrons.o : ../../Modules/funct.o
 electrons.o : ../../Modules/gvecw.o
@@ -439,6 +438,7 @@ electrons.o : bp_mod.o
 electrons.o : buffers.o
 electrons.o : esm.o
 electrons.o : exx.o
+electrons.o : fcp_module.o
 electrons.o : io_rho_xml.o
 electrons.o : ldaU.o
 electrons.o : newd.o
@@ -515,6 +515,12 @@ exx.o : realus.o
 exx.o : start_k.o
 exx.o : symm_base.o
 exx.o : us_exx.o
+fcp_capacitance.o : ../../Modules/cell_base.o
+fcp_capacitance.o : ../../Modules/constants.o
+fcp_capacitance.o : ../../Modules/kind.o
+fcp_capacitance.o : esm.o
+fcp_capacitance.o : fcp_module.o
+fcp_capacitance.o : rism_module.o
 fcp_dynamics.o : ../../Modules/constants.o
 fcp_dynamics.o : ../../Modules/control_flags.o
 fcp_dynamics.o : ../../Modules/io_files.o
@@ -523,15 +529,19 @@ fcp_dynamics.o : ../../Modules/ions_base.o
 fcp_dynamics.o : ../../Modules/kind.o
 fcp_dynamics.o : ../../Modules/random_numbers.o
 fcp_dynamics.o : pwcom.o
+fcp_hessian.o : ../../Modules/kind.o
+fcp_hessian.o : pwcom.o
+fcp_input.o : ../../Modules/cell_base.o
 fcp_input.o : ../../Modules/constants.o
 fcp_input.o : ../../Modules/control_flags.o
 fcp_input.o : ../../Modules/input_parameters.o
+fcp_input.o : ../../Modules/ions_base.o
 fcp_input.o : ../../Modules/kind.o
 fcp_input.o : ../../Modules/read_namelists.o
 fcp_input.o : fcp_dynamics.o
 fcp_input.o : fcp_module.o
 fcp_input.o : fcp_relaxation.o
-fcp_module.o : ../../Modules/cell_base.o
+fcp_input.o : rism_module.o
 fcp_module.o : ../../Modules/constants.o
 fcp_module.o : ../../Modules/control_flags.o
 fcp_module.o : ../../Modules/funct.o
@@ -1828,6 +1838,7 @@ run_pwscf.o : ../../Modules/check_stop.o
 run_pwscf.o : ../../Modules/control_flags.o
 run_pwscf.o : ../../Modules/fft_base.o
 run_pwscf.o : ../../Modules/io_global.o
+run_pwscf.o : ../../Modules/ions_base.o
 run_pwscf.o : ../../Modules/mp_images.o
 run_pwscf.o : ../../Modules/parameters.o
 run_pwscf.o : ../../Modules/qexsd.o
