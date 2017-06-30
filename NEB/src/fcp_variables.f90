@@ -37,4 +37,8 @@ MODULE fcp_variables
        tot_charge_first = 0.0_DP,  &! total charge of the first image
        tot_charge_last  = 0.0_DP    ! total charge of the last image
   !
+  REAL(DP) :: &
+       solvation_radius = 6.0_DP    ! solvation radius to estimate capacity,
+                                    ! in Bohr
+  !
 END MODULE fcp_variables

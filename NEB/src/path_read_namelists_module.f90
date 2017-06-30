@@ -78,6 +78,7 @@ MODULE path_read_namelists_module
        fcp_ndiis        = 4
        tot_charge_first = 0.0_DP
        tot_charge_last  = 0.0_DP
+       solvation_radius = 6.0_DP
        !
        ! for reading ions namelist we need to set calculation=relax
        !
@@ -131,6 +132,7 @@ MODULE path_read_namelists_module
        CALL mp_bcast( fcp_ndiis,            ionode_id, world_comm )
        CALL mp_bcast( tot_charge_first,     ionode_id, world_comm )
        CALL mp_bcast( tot_charge_last,      ionode_id, world_comm )
+       CALL mp_bcast( solvation_radius,     ionode_id, world_comm )
        !
        RETURN
        !

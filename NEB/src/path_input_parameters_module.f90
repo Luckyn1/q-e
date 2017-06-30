@@ -138,6 +138,8 @@ MODULE path_input_parameters_module
   REAL(DP)   :: tot_charge_first = 0.0_DP
   REAL(DP)   :: tot_charge_last  = 0.0_DP
   !
+  REAL(DP)   :: solvation_radius = 6.0_DP
+  !
   !
   NAMELIST / PATH / &
                     restart_mode, &
@@ -147,7 +149,7 @@ MODULE path_input_parameters_module
                     path_thr, fixed_tan, use_freezing, minimum_image, &
                     qnewton_ndim, qnewton_step, &
                     lfcp, fcp_mu, fcp_thr, fcp_scheme, fcp_ndiis, &
-                    tot_charge_first, tot_charge_last
+                    tot_charge_first, tot_charge_last, solvation_radius
 !
 !    ATOMIC_POSITIONS
 !

@@ -47,7 +47,8 @@ SUBROUTINE ioneb()
                             fcp_thr_ => fcp_thr, &
                             fcp_ndiis_ => fcp_ndiis, &
                             tot_charge_first_ => tot_charge_first, &
-                            tot_charge_last_ => tot_charge_last
+                            tot_charge_last_ => tot_charge_last, &
+                            solvation_radius_ => solvation_radius
   !
   USE path_input_parameters_module, ONLY : restart_mode, nstep_path,   &
                                string_method, num_of_images, path_thr, &
@@ -56,7 +57,8 @@ SUBROUTINE ioneb()
                                ds, use_freezing, fixed_tan,            &
                                qnewton_ndim, qnewton_step,             &
                                lfcp, fcp_mu, fcp_thr, fcp_scheme,      &
-                               fcp_ndiis, tot_charge_first, tot_charge_last
+                               fcp_ndiis, tot_charge_first,            &
+                               tot_charge_last, solvation_radius
   !
   IMPLICIT NONE
   !
@@ -231,6 +233,7 @@ SUBROUTINE ioneb()
   fcp_ndiis_        = fcp_ndiis
   tot_charge_first_ = tot_charge_first
   tot_charge_last_  = tot_charge_last
+  solvation_radius_ = solvation_radius
   !
   IF ( lfcp_ ) CALL fcp_check( .TRUE. )
   !
