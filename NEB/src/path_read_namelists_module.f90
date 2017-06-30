@@ -73,7 +73,7 @@ MODULE path_read_namelists_module
        !
        lfcp             = .FALSE.
        fcp_mu           = fcp_not_set
-       fcp_thr          = 0.001_DP
+       fcp_thr          = 0.01_DP
        fcp_scheme       = 'newton'
        fcp_ndiis        = 4
        tot_charge_first = 0.0_DP

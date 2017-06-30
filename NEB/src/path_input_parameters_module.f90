@@ -121,8 +121,8 @@ MODULE path_input_parameters_module
   REAL (DP)  :: qnewton_step = 0.6_DP
   !
   LOGICAL    :: lfcp    = .FALSE.
-  REAL(DP)   :: fcp_mu  = 0.0_DP   ! in eV
-  REAL(DP)   :: fcp_thr = 0.001_DP ! in eV
+  REAL(DP)   :: fcp_mu  = 0.0_DP  ! in eV
+  REAL(DP)   :: fcp_thr = 0.01_DP ! in eV
   !
   CHARACTER(len=80) :: fcp_scheme = 'newton'
   ! fcp_scheme = 'lm' | 'newton'
