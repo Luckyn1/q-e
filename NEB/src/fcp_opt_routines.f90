@@ -14,7 +14,7 @@ MODULE fcp_opt_routines
    !
    ! ... Written by Carlo Sbraccia ( 2003-2006 )
    !
-   ! ... MDIIS algorithm is implemented by Satomichi Nishihara ( 2016 )
+   ! ... Newton algorithm is implemented by S. Nishihara ( 2016-2017 )
    !
    USE kinds,          ONLY : DP
    USE constants,      ONLY : eps8, eps16, e2, rytoev, fpi

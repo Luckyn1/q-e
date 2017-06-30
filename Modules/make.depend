@@ -197,7 +197,6 @@ error_handler.o : io_global.o
 error_handler.o : mp.o
 error_handler.o : mp_world.o
 expint.o : kind.o
-fcp_variables.o : kind.o
 fd_gradient.o : ../FFTXlib/scatter_mod.o
 fd_gradient.o : cell_base.o
 fd_gradient.o : fft_base.o
