@@ -10,7 +10,7 @@ MODULE fcp_opt_routines
    !---------------------------------------------------------------------------
    !
    ! ... This module contains all subroutines and functions needed for
-   ! ... the optimisation of the reaction path (NEB and SMD calculations)
+   ! ... the optimisation of the FCPs.
    !
    ! ... Written by Carlo Sbraccia ( 2003-2006 )
    !
@@ -22,9 +22,9 @@ MODULE fcp_opt_routines
    USE io_global,      ONLY : meta_ionode, meta_ionode_id
    USE mp,             ONLY : mp_bcast
    USE mp_world,       ONLY : world_comm
-   USE fcp_variables,  ONLY : fcp_mu, fcp_relax, fcp_relax_step, &
-                              fcp_mdiis_size, fcp_mdiis_step, &
-                              fcp_tot_charge_first, fcp_tot_charge_last
+   USE fcp_module,     ONLY : fcp_check
+   USE fcp_variables,  ONLY : fcp_mu, fcp_thr, lfcp_linmin, lfcp_newton, &
+                              fcp_ndiis, tot_charge_first, tot_charge_last
    USE mdiis,          ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis
    USE path_variables, ONLY : num_of_images
    !
@@ -71,10 +71,12 @@ CONTAINS
       !
       CHARACTER(LEN=6), EXTERNAL :: int_to_char
       !
+      CALL fcp_check( .TRUE. )
+      !
       ALLOCATE( fcp_neb_nelec( num_of_images ) )
       ALLOCATE( fcp_neb_ef   ( num_of_images ) )
       !
-      IF ( TRIM(fcp_relax) == 'lm' ) THEN
+      IF ( lfcp_linmin ) THEN
          !
          ALLOCATE( force0    ( num_of_images ) )
          ALLOCATE( nelec0    ( num_of_images ) )
@@ -84,10 +86,10 @@ CONTAINS
          nelec0    (:) = 0.0_DP
          firstcall (:) = .TRUE.
          !
-      ELSE IF ( TRIM(fcp_relax) == 'mdiis' ) THEN
+      ELSE IF ( lfcp_newton ) THEN
          !
          init_mdiis = .TRUE.
-         CALL allocate_mdiis(mdiist, fcp_mdiis_size, num_of_images, fcp_mdiis_step, 1)
+         CALL allocate_mdiis(mdiist, fcp_ndiis, num_of_images, 1.0_DP, 1)
          !
       END IF
       !
@@ -107,7 +109,7 @@ CONTAINS
 #endif
             !
             fcp_neb_nelec(i) = nelec
-            fcp_neb_ef   (i) = ef * e2 ! factor e2: hartree -> Ry.
+            fcp_neb_ef   (i) = ef
             !
          END DO
          !
@@ -119,8 +121,8 @@ CONTAINS
          nelec_ = ionic_charge - tot_charge
          !
          n = num_of_images
-         first = fcp_tot_charge_first
-         last  = fcp_tot_charge_last
+         first = tot_charge_first
+         last  = tot_charge_last
          DO i = 1, n
             fcp_neb_nelec(i) = nelec_ - (first * (n - i) + last * (i - 1) ) / (n - 1)
          END DO
@@ -157,31 +159,34 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      IF ( TRIM(fcp_relax) == 'lm' ) THEN
+      CALL fcp_check( .TRUE. )
+      !
+      IF ( lfcp_linmin ) THEN
          !
-         CALL fcp_line_minimisation()
+         CALL fcp_line_minimization()
          !
-      ELSE IF ( TRIM(fcp_relax) == 'mdiis' ) THEN
+      ELSE IF ( lfcp_newton ) THEN
          !
-         CALL fcp_mdiis()
+         CALL fcp_newton()
          !
       END IF
       !
    END SUBROUTINE fcp_opt_perform
    !
    !----------------------------------------------------------------------
-   SUBROUTINE fcp_line_minimisation()
+   SUBROUTINE fcp_line_minimization()
       !----------------------------------------------------------------------
       !
       USE ions_base, ONLY : nat, ityp, zv
       USE cell_base, ONLY : at, alat
       !
-      USE path_variables,       ONLY : frozen
+      USE path_variables, ONLY : frozen
       !
       IMPLICIT NONE
       !
       INTEGER  :: image
-      REAL(DP) :: force, ef, nelec, n_tmp, max_tot_charge, capacitance, ionic_charge
+      REAL(DP) :: force, ef, nelec, n_tmp
+      REAL(DP) :: max_tot_charge, capacitance, ionic_charge
       !
       IF ( meta_ionode ) THEN
          !
@@ -233,10 +238,10 @@ CONTAINS
       !
       RETURN
       !
-   END SUBROUTINE fcp_line_minimisation
+   END SUBROUTINE fcp_line_minimization
    !
    !----------------------------------------------------------------------
-   SUBROUTINE fcp_mdiis()
+   SUBROUTINE fcp_newton()
       !----------------------------------------------------------------------
       !
       USE path_variables, ONLY : frozen
@@ -280,6 +285,6 @@ CONTAINS
       !
       RETURN
       !
-   END SUBROUTINE fcp_mdiis
+   END SUBROUTINE fcp_newton
    !
 END MODULE fcp_opt_routines
