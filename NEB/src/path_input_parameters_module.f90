@@ -120,19 +120,23 @@ MODULE path_input_parameters_module
   INTEGER    :: qnewton_ndim = 8
   REAL (DP)  :: qnewton_step = 0.6_DP
   !
-  LOGICAL      :: lfcpopt              = .FALSE.
-  REAL(DP)     :: fcp_mu               = 0.0_DP
-  CHARACTER(8) :: fcp_relax            = 'mdiis'
-  ! 'lm':    Line-Minimisation
-  ! 'mdiis': MDIIS algorithm
-  CHARACTER(len=8) :: fcp_relax_allowed(2)
-  DATA fcp_relax_allowed / 'lm', 'mdiis' /
-  REAL(DP)     :: fcp_relax_step       = 0.1_DP
-  REAL(DP)     :: fcp_relax_crit       = 0.001_DP
-  INTEGER      :: fcp_mdiis_size       = 4
-  REAL(DP)     :: fcp_mdiis_step       = 0.2_DP
-  REAL(DP)     :: fcp_tot_charge_first = 0.0_DP
-  REAL(DP)     :: fcp_tot_charge_last  = 0.0_DP
+  LOGICAL    :: lfcp    = .FALSE.
+  REAL(DP)   :: fcp_mu  = 0.0_DP   ! in eV
+  REAL(DP)   :: fcp_thr = 0.001_DP ! in eV
+  !
+  CHARACTER(len=80) :: fcp_scheme = 'newton'
+  ! fcp_scheme = 'lm' | 'newton'
+  ! set the minimization algorithm for FCP
+  ! 'lm'          line-minimization
+  ! 'newton'      newton-raphson
+  !
+  CHARACTER(len=80) :: fcp_scheme_allowed(2)
+  DATA fcp_scheme_allowed / 'lm', 'newton' /
+  !
+  INTEGER    :: fcp_ndiis = 4
+  !
+  REAL(DP)   :: tot_charge_first = 0.0_DP
+  REAL(DP)   :: tot_charge_last  = 0.0_DP
   !
   !
   NAMELIST / PATH / &
@@ -142,9 +146,8 @@ MODULE path_input_parameters_module
                     first_last_opt, ds, k_max, k_min, temp_req,          &
                     path_thr, fixed_tan, use_freezing, minimum_image, &
                     qnewton_ndim, qnewton_step, &
-                    lfcpopt, fcp_mu, fcp_relax, fcp_relax_step, fcp_relax_crit, &
-                    fcp_mdiis_size, fcp_mdiis_step, &
-                    fcp_tot_charge_first, fcp_tot_charge_last
+                    lfcp, fcp_mu, fcp_thr, fcp_scheme, fcp_ndiis, &
+                    tot_charge_first, tot_charge_last
 !
 !    ATOMIC_POSITIONS
 !

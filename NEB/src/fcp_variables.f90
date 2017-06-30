@@ -27,11 +27,11 @@ MODULE fcp_variables
        lfcp_newton      = .FALSE.   ! .TRUE. if fcp_scheme = "newton"
   !
   REAL(DP) :: &
-       fcp_thr          = 1.0E-3_DP ! convergence threshold for FCP relaxation,
+       fcp_thr          = 0.001_DP  ! convergence threshold for FCP relaxation,
                                     ! in Rydberg
   !
   INTEGER :: &
-       fcp_ndiis        = 4         ! size of DIIS for Newton-Raphson algorithm
+       fcp_ndiis        = 4         ! size of DIIS for Newton algorithm
   !
   REAL(DP) :: &
        tot_charge_first = 0.0_DP,  &! total charge of the first image

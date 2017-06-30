@@ -16,7 +16,7 @@ SUBROUTINE ioneb()
   ! ... This is done so that it is possible to use a different input parser
   !
   USE kinds,         ONLY : DP
-  USE constants,     ONLY : autoev, eV_to_kelvin
+  USE constants,     ONLY : autoev, eV_to_kelvin, rytoev
   USE io_global,     ONLY : stdout
   USE io_files,      ONLY : tmp_dir
   USE path_variables, ONLY : lsteep_des, lquick_min, &
@@ -38,15 +38,14 @@ SUBROUTINE ioneb()
                              qnewton_ndim_    => qnewton_ndim, &
                              qnewton_step_    => qnewton_step
   !
-  USE fcp_variables, ONLY : lfcpopt_ => lfcpopt, &
+  USE fcp_variables, ONLY : lfcp_linmin, lfcp_newton
+  ! renamed variables
+  USE fcp_variables, ONLY : lfcp_ => lfcp, &
                             fcp_mu_ => fcp_mu, &
-                            fcp_relax_ => fcp_relax, &
-                            fcp_relax_step_ => fcp_relax_step, &
-                            fcp_relax_crit_ => fcp_relax_crit, &
-                            fcp_mdiis_size_ => fcp_mdiis_size, &
-                            fcp_mdiis_step_ => fcp_mdiis_step, &
-                            fcp_tot_charge_first_ => fcp_tot_charge_first, &
-                            fcp_tot_charge_last_ => fcp_tot_charge_last
+                            fcp_thr_ => fcp_thr, &
+                            fcp_ndiis_ => fcp_ndiis, &
+                            tot_charge_first_ => tot_charge_first, &
+                            tot_charge_last_ => tot_charge_last
   !
   USE path_input_parameters_module, ONLY : restart_mode, nstep_path,   &
                                string_method, num_of_images, path_thr, &
@@ -54,10 +53,8 @@ SUBROUTINE ioneb()
                                first_last_opt, temp_req, k_max, k_min, &
                                ds, use_freezing, fixed_tan,            &
                                qnewton_ndim, qnewton_step,             &
-                               lfcpopt, fcp_mu, fcp_relax,             &
-                               fcp_relax_step, fcp_relax_crit,         &
-                               fcp_mdiis_size, fcp_mdiis_step,         &
-                               fcp_tot_charge_first, fcp_tot_charge_last
+                               lfcp, fcp_mu, fcp_thr, fcp_scheme,      &
+                               fcp_ndiis, tot_charge_first, tot_charge_last
   !
   IMPLICIT NONE
   !
@@ -203,15 +200,35 @@ SUBROUTINE ioneb()
   qnewton_ndim_   = qnewton_ndim
   qnewton_step_   = qnewton_step
   !
-  lfcpopt_              = lfcpopt
-  fcp_mu_               = fcp_mu
-  fcp_relax_            = fcp_relax
-  fcp_relax_step_       = fcp_relax_step
-  fcp_relax_crit_       = fcp_relax_crit
-  fcp_mdiis_size_       = fcp_mdiis_size
-  fcp_mdiis_step_       = fcp_mdiis_step
-  fcp_tot_charge_first_ = fcp_tot_charge_first
-  fcp_tot_charge_last_  = fcp_tot_charge_last
+  ! ... resolve fcp_scheme
+  !
+  lfcp_linmin = .FALSE.
+  lfcp_newton = .FALSE.
+  !
+  SELECT CASE( fcp_scheme )
+  CASE( "lm", "line-min", "line-minimization", "line-minimisation" )
+     !
+     lfcp_linmin = .true.
+     !
+  CASE( "newton" )
+     !
+     lfcp_newton = .TRUE.
+     !
+  CASE DEFAULT
+     !
+     CALL errore( 'iosys','string_method=' // trim( string_method ) // &
+                & ': unknown fcp_scheme', 1 )
+     !
+  END SELECT
+  !
+  ! ... "FCP"-optimization variables
+  !
+  lfcp_             = lfcp
+  fcp_mu_           = fcp_mu / rytoev
+  fcp_thr_          = fcp_thr / rytoev
+  fcp_ndiis_        = fcp_ndiis
+  tot_charge_first_ = tot_charge_first
+  tot_charge_last_  = tot_charge_last
   !
   CALL verify_neb_tmpdir( tmp_dir )
   !
