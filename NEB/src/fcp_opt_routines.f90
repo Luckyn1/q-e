@@ -276,7 +276,7 @@ CONTAINS
       REAL(DP), INTENT(IN) :: step_max
       !
       INTEGER               :: image
-      REAL(DP)              :: ef, force
+      REAL(DP)              :: ef, force, step
       REAL(DP)              :: nelec, nelec_new
       REAL(DP), ALLOCATABLE :: nelec1(:)
       REAL(DP), ALLOCATABLE :: step1(:)
