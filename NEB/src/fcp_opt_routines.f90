@@ -38,7 +38,7 @@ MODULE fcp_opt_routines
    REAL(DP), ALLOCATABLE :: nelec0(:)
    LOGICAL,  ALLOCATABLE :: firstcall(:)
    !
-   ! ... variables for MDIIS
+   ! ... variables for DIIS (coupled with Newton-Raphson)
    LOGICAL          :: init_mdiis
    TYPE(mdiis_type) :: mdiist
    !
