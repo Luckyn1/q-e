@@ -45,10 +45,10 @@ add_paw_to_deeq.o : ../../Modules/uspp.o
 add_paw_to_deeq.o : pwcom.o
 add_qexsd_step.o : ../../Modules/cell_base.o
 add_qexsd_step.o : ../../Modules/control_flags.o
-add_qexsd_step.o : ../../Modules/fcp_variables.o
 add_qexsd_step.o : ../../Modules/ions_base.o
 add_qexsd_step.o : ../../Modules/kind.o
 add_qexsd_step.o : ../../Modules/qexsd.o
+add_qexsd_step.o : fcp_module.o
 add_qexsd_step.o : pwcom.o
 add_vhub_to_deeq.o : ../../Modules/ions_base.o
 add_vhub_to_deeq.o : ../../Modules/kind.o
@@ -1560,7 +1560,6 @@ pw_restart_new.o : ../../Modules/cell_base.o
 pw_restart_new.o : ../../Modules/constants.o
 pw_restart_new.o : ../../Modules/control_flags.o
 pw_restart_new.o : ../../Modules/electrons_base.o
-pw_restart_new.o : ../../Modules/fcp_variables.o
 pw_restart_new.o : ../../Modules/fft_base.o
 pw_restart_new.o : ../../Modules/funct.o
 pw_restart_new.o : ../../Modules/gvecw.o
@@ -1596,6 +1595,7 @@ pw_restart_new.o : bp_mod.o
 pw_restart_new.o : buffers.o
 pw_restart_new.o : esm.o
 pw_restart_new.o : exx.o
+pw_restart_new.o : fcp_module.o
 pw_restart_new.o : io_rho_xml.o
 pw_restart_new.o : ldaU.o
 pw_restart_new.o : martyna_tuckerman.o
