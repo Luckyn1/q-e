@@ -76,7 +76,7 @@ MODULE path_base
       USE path_io_routines, ONLY : read_restart
       USE path_io_units_module, ONLY : path_file, dat_file, crd_file, &
                                    int_file, xyz_file, axsf_file, broy_file, qnew_file
-      USE fcp_variables,        ONLY : lfcpopt
+      USE fcp_variables,        ONLY : lfcp
       USE fcp_opt_routines,     ONLY : fcp_opt_allocation
       !
       IMPLICIT NONE
@@ -140,7 +140,7 @@ MODULE path_base
       ! ... dynamical allocation of arrays
       !
       CALL path_allocation()
-      if ( lfcpopt ) CALL fcp_opt_allocation()
+      if ( lfcp ) CALL fcp_opt_allocation()
       !
       IF ( use_masses ) THEN
          !
@@ -875,7 +875,7 @@ MODULE path_base
                                    Emax_index, fixed_tan, tangent
       USE path_io_routines, ONLY : write_restart, write_dat_files, write_output
       USE path_formats,     ONLY : scf_iter_fmt
-      USE fcp_variables,    ONLY : lfcpopt
+      USE fcp_variables,    ONLY : lfcp
       !
       USE path_reparametrisation
       !
@@ -964,7 +964,7 @@ MODULE path_base
          ! ... the error is computed here (frozen images are also set here)
          !
          CALL compute_error( err_max )
-         IF ( lfcpopt ) CALL fcp_compute_error( fcp_err_max )
+         IF ( lfcp ) CALL fcp_compute_error( fcp_err_max )
          !
          ! ... information is written on the files
          !
@@ -1030,7 +1030,7 @@ MODULE path_base
                                    conv_path, pending_image, &
                                    num_of_images, llangevin
       USE path_formats,     ONLY : final_fmt
-      USE fcp_variables,    ONLY : lfcpopt, fcp_relax_crit
+      USE fcp_variables,    ONLY : lfcp, fcp_thr
       !
       IMPLICIT NONE
       !
@@ -1048,7 +1048,7 @@ MODULE path_base
                          ( num_of_images == num_of_images_inp ) .AND. &
                          ( err_max <= path_thr ) )
       !
-      IF ( lfcpopt .AND. fcp_err_max > fcp_relax_crit ) THEN
+      IF ( lfcp .AND. fcp_err_max > fcp_thr ) THEN
          exit_condition = .FALSE.
       END IF
       !
@@ -1120,7 +1120,7 @@ MODULE path_base
       USE path_opt_routines, ONLY : quick_min, broyden, broyden2, &
                                     steepest_descent, langevin
       USE path_opt_qnewton,  ONLY : qnewton_lbfgs, qnewton_lsr1
-      USE fcp_variables,     ONLY : lfcpopt
+      USE fcp_variables,     ONLY : lfcp
       USE fcp_opt_routines,  ONLY : fcp_opt_perform
       !
       IMPLICIT NONE
@@ -1168,7 +1168,7 @@ MODULE path_base
          !
       END IF
       !
-      IF ( lfcpopt ) CALL fcp_opt_perform()
+      IF ( lfcp ) CALL fcp_opt_perform()
       !
       RETURN
       !

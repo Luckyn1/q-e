@@ -19,7 +19,7 @@ SUBROUTINE stop_run_path( lflag )
   USE path_variables,     ONLY : path_deallocation
   USE path_io_units_module,      ONLY : iunpath
   USE fcp_opt_routines,          ONLY : fcp_opt_deallocation
-  USE fcp_variables,             ONLY : lfcpopt
+  USE fcp_variables,             ONLY : lfcp
   !
   IMPLICIT NONE
   !
@@ -39,7 +39,7 @@ SUBROUTINE stop_run_path( lflag )
   CALL clean_pw( .TRUE. )
   !
   CALL path_deallocation()
-  IF ( lfcpopt ) CALL fcp_opt_deallocation()
+  IF ( lfcp ) CALL fcp_opt_deallocation()
   !
   CALL mp_global_end()
   !

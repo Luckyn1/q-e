@@ -49,7 +49,7 @@ MODULE path_io_routines
                                     qnewton_ndim, qnewton_step
        USE path_formats,     ONLY : summary_fmt
        USE path_io_units_module,         ONLY : iunpath
-       USE fcp_variables,    ONLY : lfcpopt, fcp_mu, fcp_relax_crit
+       USE fcp_variables,    ONLY : lfcp, fcp_mu, fcp_thr
        !
        IMPLICIT NONE
        !
@@ -130,13 +130,13 @@ MODULE path_io_routines
        WRITE( UNIT = iunpath, &
               FMT = '(5X,"path_thr",T35," = ",F9.4," eV / A")' ) path_thr
        !
-       IF ( lfcpopt ) THEN
+       IF ( lfcp ) THEN
           WRITE( UNIT = iunpath, &
                  FMT = '(5X,"target Fermi energy",T35," = ",F9.4," eV")') &
                  fcp_mu*rytoev
           WRITE( UNIT = iunpath, &
                  FMT = '(5X,"Fermi_thr",T35," = ",F9.4," V")' ) &
-                 fcp_relax_crit*rytoev
+                 fcp_thr*rytoev
        END IF
        !
        IF ( CI_scheme == "manual" ) THEN
@@ -798,7 +798,7 @@ MODULE path_io_routines
                                   CI_scheme, Emax_index
        USE path_formats,   ONLY : run_info, run_output
        USE ions_base,             ONLY : zv, ityp, nat
-       USE fcp_variables,         ONLY : lfcpopt, fcp_mu
+       USE fcp_variables,         ONLY : lfcp, fcp_mu
        USE fcp_opt_routines, ONLY : fcp_neb_ef, fcp_neb_nelec
        !
        IMPLICIT NONE
@@ -833,7 +833,7 @@ MODULE path_io_routines
           !
        END DO
        !
-       IF ( lfcpopt ) THEN
+       IF ( lfcp ) THEN
           WRITE(iunpath,'(/,5X,"image",2X,"Fermi energy (eV)",11X, &
                         & "error (V)",4X,"tot_charge",/)')
           DO image = 1, num_of_images

@@ -42,7 +42,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
   USE path_io_routines, ONLY : new_image_init, get_new_image, &
                                stop_other_images
   USE fcp_opt_routines, ONLY : fcp_neb_nelec, fcp_neb_ef
-  USE fcp_variables,    ONLY : lfcpopt
+  USE fcp_variables,    ONLY : lfcp
   USE klist,            ONLY : nelec, tot_charge
   USE extrapolation,    ONLY : update_neb
   USE funct,            ONLY : stop_exx, dft_is_hybrid
@@ -91,7 +91,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
         !
      END IF
      !
-     IF ( lfcpopt ) THEN
+     IF ( lfcp ) THEN
         !
         IF ( my_image_id == root_image ) THEN
            !
@@ -196,7 +196,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
      !
      CALL mp_sum( pes(fii:lii),        inter_image_comm )
      CALL mp_sum( grad_pes(:,fii:lii), inter_image_comm )
-     IF ( lfcpopt ) CALL mp_sum( fcp_neb_ef(fii:lii), inter_image_comm )
+     IF ( lfcp ) CALL mp_sum( fcp_neb_ef(fii:lii), inter_image_comm )
      CALL mp_sum( istat,               inter_image_comm )
      !
   END IF
@@ -309,7 +309,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       CALL start_clock('PWSCF')
       CALL setup ()
       !
-      IF ( lfcpopt ) THEN
+      IF ( lfcp ) THEN
          nelec = fcp_neb_nelec(image)
          tot_charge = SUM( zv(ityp(1:nat)) ) - nelec
       ENDIF
@@ -361,7 +361,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       !
       CALL close_files(.FALSE.)
       !
-      IF ( lfcpopt ) fcp_neb_ef(image) = ef
+      IF ( lfcp ) fcp_neb_ef(image) = ef
       !
       RETURN
       !
