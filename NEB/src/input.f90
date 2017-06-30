@@ -242,6 +242,8 @@ SUBROUTINE ioneb()
   !
   IF ( lfcp_ ) CALL fcp_check( .TRUE. )
   !
+  IF ( lfcp_ ) CALL fcp_check( .TRUE. )
+  !
   CALL verify_neb_tmpdir( tmp_dir )
   !
   RETURN
