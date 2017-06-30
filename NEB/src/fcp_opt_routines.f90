@@ -249,9 +249,9 @@ CONTAINS
             !
             ! ... update #electrons
             !
-            step  = nelec_new - nelec
-            step  = MIN( step, +step_max )
-            step  = MAX( step, -step_max )
+            step = nelec_new - nelec
+            step = MIN( step, +step_max )
+            step = MAX( step, -step_max )
             !
             fcp_neb_nelec(image) = nelec + step
             !
@@ -310,9 +310,9 @@ CONTAINS
             nelec     = fcp_neb_nelec(image)
             nelec_new = nelec1(image)
             !
-            step  = nelec_new - nelec
-            step  = MIN( step, +step_max )
-            step  = MAX( step, -step_max )
+            step = nelec_new - nelec
+            step = MIN( step, +step_max )
+            step = MAX( step, -step_max )
             !
             fcp_neb_nelec(image) = nelec + step
             !
