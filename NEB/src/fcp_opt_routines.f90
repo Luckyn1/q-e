@@ -17,13 +17,11 @@ MODULE fcp_opt_routines
    ! ... Newton algorithm is implemented by S. Nishihara ( 2016-2017 )
    !
    USE kinds,          ONLY : DP
-   USE constants,      ONLY : eps8, eps16, e2, rytoev, fpi
-   USE path_variables, ONLY : ds, pos, grad
    USE io_global,      ONLY : meta_ionode, meta_ionode_id
    USE mp,             ONLY : mp_bcast
    USE mp_world,       ONLY : world_comm
    USE fcp_module,     ONLY : fcp_check
-   USE fcp_variables,  ONLY : fcp_mu, fcp_thr, lfcp_linmin, lfcp_newton, &
+   USE fcp_variables,  ONLY : fcp_mu, lfcp_linmin, lfcp_newton, &
                               fcp_ndiis, tot_charge_first, tot_charge_last
    USE mdiis,          ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis
    USE path_variables, ONLY : num_of_images
@@ -35,7 +33,7 @@ MODULE fcp_opt_routines
    REAL(DP), ALLOCATABLE :: fcp_neb_nelec(:)
    REAL(DP), ALLOCATABLE :: fcp_neb_ef(:)
    !
-   ! ... variables for line-minimisation
+   ! ... variables for Line-Minimization
    REAL(DP), ALLOCATABLE :: force0(:)
    REAL(DP), ALLOCATABLE :: nelec0(:)
    LOGICAL,  ALLOCATABLE :: firstcall(:)
@@ -44,8 +42,8 @@ MODULE fcp_opt_routines
    LOGICAL          :: init_mdiis
    TYPE(mdiis_type) :: mdiist
    !
-   PUBLIC :: fcp_neb_nelec, fcp_neb_ef, &
-      fcp_opt_allocation, fcp_opt_deallocation, fcp_opt_perform
+   PUBLIC :: fcp_neb_nelec, fcp_neb_ef
+   PUBLIC :: fcp_opt_allocation, fcp_opt_deallocation, fcp_opt_perform
    !
 CONTAINS
    !
@@ -89,7 +87,7 @@ CONTAINS
       ELSE IF ( lfcp_newton ) THEN
          !
          init_mdiis = .TRUE.
-         CALL allocate_mdiis(mdiist, fcp_ndiis, num_of_images, 1.0_DP, 1)
+         CALL allocate_mdiis( mdiist, fcp_ndiis, num_of_images, 1.0_DP, 1 )
          !
       END IF
       !
@@ -117,7 +115,7 @@ CONTAINS
          !
       ELSE
          !
-         ionic_charge = SUM(zv(ityp(1:nat)))
+         ionic_charge = SUM( zv(ityp(1:nat)) )
          nelec_ = ionic_charge - tot_charge
          !
          n = num_of_images
@@ -147,7 +145,7 @@ CONTAINS
       !
       IF ( init_mdiis ) THEN
          !
-         CALL deallocate_mdiis(mdiist)
+         CALL deallocate_mdiis( mdiist )
          !
       END IF
       !
@@ -157,36 +155,53 @@ CONTAINS
    SUBROUTINE fcp_opt_perform()
       !----------------------------------------------------------------------
       !
+      USE fcp_module,    ONLY : solvation_radius
+      USE fcp_variables, ONLY : solvation_radius_ => solvation_radius
+      !
       IMPLICIT NONE
+      !
+      REAL(DP) :: step_max
+      REAL(DP) :: capacitance
       !
       CALL fcp_check( .TRUE. )
       !
+      ! ... evaluate maximum step
+      !
+      solvation_radius = solvation_radius_
+      CALL fcp_capacitance( capacitance )
+      !
+      step_max = ABS( capacitance * 0.1_DP )
+      !
       IF ( lfcp_linmin ) THEN
          !
-         CALL fcp_line_minimization()
+         ! ... perform Line-Minimization
+         !
+         CALL fcp_line_minimization( step_max )
          !
       ELSE IF ( lfcp_newton ) THEN
          !
-         CALL fcp_newton()
+         ! ... perform Newton-Raphson
+         !
+         CALL fcp_newton( step_max )
          !
       END IF
       !
    END SUBROUTINE fcp_opt_perform
    !
    !----------------------------------------------------------------------
-   SUBROUTINE fcp_line_minimization()
+   SUBROUTINE fcp_line_minimization( step_max )
       !----------------------------------------------------------------------
       !
-      USE ions_base, ONLY : nat, ityp, zv
-      USE cell_base, ONLY : at, alat
-      !
+      USE constants,      ONLY : eps16
       USE path_variables, ONLY : frozen
       !
       IMPLICIT NONE
       !
+      REAL(DP), INTENT(IN) :: step_max
+      !
       INTEGER  :: image
-      REAL(DP) :: force, ef, nelec, n_tmp
-      REAL(DP) :: max_tot_charge, capacitance, ionic_charge
+      REAL(DP) :: ef, force, step
+      REAL(DP) :: nelec, nelec_new
       !
       IF ( meta_ionode ) THEN
          !
@@ -196,39 +211,49 @@ CONTAINS
             !
             ef    = fcp_neb_ef(image)
             nelec = fcp_neb_nelec(image)
-            !
             force = fcp_mu - ef
             !
-            ! ... assumption: capacitance with vacuum gives the upper bound of 
-            ! ... tot_charge difference.
-            !
-            capacitance = (at(1,1) * at(2,2) - at(2,1) * at(1,2)) * alat**2 &
-                          / (alat * at(3,3) / 2._DP ) / fpi
-            max_tot_charge = abs( capacitance * force / e2 )
-            IF ( firstcall(image) .OR. ABS( force0(image) - force ) < 1.0D-20 ) THEN
+            IF ( firstcall(image) ) THEN
+               !
+               ! ... initialization
+               !
                firstcall(image) = .FALSE.
+               !
                nelec0(image) = nelec
                force0(image) = force
-               nelec = nelec + fcp_relax_step * force
-            ELSE
-               n_tmp = nelec
-               nelec = (nelec * force0(image) - nelec0(image) * force ) &
-                    / ( force0(image) - force )
-               nelec0(image) = n_tmp
-               force0(image) = force
+               !
             END IF
-            ionic_charge = SUM(zv(ityp(1:nat)))
-            !write( *,'(/,5X,"Upper bound for tot_charge:",F12.6)') &
-            !       max_tot_charge
-            !write( *,'(5X,"Original:",F12.6,"Expected:",F12.6)') &
-            !       ionic_charge - nelec0(image), ionic_charge - nelec
-            if( nelec-nelec0(image) < -max_tot_charge ) &
-                nelec= nelec0(image) - max_tot_charge
-            if( nelec-nelec0(image) >  max_tot_charge ) &
-                nelec= nelec0(image) + max_tot_charge
-            !write( *,'(5X,"Next tot_charge:",F12.6)') ionic_charge - nelec
             !
-            fcp_neb_nelec(image) = nelec
+            IF ( ABS( force0(image) - force ) < eps16 ) THEN
+               !
+               ! ... Steepest-Descent
+               !
+               step = 0.0_DP
+               CALL step_newton(force, step)
+               !
+               nelec_new = nelec + step
+               !
+            ELSE
+               !
+               ! ... Line-Minimization
+               !
+               nelec_new = (nelec * force0(image) - nelec0(image) * force) &
+                         & / (force0(image) - force)
+               !
+            END IF
+            !
+            ! ... save #electrons and force
+            !
+            nelec0(image) = nelec
+            force0(image) = force
+            !
+            ! ... update #electrons
+            !
+            step  = nelec_new - nelec
+            step  = MIN( step, +step_max )
+            step  = MAX( step, -step_max )
+            !
+            fcp_neb_nelec(image) = nelec + step
             !
          END DO
          !
@@ -241,38 +266,55 @@ CONTAINS
    END SUBROUTINE fcp_line_minimization
    !
    !----------------------------------------------------------------------
-   SUBROUTINE fcp_newton()
+   SUBROUTINE fcp_newton( step_max )
       !----------------------------------------------------------------------
       !
       USE path_variables, ONLY : frozen
       !
       IMPLICIT NONE
       !
-      INTEGER               :: image
-      REAL(DP)              :: ef
-      REAL(DP), ALLOCATABLE :: force1(:)
-      REAL(DP), ALLOCATABLE :: nelec1(:)
+      REAL(DP), INTENT(IN) :: step_max
       !
-      ALLOCATE(force1(num_of_images))
+      INTEGER               :: image
+      REAL(DP)              :: ef, force
+      REAL(DP)              :: nelec, nelec_new
+      REAL(DP), ALLOCATABLE :: nelec1(:)
+      REAL(DP), ALLOCATABLE :: step1(:)
+      !
       ALLOCATE(nelec1(num_of_images))
+      ALLOCATE(step1(num_of_images))
       !
       IF ( meta_ionode ) THEN
          !
          DO image = 1, num_of_images
             !
+            ! ... current #electrons and Newton's steps
+            !
             ef            = fcp_neb_ef(image)
+            force         = fcp_mu - ef
             nelec1(image) = fcp_neb_nelec(image)
-            force1(image) = fcp_mu - ef
+            CALL step_newton( force, step1(image) )
             !
          END DO
          !
-         CALL update_by_mdiis(mdiist, nelec1, force1)
+         ! ... apply DIIS
+         !
+         CALL update_by_mdiis( mdiist, nelec1, step1 )
          !
          DO image = 1, num_of_images
             !
             IF ( frozen(image) ) CYCLE
             !
-            fcp_neb_nelec(image) = nelec1(image)
+            ! ... update #electrons
+            !
+            nelec     = fcp_neb_nelec(image)
+            nelec_new = nelec1(image)
+            !
+            step  = nelec_new - nelec
+            step  = MIN( step, +step_max )
+            step  = MAX( step, -step_max )
+            !
+            fcp_neb_nelec(image) = nelec + step
             !
          END DO
          !
@@ -280,11 +322,54 @@ CONTAINS
       !
       CALL mp_bcast( fcp_neb_nelec, meta_ionode_id, world_comm )
       !
-      DEALLOCATE(force1)
       DEALLOCATE(nelec1)
+      DEALLOCATE(step1)
       !
       RETURN
       !
    END SUBROUTINE fcp_newton
+   !
+   !----------------------------------------------------------------------
+   SUBROUTINE step_newton( force, step )
+     !----------------------------------------------------------------------
+     !
+     USE constants,   ONLY : eps4
+     USE cell_base,   ONLY : alat, at
+     USE rism_module, ONLY : lrism
+     !
+     IMPLICIT NONE
+     !
+     REAL(DP), INTENT(IN)  :: force
+     REAL(DP), INTENT(OUT) :: step
+     !
+     REAL(DP) :: hess
+     REAL(DP) :: area_xy, slope
+     !
+     hess = 0.0_DP
+     CALL fcp_hessian( hess )
+     !
+     IF ( ABS( hess ) > eps4 ) THEN
+        !
+        step = hess * force
+        !
+     ELSE
+        !
+        area_xy = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
+        !
+        IF (lrism) THEN
+           !
+           slope = 0.100_DP * area_xy
+           !
+        ELSE
+           !
+           slope = 0.001_DP * area_xy
+           !
+        END IF
+        !
+        step = slope * force
+        !
+     END IF
+     !
+   END SUBROUTINE step_newton
    !
 END MODULE fcp_opt_routines
