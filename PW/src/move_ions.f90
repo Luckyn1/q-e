@@ -129,6 +129,7 @@ SUBROUTINE move_ions ( idone )
         IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
            relec = nelec
            felec = (ef - fcp_mu)
+           etot  = etot + felec * tot_charge
            CALL fcp_capacitance( capacitance, solvation_radius )
            tot_charge_ = tot_charge
         END IF
@@ -165,6 +166,7 @@ SUBROUTINE move_ions ( idone )
         IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
            ! update FCP with BFGS
            nelec = relec
+           etot  = etot - felec * tot_charge
            tot_charge = SUM(zv(ityp(1:nat))) - nelec
         END IF
         !
