@@ -20,7 +20,7 @@ MODULE fcp_variables
   !
   REAL(DP) :: &
        fcp_mu           = 0.0_DP    ! target Fermi energy,
-                                    ! in Rydberg
+                                    ! in Hartree
   !
   LOGICAL :: &
        lfcp_linmin      = .FALSE., &! .TRUE. if fcp_scheme = "lm"
@@ -28,7 +28,7 @@ MODULE fcp_variables
   !
   REAL(DP) :: &
        fcp_thr          = 0.001_DP  ! convergence threshold for FCP relaxation,
-                                    ! in Rydberg
+                                    ! in Hartree
   !
   INTEGER :: &
        fcp_ndiis        = 4         ! size of DIIS for Newton algorithm

@@ -317,8 +317,10 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       ! ... initialization #electrons, for FCP
       !
       IF ( lfcp ) THEN
+         !
          nelec = fcp_neb_nelec(image)
          tot_charge = SUM( zv(ityp(1:nat)) ) - nelec
+         !
       ENDIF
       !
       CALL init_run()
@@ -369,8 +371,12 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       ! ... the Fermi energy and the DOS on the Fermi surface are saved, for FCP
       !
       IF ( lfcp ) THEN
-         fcp_neb_ef(image) = ef
+         !
+         fcp_neb_ef(image) = ef / e2
+         !
          CALL fcp_hessian( fcp_neb_dos(image) )
+         fcp_neb_dos(image) = fcp_neb_dos(image) * e2
+         !
       END IF
       !
       CALL close_files(.FALSE.)

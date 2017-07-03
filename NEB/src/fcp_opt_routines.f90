@@ -16,6 +16,7 @@ MODULE fcp_opt_routines
    !
    ! ... Newton algorithm is implemented by S. Nishihara ( 2016-2017 )
    !
+   USE constants,      ONLY : e2
    USE kinds,          ONLY : DP
    USE io_global,      ONLY : meta_ionode, meta_ionode_id
    USE mp,             ONLY : mp_bcast
@@ -64,7 +65,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL(DP) :: ionic_charge, nelec_, first, last
+      REAL(DP) :: ionic_charge, nelec_, dos
+      REAL(DP) :: first, last
       INTEGER  :: n, i, ierr
       CHARACTER (LEN=256)   :: tmp_dir_saved
       !
@@ -116,8 +118,9 @@ CONTAINS
             !
 #endif
             fcp_neb_nelec(i) = nelec
-            fcp_neb_ef   (i) = ef
-            CALL fcp_hessian( fcp_neb_dos(i) )
+            fcp_neb_ef   (i) = ef / e2
+            CALL fcp_hessian( dos )
+            fcp_neb_dos  (i) = dos * e2
             !
          END DO
          !
@@ -181,8 +184,9 @@ CONTAINS
       !
       solvation_radius = solvation_radius_
       CALL fcp_capacitance( capacitance )
+      capacitance = e2 * capacitance
       !
-      step_max = ABS( capacitance * 0.1_DP )
+      step_max = ABS( capacitance * 0.05_DP )
       !
       IF ( lfcp_linmin ) THEN
          !
@@ -371,11 +375,11 @@ CONTAINS
         !
         IF (lrism) THEN
            !
-           slope = 0.100_DP * area_xy
+           slope = 0.100_DP * e2 * area_xy
            !
         ELSE
            !
-           slope = 0.001_DP * area_xy
+           slope = 0.001_DP * e2 * area_xy
            !
         END IF
         !

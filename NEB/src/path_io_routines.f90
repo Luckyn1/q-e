@@ -16,7 +16,7 @@ MODULE path_io_routines
   ! ... Written by Carlo Sbraccia ( 2003-2006 )
   !
   USE kinds,      ONLY : DP
-  USE constants,  ONLY : pi, autoev, bohr_radius_angs, eV_to_kelvin, rytoev
+  USE constants,  ONLY : pi, autoev, bohr_radius_angs, eV_to_kelvin
   USE io_global,  ONLY : meta_ionode, meta_ionode_id
   USE mp,         ONLY : mp_bcast
   USE mp_world,   ONLY : world_comm
@@ -133,10 +133,10 @@ MODULE path_io_routines
        IF ( lfcp ) THEN
           WRITE( UNIT = iunpath, &
                  FMT = '(5X,"target Fermi energy",T35," = ",F9.4," eV")') &
-                 fcp_mu*rytoev
+                 fcp_mu * autoev
           WRITE( UNIT = iunpath, &
                  FMT = '(5X,"Fermi_thr",T35," = ",F9.4," V")' ) &
-                 fcp_thr*rytoev
+                 fcp_thr * autoev
        END IF
        !
        IF ( CI_scheme == "manual" ) THEN
@@ -834,16 +834,19 @@ MODULE path_io_routines
        END DO
        !
        IF ( lfcp ) THEN
+          !
           WRITE(iunpath,'(/,5X,"image",2X,"Fermi energy (eV)",11X, &
                         & "error (V)",4X,"tot_charge",/)')
+          !
           DO image = 1, num_of_images
-          !
+             !
              WRITE(iunpath,'(5X,I5,9X,F10.6,10X,F10.6,4X,F10.6)') &
-                 image, fcp_neb_ef(image)*rytoev, &
-                 (fcp_mu-fcp_neb_ef(image))*rytoev, &
+                 image, fcp_neb_ef(image) * autoev, &
+                 (fcp_mu - fcp_neb_ef(image)) * autoev, &
                  SUM( zv(ityp(1:nat)) ) - fcp_neb_nelec(image)
-          !
+             !
           END DO
+          !
        END IF
        !
        inter_image_distance = path_length / DBLE( num_of_images - 1 )

@@ -16,7 +16,7 @@ SUBROUTINE ioneb()
   ! ... This is done so that it is possible to use a different input parser
   !
   USE kinds,         ONLY : DP
-  USE constants,     ONLY : autoev, eV_to_kelvin, rytoev
+  USE constants,     ONLY : autoev, eV_to_kelvin
   USE io_global,     ONLY : stdout
   USE io_files,      ONLY : tmp_dir
   USE fcp_module,    ONLY : fcp_check
@@ -228,8 +228,8 @@ SUBROUTINE ioneb()
   ! ... "FCP"-optimization variables
   !
   lfcp_             = lfcp
-  fcp_mu_           = fcp_mu / rytoev
-  fcp_thr_          = fcp_thr / rytoev
+  fcp_mu_           = fcp_mu / autoev
+  fcp_thr_          = fcp_thr / autoev
   fcp_ndiis_        = fcp_ndiis
   tot_charge_first_ = tot_charge_first
   tot_charge_last_  = tot_charge_last
