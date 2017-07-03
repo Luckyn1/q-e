@@ -129,7 +129,8 @@ CONTAINS
    !------------------------------------------------------------------------
    SUBROUTINE bfgs( pos_in, h, nelec, energy, grad_in, fcell, felec, fixion, scratch, stdout,&
                  energy_thr, grad_thr, cell_thr, fcp_thr, energy_error, grad_error,     &
-                 cell_error, fcp_error, lmovecell, lfcp, step_accepted, stop_bfgs, istep )
+                 cell_error, fcp_error, lmovecell, lfcp, fcp_solvrad, &
+                 step_accepted, stop_bfgs, istep )
       !------------------------------------------------------------------------
       !
       ! ... list of input/output arguments :
@@ -165,6 +166,7 @@ CONTAINS
       REAL(DP),         INTENT(IN)    :: energy_thr, grad_thr, cell_thr, fcp_thr
       LOGICAL,          INTENT(IN)    :: lmovecell
       LOGICAL,          INTENT(IN)    :: lfcp ! include FCP, or not ?
+      REAL(DP),         INTENT(IN)    :: fcp_solvrad ! solvation radius of FCP with RISM
       REAL(DP),         INTENT(OUT)   :: energy_error, grad_error, cell_error, fcp_error
       LOGICAL,          INTENT(OUT)   :: step_accepted, stop_bfgs
       INTEGER,          INTENT(OUT)   :: istep
@@ -225,7 +227,7 @@ CONTAINS
       FORALL ( k=nat:nat+2, i=1:3, j=1:3 ) metric(i+3*k,j+3*k) = 0.04d0 * omega * ginv(i,j)
       !
       IF ( lfcp ) THEN
-         CALL fcp_capacitance(fcp_cap)
+         CALL fcp_capacitance( fcp_cap, fcp_solvrad )
          IF ( ABS(fcp_cap) > eps8 ) THEN
             metric(n,n) = (1.0d0 / (0.1d0 * fcp_cap)) ** 2
          ELSE

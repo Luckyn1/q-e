@@ -170,8 +170,7 @@ CONTAINS
    SUBROUTINE fcp_opt_perform()
       !----------------------------------------------------------------------
       !
-      USE fcp_module,    ONLY : solvation_radius
-      USE fcp_variables, ONLY : solvation_radius_ => solvation_radius
+      USE fcp_variables, ONLY : solvation_radius
       !
       IMPLICIT NONE
       !
@@ -182,8 +181,7 @@ CONTAINS
       !
       ! ... evaluate maximum step
       !
-      solvation_radius = solvation_radius_
-      CALL fcp_capacitance( capacitance )
+      CALL fcp_capacitance( capacitance, solvation_radius )
       capacitance = e2 * capacitance
       !
       step_max = ABS( capacitance * 0.05_DP )

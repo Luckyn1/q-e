@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE fcp_capacitance(capacitance)
+SUBROUTINE fcp_capacitance(capacitance, solvation_radius)
   !----------------------------------------------------------------------------
   !
   ! ... evaluate capacitance for FCP
@@ -14,13 +14,13 @@ SUBROUTINE fcp_capacitance(capacitance)
   USE cell_base,   ONLY : alat, at
   USE constants,   ONLY : fpi, e2
   USE esm,         ONLY : esm_bc, esm_w
-  USE fcp_module,  ONLY : solvation_radius
   USE kinds,       ONLY : DP
   USE rism_module, ONLY : lrism
   !
   IMPLICIT NONE
   !
   REAL(DP), INTENT(OUT) :: capacitance
+  REAL(DP), INTENT(IN)  :: solvation_radius
   !
   REAL(DP) :: z0
   REAL(DP) :: area_xy
