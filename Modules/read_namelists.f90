@@ -686,7 +686,7 @@ MODULE read_namelists_module
           !
        END IF
        !
-       fcp_conv_thr = 1.0E-3_DP
+       fcp_conv_thr = 1.0E-2_DP
        fcp_slope    = -1.0_DP  ! will initialize at iosys_fcp
        fcp_ndiis    = 4
        fcp_mass     = -1.0_DP  ! will initialize at iosys_fcp

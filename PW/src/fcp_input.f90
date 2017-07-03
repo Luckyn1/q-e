@@ -153,7 +153,7 @@ SUBROUTINE iosys_fcp()
   !
   fcp_mu_ = fcp_mu / RYTOEV
   !
-  fcp_eps  = fcp_conv_thr
+  fcp_eps  = fcp_conv_thr / RYTOEV
   fcp_eps0 = fcp_eps
   !
   IF (fcp_is_dynamics()) THEN

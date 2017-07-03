@@ -1368,8 +1368,8 @@ MODULE input_parameters
         CHARACTER(LEN=8) :: fcp_dynamics_allowed(6)
         DATA fcp_dynamics_allowed / 'none', 'lm', 'newton', 'bfgs', 'damp', 'verlet' /
 
-        REAL(DP) :: fcp_conv_thr = 1.0E-3_DP
-          ! convergence threshold for FCP relaxation
+        REAL(DP) :: fcp_conv_thr = 1.0E-2_DP
+          ! convergence threshold for FCP relaxation (in eV)
 
         REAL(DP) :: fcp_slope = -1.0_DP
           ! slope of relaxation used if insulator

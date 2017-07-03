@@ -2573,9 +2573,9 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
         }
 
         var fcp_conv_thr -type REAL {
-            default { 1.D-3 }
+            default { 1.D-2 }
             info {
-                Convergence threshold for FCP relaxation.
+                Convergence threshold on force (eV) for FCP relaxation.
             }
         }
 
