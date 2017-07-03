@@ -79,6 +79,7 @@ MODULE bfgs_module
       inv_hess(:,:),     &! inverse hessian matrix (updated using BFGS formula)
       fwd_hess(:,:),     &! forward hessian matrix (updated using SR1-BFGS formula)
       metric(:,:),       &
+      inv_metric(:,:),   &
       h_block(:,:),      &
       hinv_block(:,:),   &
       step(:),           &! the (new) search direction (normalized NR step)
@@ -204,8 +205,9 @@ CONTAINS
       ALLOCATE( pos_best( n ) )
       ! ... scaled coordinates work-space
       ALLOCATE( hinv_block( n-NADD, n-NADD ) )
-      ! ... cell related work-space
-      ALLOCATE( metric( n , n  ) )
+      ! ... cell and FCP related work-space
+      ALLOCATE( metric(     n , n  ) )
+      ALLOCATE( inv_metric( n , n  ) )
       !
       ! ... the BFGS file read (pos & grad) in scaled coordinates
       !
@@ -232,6 +234,12 @@ CONTAINS
       ELSE
          metric(n,n) = 1.d0
       END IF
+      !
+      ! ... generate inverse of metric
+      inv_metric = 0.d0
+      FORALL ( k=0:nat-1,   i=1:3, j=1:3 ) inv_metric(i+3*k,j+3*k) = ginv(i,j)
+      FORALL ( k=nat:nat+2, i=1:3, j=1:3 ) inv_metric(i+3*k,j+3*k) = g(i,j) / (0.04d0 * omega)
+      inv_metric(n,n) = 1.d0 / metric(n,n)
       !
       ! ... generate bfgs vectors for the degrees of freedom and their gradients
       pos = 0.d0
@@ -483,6 +491,7 @@ CONTAINS
       DEALLOCATE( pos_best )
       DEALLOCATE( hinv_block )
       DEALLOCATE( metric )
+      DEALLOCATE( inv_metric )
       !
       RETURN
       !
@@ -591,29 +600,23 @@ CONTAINS
       INTEGER, INTENT(IN) :: n
       LOGICAL, INTENT(IN) :: lfcp
       !
-      REAL(DP)              :: helec
-      REAL(DP), ALLOCATABLE :: metric_(:,:)
+      REAL(DP) :: helec
+      !
+      inv_hess = inv_metric
+      !
+      fwd_hess = metric
       !
       IF ( lfcp ) THEN
          !
-         ALLOCATE( metric_( n , n ) )
-         !
-         metric_ = metric
-         !
          CALL fcp_hessian(helec)
-         IF ( ABS(helec) > eps4 ) metric_(n,n) = 1.d0 / helec
          !
-         CALL invmat(n, metric_, inv_hess)
-         !
-         fwd_hess = metric_
-         !
-         DEALLOCATE( metric_ )
-         !
-      ELSE
-         !
-         CALL invmat(n, metric, inv_hess)
-         !
-         fwd_hess = metric
+         IF ( ABS(helec) > eps4 ) THEN
+            !
+            inv_hess(n,n) = helec
+            !
+            fwd_hess(n,n) = 1.0dp / helec
+            !
+         END IF
          !
       END IF
       !
@@ -639,9 +642,7 @@ CONTAINS
       CHARACTER(LEN=256) :: bfgs_file
       LOGICAL            :: file_exists
       LOGICAL            :: has_fwd_hess
-      !
-      REAL(DP)              :: helec
-      REAL(DP), ALLOCATABLE :: metric_(:,:)
+      REAL(DP)           :: helec
       !
       !
       bfgs_file = TRIM( scratch ) // TRIM( prefix ) // '.bfgs'
@@ -685,31 +686,24 @@ CONTAINS
          !
          WRITE( UNIT = stdout, FMT = '(/,5X,"BFGS Geometry Optimization")' )
          !
+         ! initialize the inv_hess to the inverse of the metric
+         inv_hess = inv_metric
+         !
+         ! initialize the fwd_hess to the metric
+         fwd_hess = metric
+         !
          IF ( lfcp ) THEN
-            !
-            ALLOCATE( metric_( n , n ) )
-            !
-            metric_ = metric
             !
             ! replace diagonal element of FCP
             CALL fcp_hessian(helec)
-            IF ( ABS(helec) > eps4 ) metric_(n,n) = 1.d0 / helec
             !
-            ! initialize the inv_hess to the inverse of the metric
-            CALL invmat(n, metric_, inv_hess)
-            !
-            ! initialize the fwd_hess to the metric
-            fwd_hess = metric_
-            !
-            DEALLOCATE( metric_ )
-            !
-         ELSE
-            !
-            ! initialize the inv_hess to the inverse of the metric
-            CALL invmat(n, metric, inv_hess)
-            !
-            ! initialize the fwd_hess to the metric
-            fwd_hess = metric
+            IF ( ABS(helec) > eps4 ) THEN
+               !
+               inv_hess(n,n) = helec
+               !
+               fwd_hess(n,n) = 1.d0 / helec
+               !
+            END IF
             !
          END IF
          !
@@ -882,6 +876,8 @@ CONTAINS
       INTEGER,  INTENT(IN)  :: stdout
       !
       REAL(DP), ALLOCATABLE :: z(:)
+      REAL(DP), ALLOCATABLE :: Ms(:)
+      REAL(DP), ALLOCATABLE :: Mz(:)
       REAL(DP), ALLOCATABLE :: Bs(:)
       REAL(DP)              :: sdoty, sBs
       REAL(DP)              :: sdots, zdotz, sdotz
@@ -894,16 +890,19 @@ CONTAINS
       lerr = .FALSE.
       !
       ALLOCATE( z( n ) )
+      ALLOCATE( Ms( n ), Mz( n ) )
       ALLOCATE( Bs( n ) )
       ALLOCATE( B1( n, n ), B2( n, n ) )
       !
       z (:) = y(:) - Bs(:)
-      Bs(:) = ( fwd_hess .times. s(:) )
+      Ms(:) = ( metric     .times. s(:) )
+      Mz(:) = ( inv_metric .times. z(:) )
+      Bs(:) = ( fwd_hess   .times. s(:) )
       !
       sBs   = ( s(:) .dot. Bs(:) )
       sdoty = ( s(:) .dot. y(:) )
-      sdots = ( s(:) .dot. s(:) )
-      zdotz = ( z(:) .dot. z(:) )
+      sdots = ( s(:) .dot. Ms(:) )
+      zdotz = ( z(:) .dot. Mz(:) )
       sdotz = ( s(:) .dot. z(:) )
       !
       ! ... coupling rates
@@ -963,6 +962,7 @@ CONTAINS
       !
 1100  CONTINUE
       DEALLOCATE( z )
+      DEALLOCATE( Ms, Mz )
       DEALLOCATE( Bs )
       DEALLOCATE( B1, B2 )
       !
