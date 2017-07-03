@@ -32,6 +32,7 @@ MODULE fcp_opt_routines
    !
    REAL(DP), ALLOCATABLE :: fcp_neb_nelec(:)
    REAL(DP), ALLOCATABLE :: fcp_neb_ef(:)
+   REAL(DP), ALLOCATABLE :: fcp_neb_dos(:)
    !
    ! ... variables for Line-Minimization
    REAL(DP), ALLOCATABLE :: force0(:)
@@ -42,7 +43,7 @@ MODULE fcp_opt_routines
    LOGICAL          :: init_mdiis
    TYPE(mdiis_type) :: mdiist
    !
-   PUBLIC :: fcp_neb_nelec, fcp_neb_ef
+   PUBLIC :: fcp_neb_nelec, fcp_neb_ef, fcp_neb_dos
    PUBLIC :: fcp_opt_allocation, fcp_opt_deallocation, fcp_opt_perform
    !
 CONTAINS
@@ -73,6 +74,7 @@ CONTAINS
       !
       ALLOCATE( fcp_neb_nelec( num_of_images ) )
       ALLOCATE( fcp_neb_ef   ( num_of_images ) )
+      ALLOCATE( fcp_neb_dos  ( num_of_images ) )
       !
       IF ( lfcp_linmin ) THEN
          !
@@ -101,13 +103,21 @@ CONTAINS
                  TRIM( int_to_char( i ) ) // "/"
             !
 #if ! defined (__XSD)
-            CALL pw_readfile('ef', ierr)
+            CALL pw_readfile( 'reset', ierr )
+            IF ( ierr /= 0 ) &
+               CALL errore('fcp_opt_routines','error in pw_readfile(reset)',ABS(ierr))
+            !
+            CALL pw_readfile( 'nowave', ierr )
+            IF ( ierr /= 0 ) &
+               CALL errore('fcp_opt_routines','error in pw_readfile(nowave)',ABS(ierr))
+            !
 #else
             CALL errore('fcp_opt_routines','XSD implementation pending',1)
-#endif
             !
+#endif
             fcp_neb_nelec(i) = nelec
             fcp_neb_ef   (i) = ef
+            CALL fcp_hessian( fcp_neb_dos(i) )
             !
          END DO
          !
@@ -125,7 +135,8 @@ CONTAINS
             fcp_neb_nelec(i) = nelec_ - (first * (n - i) + last * (i - 1) ) / (n - 1)
          END DO
          !
-         fcp_neb_ef(:) = 0.0_DP
+         fcp_neb_ef (:) = 0.0_DP
+         fcp_neb_dos(:) = 0.0_DP
          !
       END IF
       !
@@ -139,6 +150,7 @@ CONTAINS
       !
       IF ( ALLOCATED( fcp_neb_nelec ) ) DEALLOCATE( fcp_neb_nelec )
       IF ( ALLOCATED( fcp_neb_ef    ) ) DEALLOCATE( fcp_neb_ef    )
+      IF ( ALLOCATED( fcp_neb_dos   ) ) DEALLOCATE( fcp_neb_dos   )
       IF ( ALLOCATED( force0        ) ) DEALLOCATE( force0        )
       IF ( ALLOCATED( nelec0        ) ) DEALLOCATE( nelec0        )
       IF ( ALLOCATED( firstcall     ) ) DEALLOCATE( firstcall     )
@@ -200,7 +212,7 @@ CONTAINS
       REAL(DP), INTENT(IN) :: step_max
       !
       INTEGER  :: image
-      REAL(DP) :: ef, force, step
+      REAL(DP) :: ef, dos, force, step
       REAL(DP) :: nelec, nelec_new
       !
       IF ( meta_ionode ) THEN
@@ -209,8 +221,9 @@ CONTAINS
             !
             IF ( frozen(image) ) CYCLE
             !
-            ef    = fcp_neb_ef(image)
             nelec = fcp_neb_nelec(image)
+            ef    = fcp_neb_ef   (image)
+            dos   = fcp_neb_dos  (image)
             force = fcp_mu - ef
             !
             IF ( firstcall(image) ) THEN
@@ -229,7 +242,7 @@ CONTAINS
                ! ... Steepest-Descent
                !
                step = 0.0_DP
-               CALL step_newton(force, step)
+               CALL step_newton( dos, force, step )
                !
                nelec_new = nelec + step
                !
@@ -276,7 +289,7 @@ CONTAINS
       REAL(DP), INTENT(IN) :: step_max
       !
       INTEGER               :: image
-      REAL(DP)              :: ef, force, step
+      REAL(DP)              :: ef, dos, force, step
       REAL(DP)              :: nelec, nelec_new
       REAL(DP), ALLOCATABLE :: nelec1(:)
       REAL(DP), ALLOCATABLE :: step1(:)
@@ -290,10 +303,13 @@ CONTAINS
             !
             ! ... current #electrons and Newton's steps
             !
-            ef            = fcp_neb_ef(image)
-            force         = fcp_mu - ef
-            nelec1(image) = fcp_neb_nelec(image)
-            CALL step_newton( force, step1(image) )
+            nelec = fcp_neb_nelec(image)
+            ef    = fcp_neb_ef   (image)
+            dos   = fcp_neb_dos  (image)
+            force = fcp_mu - ef
+            !
+            nelec1(image) = nelec
+            CALL step_newton( dos, force, step1(image) )
             !
          END DO
          !
@@ -330,7 +346,7 @@ CONTAINS
    END SUBROUTINE fcp_newton
    !
    !----------------------------------------------------------------------
-   SUBROUTINE step_newton( force, step )
+   SUBROUTINE step_newton( dos, force, step )
      !----------------------------------------------------------------------
      !
      USE constants,   ONLY : eps4
@@ -339,18 +355,15 @@ CONTAINS
      !
      IMPLICIT NONE
      !
+     REAL(DP), INTENT(IN)  :: dos
      REAL(DP), INTENT(IN)  :: force
      REAL(DP), INTENT(OUT) :: step
      !
-     REAL(DP) :: hess
      REAL(DP) :: area_xy, slope
      !
-     hess = 0.0_DP
-     CALL fcp_hessian( hess )
-     !
-     IF ( ABS( hess ) > eps4 ) THEN
+     IF ( ABS( dos ) > eps4 ) THEN
         !
-        step = hess * force
+        step = dos * force
         !
      ELSE
         !

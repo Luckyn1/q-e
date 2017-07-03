@@ -41,7 +41,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
   USE mp,               ONLY : mp_bcast, mp_barrier, mp_sum, mp_min
   USE path_io_routines, ONLY : new_image_init, get_new_image, &
                                stop_other_images
-  USE fcp_opt_routines, ONLY : fcp_neb_nelec, fcp_neb_ef
+  USE fcp_opt_routines, ONLY : fcp_neb_nelec, fcp_neb_ef, fcp_neb_dos
   USE fcp_variables,    ONLY : lfcp
   USE klist,            ONLY : nelec, tot_charge
   USE extrapolation,    ONLY : update_neb
@@ -97,13 +97,15 @@ SUBROUTINE compute_scf( fii, lii, stat  )
            !
            FORALL( image = fii:lii, .NOT.frozen(image) )
               !
-              fcp_neb_ef(image) = 0.D0
+              fcp_neb_ef(image)  = 0.D0
+              fcp_neb_dos(image) = 0.D0
               !
            END FORALL
            !
         ELSE
            !
-           fcp_neb_ef(fii:lii) = 0.D0
+           fcp_neb_ef(fii:lii)  = 0.D0
+           fcp_neb_dos(fii:lii) = 0.D0
            !
         END IF
         !
@@ -196,7 +198,10 @@ SUBROUTINE compute_scf( fii, lii, stat  )
      !
      CALL mp_sum( pes(fii:lii),        inter_image_comm )
      CALL mp_sum( grad_pes(:,fii:lii), inter_image_comm )
-     IF ( lfcp ) CALL mp_sum( fcp_neb_ef(fii:lii), inter_image_comm )
+     IF ( lfcp ) THEN
+        CALL mp_sum( fcp_neb_ef(fii:lii),  inter_image_comm )
+        CALL mp_sum( fcp_neb_dos(fii:lii), inter_image_comm )
+     END IF
      CALL mp_sum( istat,               inter_image_comm )
      !
   END IF
@@ -309,6 +314,8 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       CALL start_clock('PWSCF')
       CALL setup ()
       !
+      ! ... initialization #electrons, for FCP
+      !
       IF ( lfcp ) THEN
          nelec = fcp_neb_nelec(image)
          tot_charge = SUM( zv(ityp(1:nat)) ) - nelec
@@ -359,9 +366,14 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       !
       ethr = diago_thr_init
       !
-      CALL close_files(.FALSE.)
+      ! ... the Fermi energy and the DOS on the Fermi surface are saved, for FCP
       !
-      IF ( lfcp ) fcp_neb_ef(image) = ef
+      IF ( lfcp ) THEN
+         fcp_neb_ef(image) = ef
+         CALL fcp_hessian( fcp_neb_dos(image) )
+      END IF
+      !
+      CALL close_files(.FALSE.)
       !
       RETURN
       !
