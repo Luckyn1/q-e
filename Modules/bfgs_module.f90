@@ -614,7 +614,7 @@ CONTAINS
             !
             inv_hess(n,n) = helec
             !
-            fwd_hess(n,n) = 1.0dp / helec
+            fwd_hess(n,n) = 1.0d0 / helec
             !
          END IF
          !
