@@ -68,7 +68,7 @@ SUBROUTINE move_ions ( idone )
   LOGICAL               :: step_accepted, exst
   REAL(DP), ALLOCATABLE :: pos(:), grad(:)
   REAL(DP)              :: h(3,3), fcell(3,3)=0.d0, epsp1
-  REAL(DP)              :: relec, felec, tot_charge_
+  REAL(DP)              :: relec, felec, capacitance, tot_charge_
   LOGICAL               :: conv_fcp
   INTEGER,  ALLOCATABLE :: fixion(:)
   !
@@ -129,6 +129,7 @@ SUBROUTINE move_ions ( idone )
         IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
            relec = nelec
            felec = (ef - fcp_mu)
+           CALL fcp_capacitance( capacitance, solvation_radius )
            tot_charge_ = tot_charge
         END IF
         !
@@ -136,7 +137,7 @@ SUBROUTINE move_ions ( idone )
            !
            CALL bfgs( pos, h, relec, etot, grad, fcell, felec, fixion, tmp_dir, stdout, epse, &
                       epsf, epsp1, fcp_eps, energy_error, gradient_error, cell_error, fcp_error, &
-                      lmovecell, (lfcp .AND. TRIM(fcp_calc) == 'bfgs'), solvation_radius, &
+                      lmovecell, (lfcp .AND. TRIM(fcp_calc) == 'bfgs'), capacitance, &
                       step_accepted, conv_ions, istep )
            !
         ELSE
