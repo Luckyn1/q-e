@@ -269,16 +269,16 @@ CONTAINS
       conv_bfgs = conv_bfgs .AND. ( grad_error < grad_thr )
       !
       IF( lmovecell) THEN
-          cell_error = MAXVAL( ABS( MATMUL ( TRANSPOSE ( RESHAPE( grad(n-NADD+1:n), (/ 3, 3 /) ) ),&
+          cell_error = MAXVAL( ABS( MATMUL ( TRANSPOSE ( RESHAPE( grad(n-NADD+1:n-1), (/ 3, 3 /) ) ),&
                                              TRANSPOSE(h) ) ) ) / omega
           conv_bfgs = conv_bfgs .AND. ( cell_error < cell_thr )
 #undef DEBUG
 #ifdef DEBUG
-           write (*,'(3f15.10)') TRANSPOSE ( RESHAPE( grad(n-8:n), (/ 3, 3 /) ) )
+           write (*,'(3f15.10)') TRANSPOSE ( RESHAPE( grad(n-NADD+1:n-1), (/ 3, 3 /) ) )
            write (*,*)
            write (*,'(3f15.10)') TRANSPOSE(h)
            write (*,*)
-           write (*,'(3f15.10)') MATMUL (TRANSPOSE( RESHAPE( grad(n-8:n), (/ 3, 3 /) ) ),&
+           write (*,'(3f15.10)') MATMUL (TRANSPOSE( RESHAPE( grad(n-NADD+1:n-1), (/ 3, 3 /) ) ),&
                                              TRANSPOSE(h) ) / omega
            write (*,*)
            write (*,*) cell_error/cell_thr*0.5d0
@@ -894,10 +894,10 @@ CONTAINS
       ALLOCATE( Bs( n ) )
       ALLOCATE( B1( n, n ), B2( n, n ) )
       !
+      Bs(:) = ( fwd_hess   .times. s(:) )
       z (:) = y(:) - Bs(:)
       Ms(:) = ( metric     .times. s(:) )
       Mz(:) = ( inv_metric .times. z(:) )
-      Bs(:) = ( fwd_hess   .times. s(:) )
       !
       sBs   = ( s(:) .dot. Bs(:) )
       sdoty = ( s(:) .dot. y(:) )
