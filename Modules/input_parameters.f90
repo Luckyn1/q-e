@@ -1377,7 +1377,7 @@ MODULE input_parameters
         INTEGER :: fcp_ndiis = 4
           ! size of DIIS for Newton-Raphson algorithm
 
-        REAL(DP) :: fcp_metric = 1.0_DP
+        REAL(DP) :: fcp_metric = 0.5_DP
           ! metric for BFGS algorithm
 
         REAL(DP) :: fcp_mass = -1.0_DP
