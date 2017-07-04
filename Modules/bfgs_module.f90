@@ -63,7 +63,7 @@ MODULE bfgs_module
    PUBLIC :: bfgs_ndim,        &
              trust_radius_ini, trust_radius_min, trust_radius_max, &
              w_1,              w_2, &
-             with_sr1
+             metric_fcp,       with_sr1
    !
    ! ... global module variables
    !
