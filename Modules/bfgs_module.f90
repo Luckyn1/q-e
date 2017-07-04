@@ -44,7 +44,7 @@ MODULE bfgs_module
    !
    USE kinds,     ONLY : DP
    USE io_files,  ONLY : iunbfgs, prefix
-   USE constants, ONLY : eps4, eps8, eps16
+   USE constants, ONLY : eps4, eps8, eps16, RYTOEV
    USE cell_base, ONLY : iforceh
    !
    USE basic_algebra_routines
@@ -1211,7 +1211,7 @@ CONTAINS
          !
          IF ( lfcp ) THEN
             WRITE( UNIT = stdout, &
-              & FMT = '(5X,"(criteria: force on FCP < ",ES8.1," Ry)")') fcp_thr
+              & FMT = '(5X,"(criteria: force on FCP < ",ES8.1," eV)")') fcp_thr * RYTOEV
          END IF
          WRITE( UNIT = stdout, &
               & FMT = '(/,5X,"End of BFGS Geometry Optimization")' )
