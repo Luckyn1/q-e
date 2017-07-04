@@ -530,6 +530,7 @@ fcp_dynamics.o : ../../Modules/random_numbers.o
 fcp_dynamics.o : pwcom.o
 fcp_hessian.o : ../../Modules/kind.o
 fcp_hessian.o : pwcom.o
+fcp_input.o : ../../Modules/bfgs_module.o
 fcp_input.o : ../../Modules/cell_base.o
 fcp_input.o : ../../Modules/constants.o
 fcp_input.o : ../../Modules/control_flags.o

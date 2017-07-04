@@ -12,11 +12,10 @@ SUBROUTINE iosys_fcp()
   ! ...  Copy data read from input file (in subroutine "read_input_file") and
   ! ...  stored in modules input_parameters into internal modules of FCP
   !
+  USE bfgs_module,           ONLY : metric_fcp
   USE cell_base,             ONLY : alat, at
   USE constants,             ONLY : RYTOEV
   USE control_flags,         ONLY : lbfgs, lmd
-  USE ions_base,             ONLY : if_pos
-  USE kinds,                 ONLY : DP
   USE fcp_dynamics,          ONLY : fcpdyn_init, fcpdyn_prm_mass, &
                                   & fcpdyn_prm_velocity, fcpdyn_prm_temp
   USE fcp_module,            ONLY : fcp_mu_ => fcp_mu, &
@@ -24,6 +23,8 @@ SUBROUTINE iosys_fcp()
                                   & solvation_radius_ => solvation_radius, &
                                   & fcp_is_dynamics
   USE fcp_relaxation,        ONLY : fcprlx_init, fcprlx_prm
+  USE ions_base,             ONLY : if_pos
+  USE kinds,                 ONLY : DP
   USE read_namelists_module, ONLY : fcp_not_set
   USE rism_module,           ONLY : lrism
   !
@@ -34,7 +35,7 @@ SUBROUTINE iosys_fcp()
   ! ... FCP namelist
   !
   USE input_parameters,      ONLY : fcp_mu, fcp_dynamics_ => fcp_dynamics, fcp_conv_thr, &
-                                  & fcp_slope, fcp_ndiis, fcp_mass, fcp_velocity, &
+                                  & fcp_slope, fcp_ndiis, fcp_metric, fcp_mass, fcp_velocity, &
                                   & fcp_temperature, fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                                   & freeze_all_atoms, solvation_radius
   !
@@ -186,6 +187,8 @@ SUBROUTINE iosys_fcp()
      CALL fcprlx_prm(fcp_slope, fcp_ndiis)
      !
   END IF
+  !
+  metric_fcp = fcp_metric
   !
   solvation_radius_ = solvation_radius
   !

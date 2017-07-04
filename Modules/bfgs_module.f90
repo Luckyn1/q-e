@@ -122,6 +122,9 @@ MODULE bfgs_module
       w_1,               &! 1st Wolfe condition: sufficient energy decrease
       w_2                 ! 2nd Wolfe condition: sufficient gradient decrease
 
+   REAL(DP)  ::          &! scale of metric,
+      metric_fcp          ! for diagonal element of FCP
+
    LOGICAL :: &
       with_sr1            ! if .TRUE., SR1-BFGS formula of hessian is used
    !
@@ -227,7 +230,7 @@ CONTAINS
       !
       IF ( lfcp ) THEN
          IF ( ABS(fcp_cap) > eps8 ) THEN
-            metric(n,n) = (1.0d0 / (0.1d0 * fcp_cap)) ** 2
+            metric(n,n) = (metric_fcp / (0.1d0 * fcp_cap)) ** 2
          ELSE
             metric(n,n) = 1.d0
          END IF

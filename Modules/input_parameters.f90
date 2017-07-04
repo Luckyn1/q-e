@@ -1377,6 +1377,9 @@ MODULE input_parameters
         INTEGER :: fcp_ndiis = 4
           ! size of DIIS for Newton-Raphson algorithm
 
+        REAL(DP) :: fcp_metric = 1.0_DP
+          ! metric for BFGS algorithm
+
         REAL(DP) :: fcp_mass = -1.0_DP
           ! mass for the FCP
 
@@ -1424,8 +1427,8 @@ MODULE input_parameters
         REAL(DP) :: solvation_radius = 6.0_DP
           ! solvation radius (in bohr)
 
-        NAMELIST / fcp / fcp_mu, fcp_dynamics, fcp_conv_thr, fcp_slope, &
-                         fcp_ndiis, fcp_mass, fcp_velocity, fcp_temperature, &
+        NAMELIST / fcp / fcp_mu, fcp_dynamics, fcp_conv_thr, fcp_slope, fcp_ndiis, &
+                         fcp_metric, fcp_mass, fcp_velocity, fcp_temperature, &
                          fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                          freeze_all_atoms, solvation_radius
 
