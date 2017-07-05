@@ -38,7 +38,7 @@ MODULE path_io_routines
      SUBROUTINE path_summary()
        !-----------------------------------------------------------------------
        !
-       USE path_input_parameters_module, ONLY : string_method, opt_scheme
+       USE path_input_parameters_module, ONLY : string_method, opt_scheme, fcp_scheme
        USE path_input_parameters_module, ONLY : restart_mode
        USE path_variables,    ONLY : lneb, lsmd
        USE path_variables,   ONLY : climbing, nstep_path, num_of_images, &
@@ -49,7 +49,7 @@ MODULE path_io_routines
                                     qnewton_ndim, qnewton_step
        USE path_formats,     ONLY : summary_fmt
        USE path_io_units_module,         ONLY : iunpath
-       USE fcp_variables,    ONLY : lfcp, fcp_mu, fcp_thr
+       USE fcp_variables,    ONLY : lfcp, fcp_mu, fcp_thr, lfcp_newton
        !
        IMPLICIT NONE
        !
@@ -130,15 +130,6 @@ MODULE path_io_routines
        WRITE( UNIT = iunpath, &
               FMT = '(5X,"path_thr",T35," = ",F9.4," eV / A")' ) path_thr
        !
-       IF ( lfcp ) THEN
-          WRITE( UNIT = iunpath, &
-                 FMT = '(5X,"target Fermi energy",T35," = ",F9.4," eV")') &
-                 fcp_mu * autoev
-          WRITE( UNIT = iunpath, &
-                 FMT = '(5X,"Fermi_thr",T35," = ",F9.4," V")' ) &
-                 fcp_thr * autoev
-       END IF
-       !
        IF ( CI_scheme == "manual" ) THEN
           !
           outline = ' '
@@ -153,6 +144,22 @@ MODULE path_io_routines
           WRITE( UNIT = iunpath, &
                  FMT = '(/,5X,"list of climbing images :",2X,A)' ) &
               TRIM( outline )
+          !
+       END IF
+       !
+       IF ( lfcp ) THEN
+          !
+          WRITE( UNIT = iunpath, &
+                 FMT = '(5X,">>>>> FCP NEB is activated <<<<<")')
+          !
+          WRITE( UNIT = iunpath, &
+                 FMT = '(5X,"target Fermi energy",T35," = ",F9.4," eV")') &
+                 fcp_mu * autoev
+          !
+          WRITE( iunpath, summary_fmt ) "fcp_scheme", TRIM( fcp_scheme )
+          !
+          WRITE( UNIT = iunpath, &
+                 FMT = '(5X,"fcp_thr",T35," = ",F9.4," V")' ) fcp_thr
           !
        END IF
        !

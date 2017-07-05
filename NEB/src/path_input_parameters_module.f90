@@ -135,9 +135,6 @@ MODULE path_input_parameters_module
   !
   INTEGER    :: fcp_ndiis = 4
   !
-  REAL(DP)   :: tot_charge_first = 0.0_DP
-  REAL(DP)   :: tot_charge_last  = 0.0_DP
-  !
   REAL(DP)   :: solvation_radius = 6.0_DP
   !
   !
@@ -149,13 +146,18 @@ MODULE path_input_parameters_module
                     path_thr, fixed_tan, use_freezing, minimum_image, &
                     qnewton_ndim, qnewton_step, &
                     lfcp, fcp_mu, fcp_thr, fcp_scheme, fcp_ndiis, &
-                    tot_charge_first, tot_charge_last, solvation_radius
+                    solvation_radius
 !
 !    ATOMIC_POSITIONS
 !
         REAL(DP), ALLOCATABLE :: pos(:,:)
         INTEGER, ALLOCATABLE :: typ(:)
         !
+!
+!   TOTAL_CHARGE
+!
+      REAL(DP), ALLOCATABLE :: tot_charge(:)
+      !
 !
 !   CLIMBING_IMAGES
 !
@@ -171,10 +173,16 @@ CONTAINS
     IF ( allocated( pos ) ) DEALLOCATE( pos )
     IF ( allocated( typ ) ) DEALLOCATE( typ )
     !
+    IF ( allocated( tot_charge ) ) DEALLOCATE( tot_charge )
+    !
     ALLOCATE( pos( 3*nat, num_of_images ) )
     ALLOCATE( typ( nat ) )
     !
-    pos(:,:) = 0.0
+    ALLOCATE( tot_charge( num_of_images ) )
+    !
+    pos(:,:) = 0.0_DP
+    !
+    tot_charge = 0.0_DP
     !
     RETURN
     !
@@ -184,6 +192,8 @@ CONTAINS
     !
     IF ( allocated( pos ) ) DEALLOCATE( pos )
     IF ( allocated( typ ) ) DEALLOCATE( typ )
+    !
+    IF ( allocated( tot_charge ) ) DEALLOCATE( tot_charge )
     !
     IF ( allocated( climbing ) ) DEALLOCATE( climbing )
     !

@@ -57,7 +57,7 @@ MODULE path_base
       !-----------------------------------------------------------------------
       !
       USE control_flags,    ONLY : conv_elec
-      USE ions_base,        ONLY : amass, ityp
+      USE ions_base,        ONLY : amass, ityp, zv
       USE io_files,         ONLY : prefix, tmp_dir
       USE mp_global,        ONLY : nimage
       USE path_input_parameters_module, ONLY : pos_      => pos, &
@@ -65,6 +65,7 @@ MODULE path_base
                                    input_images, nstep_path_ => nstep_path
       USE path_input_parameters_module, ONLY : restart_mode
       USE path_input_parameters_module, ONLY : nat
+      USE path_input_parameters_module, ONLY : tot_charge
       USE path_variables, ONLY : fix_atom_pos
       USE path_variables,   ONLY : climbing, pos, istep_path, nstep_path,    &
                                    dim1, num_of_images, pes, grad_pes, mass, &
@@ -76,13 +77,15 @@ MODULE path_base
       USE path_io_routines, ONLY : read_restart
       USE path_io_units_module, ONLY : path_file, dat_file, crd_file, &
                                    int_file, xyz_file, axsf_file, broy_file, qnew_file
-      USE fcp_variables,        ONLY : lfcp
-      USE fcp_opt_routines,     ONLY : fcp_opt_allocation
+      USE fcp_variables,    ONLY : lfcp, fcp_allocation, &
+                                   fcp_nelec, fcp_ef, fcp_dos
       !
       IMPLICIT NONE
       !
       INTEGER :: i, fii, lii
       LOGICAL :: file_exists
+      !
+      REAL(DP) :: ionic_charge
       !
       ! ... output files are set
       !
@@ -140,7 +143,7 @@ MODULE path_base
       ! ... dynamical allocation of arrays
       !
       CALL path_allocation()
-      if ( lfcp ) CALL fcp_opt_allocation()
+      if ( lfcp ) CALL fcp_allocation()
       !
       IF ( use_masses ) THEN
          !
@@ -173,6 +176,17 @@ MODULE path_base
       frozen       = .FALSE.
       !
       k = k_min
+      !
+      IF ( lfcp ) THEN
+         !
+         ionic_charge = SUM( zv(ityp(1:nat)) )
+         !
+         fcp_nelec(1:input_images) = ionic_charge - tot_charge(1:input_images)
+         !
+         fcp_ef  = 0.0_DP
+         fcp_dos = 0.0_DP
+         !
+      END IF
       !
       IF ( ALLOCATED( climbing_ ) ) THEN
          !
@@ -276,6 +290,7 @@ MODULE path_base
       USE path_input_parameters_module, ONLY : input_images
       USE path_variables,   ONLY : pos, dim1, num_of_images, path_length
       USE path_io_units_module,         ONLY : iunpath
+      USE fcp_variables,    ONLY : lfcp, fcp_nelec
       !
       IMPLICIT NONE
       !
@@ -283,6 +298,7 @@ MODULE path_base
       INTEGER  :: i, j
       !
       REAL(DP), ALLOCATABLE :: pos_n(:,:), dr(:,:), image_spacing(:)
+      REAL(DP), ALLOCATABLE :: fcp_nelec_n(:), delec(:)
       !
       !
       IF ( meta_ionode ) THEN
@@ -291,11 +307,18 @@ MODULE path_base
          ALLOCATE( dr( dim1, input_images - 1 ) )
          ALLOCATE( image_spacing( input_images - 1 ) )
          !
+         IF ( lfcp ) THEN
+            ALLOCATE( fcp_nelec_n( num_of_images ) )
+            ALLOCATE( delec( input_images - 1 ) )
+         END IF
+         !
          DO i = 1, input_images - 1
             !
             dr(:,i) = ( pos(:,i+1) - pos(:,i) )
             !
             image_spacing(i) = norm( dr(:,i) )
+            !
+            IF ( lfcp ) delec(i) = ( fcp_nelec(i+1) - fcp_nelec(i) )
             !
          END DO
          !
@@ -308,6 +331,8 @@ MODULE path_base
          END DO
          !
          pos_n(:,1) = pos(:,1)
+         !
+         IF ( lfcp ) fcp_nelec_n(:) = fcp_nelec(:)
          !
          i = 1
          s = 0.0_DP
@@ -329,11 +354,18 @@ MODULE path_base
             !
             pos_n(:,j) = pos(:,i) + s * dr(:,i)
             !
+            IF ( lfcp ) &
+            fcp_nelec_n(j) = fcp_nelec(i) + s / image_spacing(i) * delec(i)
+            !
          END DO
          !
          pos_n(:,num_of_images) = pos(:,input_images)
          !
+         IF ( lfcp ) fcp_nelec_n(num_of_images) = fcp_nelec(input_images)
+         !
          pos(:,:) = pos_n(:,:)
+         !
+         IF ( lfcp ) fcp_nelec(:) = fcp_nelec_n(:)
          !
          path_length = 0.0_DP
          !
@@ -353,10 +385,14 @@ MODULE path_base
          !
          DEALLOCATE( image_spacing, dr, pos_n )
          !
+         IF ( lfcp ) DEALLOCATE( fcp_nelec_n, delec )
+         !
       END IF
       !
       CALL mp_bcast( pos,         meta_ionode_id, world_comm )
       CALL mp_bcast( path_length, meta_ionode_id, world_comm )
+      !
+      IF ( lfcp ) CALL mp_bcast( fcp_nelec, meta_ionode_id, world_comm )
       !
       RETURN
       !
@@ -756,7 +792,7 @@ MODULE path_base
       !
       USE path_variables,   ONLY : num_of_images, first_last_opt
       USE fcp_variables,    ONLY : fcp_mu
-      USE fcp_opt_routines, ONLY : fcp_neb_ef
+      USE fcp_opt_routines, ONLY : fcp_ef
       !
       IMPLICIT NONE
       !
@@ -781,7 +817,7 @@ MODULE path_base
       !
       IF ( meta_ionode ) THEN
          !
-         err_max = MAXVAL( ABS( fcp_mu - fcp_neb_ef(fii:lii) ), 1 )
+         err_max = MAXVAL( ABS( fcp_mu - fcp_ef(fii:lii) ), 1 ) * autoev
          !
       END IF
       !
@@ -875,14 +911,13 @@ MODULE path_base
                                    Emax_index, fixed_tan, tangent
       USE path_io_routines, ONLY : write_restart, write_dat_files, write_output
       USE path_formats,     ONLY : scf_iter_fmt
-      USE fcp_variables,    ONLY : lfcp
+      USE fcp_variables,    ONLY : lfcp, fcp_err_max
       !
       USE path_reparametrisation
       !
       IMPLICIT NONE
       !
       LOGICAL :: stat
-      REAL(DP) :: fcp_err_max = 0.0_DP
       !
       REAL(DP), EXTERNAL :: get_clock
       !

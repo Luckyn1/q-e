@@ -280,10 +280,10 @@ input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
 
                 var fcp_thr -type REAL { 
                     see { lfcp }
-                    default { 0.01D0 eV }
+                    default { 0.01D0 V }
                     info {
                         The simulation stops when the error ( the maximum of the force
-                        acting on the FCP in eV ) is less than fcp_thr.
+                        acting on the FCP in V ) is less than fcp_thr.
                     }
                 }
 

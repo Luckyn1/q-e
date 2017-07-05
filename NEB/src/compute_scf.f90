@@ -41,8 +41,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
   USE mp,               ONLY : mp_bcast, mp_barrier, mp_sum, mp_min
   USE path_io_routines, ONLY : new_image_init, get_new_image, &
                                stop_other_images
-  USE fcp_opt_routines, ONLY : fcp_neb_nelec, fcp_neb_ef, fcp_neb_dos
-  USE fcp_variables,    ONLY : lfcp
+  USE fcp_variables,    ONLY : lfcp, fcp_nelec, fcp_ef, fcp_dos
   USE klist,            ONLY : nelec, tot_charge
   USE extrapolation,    ONLY : update_neb
   USE funct,            ONLY : stop_exx, dft_is_hybrid
@@ -97,15 +96,15 @@ SUBROUTINE compute_scf( fii, lii, stat  )
            !
            FORALL( image = fii:lii, .NOT.frozen(image) )
               !
-              fcp_neb_ef(image)  = 0.D0
-              fcp_neb_dos(image) = 0.D0
+              fcp_ef(image)  = 0.D0
+              fcp_dos(image) = 0.D0
               !
            END FORALL
            !
         ELSE
            !
-           fcp_neb_ef(fii:lii)  = 0.D0
-           fcp_neb_dos(fii:lii) = 0.D0
+           fcp_ef(fii:lii)  = 0.D0
+           fcp_dos(fii:lii) = 0.D0
            !
         END IF
         !
@@ -199,8 +198,8 @@ SUBROUTINE compute_scf( fii, lii, stat  )
      CALL mp_sum( pes(fii:lii),        inter_image_comm )
      CALL mp_sum( grad_pes(:,fii:lii), inter_image_comm )
      IF ( lfcp ) THEN
-        CALL mp_sum( fcp_neb_ef(fii:lii),  inter_image_comm )
-        CALL mp_sum( fcp_neb_dos(fii:lii), inter_image_comm )
+        CALL mp_sum( fcp_ef(fii:lii),  inter_image_comm )
+        CALL mp_sum( fcp_dos(fii:lii), inter_image_comm )
      END IF
      CALL mp_sum( istat,               inter_image_comm )
      !
@@ -318,7 +317,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       !
       IF ( lfcp ) THEN
          !
-         nelec = fcp_neb_nelec(image)
+         nelec = fcp_nelec(image)
          tot_charge = SUM( zv(ityp(1:nat)) ) - nelec
          !
       ENDIF
@@ -372,10 +371,10 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       !
       IF ( lfcp ) THEN
          !
-         fcp_neb_ef(image) = ef / e2
+         fcp_ef(image) = ef / e2
          !
-         CALL fcp_hessian( fcp_neb_dos(image) )
-         fcp_neb_dos(image) = fcp_neb_dos(image) * e2
+         CALL fcp_hessian( fcp_dos(image) )
+         fcp_dos(image) = fcp_dos(image) * e2
          !
       END IF
       !
