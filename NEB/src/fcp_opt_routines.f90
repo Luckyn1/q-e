@@ -23,17 +23,13 @@ MODULE fcp_opt_routines
    USE mp_world,       ONLY : world_comm
    USE fcp_module,     ONLY : fcp_check
    USE fcp_variables,  ONLY : fcp_mu, lfcp_linmin, lfcp_newton, &
-                              fcp_ndiis, tot_charge_first, tot_charge_last
+                              fcp_ndiis, fcp_neb_nelec, fcp_neb_ef, fcp_neb_dos
    USE mdiis,          ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis
    USE path_variables, ONLY : num_of_images
    !
    IMPLICIT NONE
    !
    PRIVATE
-   !
-   REAL(DP), ALLOCATABLE :: fcp_neb_nelec(:)
-   REAL(DP), ALLOCATABLE :: fcp_neb_ef(:)
-   REAL(DP), ALLOCATABLE :: fcp_neb_dos(:)
    !
    ! ... variables for Line-Minimization
    REAL(DP), ALLOCATABLE :: force0(:)
@@ -44,7 +40,6 @@ MODULE fcp_opt_routines
    LOGICAL          :: init_mdiis
    TYPE(mdiis_type) :: mdiist
    !
-   PUBLIC :: fcp_neb_nelec, fcp_neb_ef, fcp_neb_dos
    PUBLIC :: fcp_opt_allocation, fcp_opt_deallocation, fcp_opt_perform
    !
 CONTAINS

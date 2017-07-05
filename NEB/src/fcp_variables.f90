@@ -9,7 +9,7 @@
 MODULE fcp_variables
   !--------------------------------------------------------------------------
   !
-  USE kinds,      ONLY : DP
+  USE kinds, ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -34,11 +34,40 @@ MODULE fcp_variables
        fcp_ndiis        = 4         ! size of DIIS for Newton algorithm
   !
   REAL(DP) :: &
-       tot_charge_first = 0.0_DP,  &! total charge of the first image
-       tot_charge_last  = 0.0_DP    ! total charge of the last image
-  !
-  REAL(DP) :: &
        solvation_radius = 6.0_DP    ! solvation radius to estimate capacity,
                                     ! in Bohr
   !
+  REAL(DP), ALLOCATABLE :: &
+       fcp_nelec(:),               &! the numbers of electrons
+       fcp_ef(:),                   ! the Fermi energies
+       fcp_dos(:)                   ! the DOSs on Fermi surfaces
+  !
+  CONTAINS
+     !
+     !--------------------------------------------------------------------------
+     SUBROUTINE fcp_allocation()
+       !--------------------------------------------------------------------------
+       !
+       USE path_variables, ONLY : num_of_images
+       !
+       IMPLICIT NONE
+       !
+       ALLOCATE( fcp_nelec( num_of_images ) )
+       ALLOCATE( fcp_ef(    num_of_images ) )
+       ALLOCATE( fcp_dos(   num_of_images ) )
+       !
+     END SUBROUTINE fcp_allocation
+     !
+     !--------------------------------------------------------------------------
+     SUBROUTINE fcp_deallocation()
+       !--------------------------------------------------------------------------
+       !
+       IMPLICIT NONE
+       !
+       IF ( ALLOCATED( fcp_nelec ) ) DEALLOCATE( fcp_nelec )
+       IF ( ALLOCATED( fcp_ef ) )    DEALLOCATE( fcp_ef )
+       IF ( ALLOCATED( fcp_dos ) )   DEALLOCATE( fcp_dos )
+       !
+     END SUBROUTINE fcp_deallocation
+     !
 END MODULE fcp_variables
