@@ -196,17 +196,21 @@ MODULE path_read_namelists_module
        !
        ! ... FCP algorithm
        !
-       IF( fcp_mu == fcp_not_set ) &
-          CALL errore( sub_name,' fcp_mu is not set ', 1 )
-       !
-       allowed = .FALSE.
-       DO i = 1, SIZE( fcp_scheme_allowed )
-          IF ( TRIM( fcp_scheme ) == fcp_scheme_allowed(i) ) allowed = .TRUE.
-       END DO
-       !
-       IF ( .NOT. allowed ) &
-          CALL errore( sub_name, ' fcp_scheme ''' // &
-                      & TRIM( fcp_scheme ) //''' not allowed ', 1 )
+       IF ( lfcp ) THEN
+          !
+          IF( fcp_mu == fcp_not_set ) &
+             CALL errore( sub_name,' fcp_mu is not set ', 1 )
+          !
+          allowed = .FALSE.
+          DO i = 1, SIZE( fcp_scheme_allowed )
+             IF ( TRIM( fcp_scheme ) == fcp_scheme_allowed(i) ) allowed = .TRUE.
+          END DO
+          !
+          IF ( .NOT. allowed ) &
+             CALL errore( sub_name, ' fcp_scheme ''' // &
+                         & TRIM( fcp_scheme ) //''' not allowed ', 1 )
+          !
+       END IF
        !
        RETURN
        !
