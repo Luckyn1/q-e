@@ -150,7 +150,7 @@ MODULE path_io_routines
        IF ( lfcp ) THEN
           !
           WRITE( UNIT = iunpath, &
-                 FMT = '(5X,">>>>> FCP NEB is activated <<<<<")')
+                 FMT = '(/,5X,">>>>> FCP NEB is activated <<<<<")')
           !
           WRITE( UNIT = iunpath, &
                  FMT = '(5X,"target Fermi energy",T35," = ",F9.4," eV")') &
