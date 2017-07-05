@@ -180,6 +180,7 @@ MODULE path_io_routines
                                           pending_image, pos, pes, grad_pes,   &
                                           lquick_min, posold, Emax, Emin,      &
                                           Emax_index
+       USE fcp_variables,          ONLY : lfcp, fcp_nelec, fcp_ef, fcp_dos
        USE path_reparametrisation, ONLY : spline_interpolation
        !
        IMPLICIT NONE
@@ -187,6 +188,7 @@ MODULE path_io_routines
        INTEGER            :: i, j, ia, ierr
        INTEGER            :: nim_inp
        CHARACTER(LEN=256) :: input_line
+       LOGICAL            :: lfcp_inp
        LOGICAL            :: exists
        LOGICAL, EXTERNAL  :: matches
        !
@@ -240,6 +242,24 @@ MODULE path_io_routines
              !
           END IF
           !
+          IF ( matches( "APPLY FCP", input_line ) ) THEN
+             !
+             ! ... optional field
+             !
+             READ( UNIT = iunrestart, FMT = * ) lfcp_inp
+             !
+             IF ( lfcp .AND. ( .NOT. lfcp_inp ) ) &
+                CALL errore( 'read_restart', &
+                             'FCP is not set in the restart file', 1 )
+             !
+             READ( UNIT = iunrestart, FMT = '(256A)' ) input_line
+             !
+          ELSE
+             !
+             lfcp_inp = lfcp
+             !
+          END IF
+          !
           IF ( .NOT. ( matches( "ENERGIES, POSITIONS AND GRADIENTS", &
                                  input_line ) ) ) THEN
              !
@@ -253,6 +273,12 @@ MODULE path_io_routines
           !
           READ( UNIT = iunrestart, FMT = * )
           READ( UNIT = iunrestart, FMT = * ) pes(1)
+          !
+          IF ( lfcp ) THEN
+             !
+             READ( UNIT = iunrestart, FMT = * ) fcp_nelec(1), fcp_ef(1), fcp_dos(1)
+             !
+          END IF
           !
           ia = 0
           !
@@ -283,6 +309,12 @@ MODULE path_io_routines
              !
              READ( UNIT = iunrestart, FMT = * )
              READ( UNIT = iunrestart, FMT = * ) pes(i)
+             !
+             IF ( lfcp ) THEN
+                !
+                READ( UNIT = iunrestart, FMT = * ) fcp_nelec(i), fcp_ef(i), fcp_dos(i)
+                !
+             END IF
              !
              DO j = 1, dim1, 3
                 !
@@ -344,6 +376,14 @@ MODULE path_io_routines
              CALL spline_interpolation( pes,      1, nim, nim_inp )
              CALL spline_interpolation( grad_pes, 1, nim, nim_inp )
              !
+             IF ( lfcp ) THEN
+                !
+                CALL spline_interpolation( fcp_nelec, 1, nim, nim_inp )
+                CALL spline_interpolation( fcp_ef,    1, nim, nim_inp )
+                CALL spline_interpolation( fcp_dos,   1, nim, nim_inp )
+                !
+             END IF
+             !
              IF ( lquick_min ) THEN
                 !
                 CALL spline_interpolation( posold, 1, nim, nim_inp )
@@ -379,6 +419,14 @@ MODULE path_io_routines
        CALL mp_bcast( Emin,       meta_ionode_id, world_comm )
        CALL mp_bcast( Emax_index, meta_ionode_id, world_comm )
        !
+       IF ( lfcp ) THEN
+          !
+          CALL mp_bcast( fcp_nelec, meta_ionode_id, world_comm )
+          CALL mp_bcast( fcp_ef,    meta_ionode_id, world_comm )
+          CALL mp_bcast( fcp_dos,   meta_ionode_id, world_comm )
+          !
+       END IF
+       !
        IF ( lquick_min ) THEN
           !
           CALL mp_bcast( frozen, meta_ionode_id, world_comm )
@@ -401,8 +449,9 @@ MODULE path_io_routines
        USE path_variables,   ONLY : istep_path, nstep_path, pending_image, &
                                     dim1, num_of_images, pos, pes, grad_pes, &
                                     posold, frozen, lquick_min
+       USE fcp_variables,    ONLY : lfcp, fcp_nelec, fcp_ef, fcp_dos
        USE path_formats,     ONLY : energy, restart_first, restart_others, &
-                                    quick_min
+                                    quick_min, fcp_restart
        USE ions_base,        ONLY : zv, ityp, nat
        !
        IMPLICIT NONE
@@ -475,6 +524,10 @@ MODULE path_io_routines
            !
            WRITE( UNIT = in_unit, FMT = '(I4)' ) num_of_images
            !
+           WRITE( UNIT = in_unit, FMT = '("APPLY FCP")' )
+           !
+           WRITE( UNIT = in_unit, FMT = '(L1)' ) lfcp
+           !
            WRITE( UNIT = in_unit, &
                   FMT = '("ENERGIES, POSITIONS AND GRADIENTS")' )
            !
@@ -484,6 +537,13 @@ MODULE path_io_routines
               !
               !
               WRITE( UNIT = in_unit, FMT = energy ) pes(i)
+              !
+              IF ( lfcp ) THEN
+                 !
+                 WRITE( UNIT = in_unit, FMT = fcp_restart ) &
+                     fcp_nelec(i), fcp_ef(i), fcp_dos(i)
+                 !
+              END IF
               !
               ia = 0
               !

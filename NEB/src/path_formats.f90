@@ -23,6 +23,9 @@ MODULE path_formats
   CHARACTER (LEN=*), PARAMETER :: &  
     quick_min = "(9(2X,F18.12))", &
     energy    = "(2X,F18.10)"
+  !
+  CHARACTER (LEN=*), PARAMETER :: &
+    fcp_restart = "(3(2X,F18.12))"
   !  
   CHARACTER (LEN=*), PARAMETER :: &  
     dat_fmt  = "(3(2X,F16.10))",    &
