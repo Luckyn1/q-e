@@ -47,7 +47,7 @@ MODULE path_formats
     run_output = "(5X,I5,4X,F15.7,10X,F10.6,12X,L1)"
   !    
   CHARACTER (LEN=*), PARAMETER :: &
-    fcp_info = "(5X,'image',5X,'Fermi (eV)',4X,'charge (e)',5X,'error (V)',5X,'DOS (e/V)',/)"
+    fcp_info = "(/,5X,'image',5X,'Fermi (eV)',4X,'charge (e)',5X,'error (V)',5X,'DOS (e/V)',/)"
   !
   CHARACTER (LEN=*), PARAMETER :: &
     fcp_output = "(5X,I5,1X,4F14.6)"
