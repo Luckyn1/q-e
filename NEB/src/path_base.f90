@@ -78,7 +78,7 @@ MODULE path_base
       USE path_io_units_module, ONLY : path_file, dat_file, crd_file, &
                                    int_file, xyz_file, axsf_file, broy_file, qnew_file
       USE fcp_variables,    ONLY : lfcp, fcp_allocation, &
-                                   fcp_nelec, fcp_ef, fcp_dos
+                                   fcp_nelec, fcp_ef, fcp_dos, fcp_error
       !
       IMPLICIT NONE
       !
@@ -183,8 +183,9 @@ MODULE path_base
          !
          fcp_nelec(1:input_images) = ionic_charge - tot_charge(1:input_images)
          !
-         fcp_ef  = 0.0_DP
-         fcp_dos = 0.0_DP
+         fcp_ef    = 0.0_DP
+         fcp_dos   = 0.0_DP
+         fcp_error = 0.0_DP
          !
       END IF
       !
@@ -790,9 +791,8 @@ MODULE path_base
     SUBROUTINE fcp_compute_error( err_out )
       !-----------------------------------------------------------------------
       !
-      USE path_variables,   ONLY : num_of_images, first_last_opt
-      USE fcp_variables,    ONLY : fcp_mu
-      USE fcp_opt_routines, ONLY : fcp_ef
+      USE path_variables, ONLY : num_of_images, first_last_opt
+      USE fcp_variables,  ONLY : fcp_mu, fcp_ef, fcp_error
       !
       IMPLICIT NONE
       !
@@ -817,11 +817,18 @@ MODULE path_base
       !
       IF ( meta_ionode ) THEN
          !
-         err_max = MAXVAL( ABS( fcp_mu - fcp_ef(fii:lii) ), 1 ) * autoev
+         DO i = 1, num_of_images
+            !
+            fcp_error(i) = ABS( fcp_mu - fcp_ef(i) ) * autoev
+            !
+         END DO
+         !
+         err_max = MAXVAL( fcp_error(fii:lii), 1 )
          !
       END IF
       !
-      CALL mp_bcast( err_max, meta_ionode_id, world_comm )
+      CALL mp_bcast( fcp_error, meta_ionode_id, world_comm )
+      CALL mp_bcast( err_max,   meta_ionode_id, world_comm )
       !
       IF ( PRESENT( err_out ) ) err_out = err_max
       !

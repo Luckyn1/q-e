@@ -565,11 +565,12 @@ MODULE path_io_routines
        !
        USE constants,        ONLY : pi
        USE cell_base,        ONLY : alat, at, bg
-       USE ions_base,        ONLY : ityp, nat, atm, tau_format
+       USE ions_base,        ONLY : zv, ityp, nat, atm, tau_format
        USE path_formats,     ONLY : dat_fmt, int_fmt, xyz_fmt, axsf_fmt
        USE path_variables,   ONLY : fix_atom_pos
        USE path_variables,   ONLY : pos, grad_pes, pes, num_of_images, &
                                     tangent, dim1, error
+       USE fcp_variables,    ONLY : lfcp, fcp_nelec
        USE path_io_units_module, ONLY : iundat, iunint, iunxyz, iuncrd, iunaxsf, &
                                   dat_file, int_file, xyz_file, axsf_file, &
                                   crd_file
@@ -579,6 +580,7 @@ MODULE path_io_routines
        REAL(DP)              :: r, delta, x
        REAL(DP), ALLOCATABLE :: a(:), b(:), c(:), d(:), f(:), s(:), tau_out(:,:,:)
        REAL(DP)              :: ener, ener_0
+       REAL(DP)              :: ionic_charge
        INTEGER               :: i, j, ia
        INTEGER, PARAMETER    :: max_i = 250
        CHARACTER(LEN=256)    :: strcrd
@@ -720,16 +722,27 @@ MODULE path_io_routines
        CASE DEFAULT
           strcrd = "ATOMIC_POSITIONS"
        END SELECT
+       !
        DO i = 1, num_of_images
           ! Add the image label and atomic position card header
           IF ( i == 1) THEN
-             WRITE( UNIT = iuncrd, FMT='(A,/,A)') "FIRST_IMAGE", TRIM(strcrd)
+             WRITE( UNIT = iuncrd, FMT='(A)') "FIRST_IMAGE"
           ELSEIF ( i == num_of_images) THEN
-             WRITE( UNIT = iuncrd, FMT='(A,/,A)') "LAST_IMAGE", TRIM(strcrd)
+             WRITE( UNIT = iuncrd, FMT='(A)') "LAST_IMAGE"
           ELSE
-             WRITE( UNIT = iuncrd, FMT='(A,/,A)') &
-                "INTERMEDIATE_IMAGE", TRIM(strcrd)
+             WRITE( UNIT = iuncrd, FMT='(A)') "INTERMEDIATE_IMAGE"
           ENDIF
+          !
+          IF ( lfcp ) THEN
+             !
+             ionic_charge = SUM( zv(ityp(1:nat)) )
+             !
+             WRITE( UNIT = iuncrd, FMT='(A,/,f18.10)') &
+                "TOTAL_CHARGE", ionic_charge - fcp_nelec(i)
+             !
+          END IF
+          !
+          WRITE( UNIT = iuncrd, FMT='(A)') TRIM(strcrd)
           !
           DO ia = 1, nat
              !
@@ -803,10 +816,9 @@ MODULE path_io_routines
        USE path_variables, ONLY : num_of_images, error, path_length, &
                                   activation_energy, pes, pos, frozen, &
                                   CI_scheme, Emax_index
-       USE path_formats,   ONLY : run_info, run_output
-       USE ions_base,             ONLY : zv, ityp, nat
-       USE fcp_variables,         ONLY : lfcp, fcp_mu
-       USE fcp_opt_routines, ONLY : fcp_neb_ef, fcp_neb_nelec
+       USE path_formats,   ONLY : run_info, run_output, fcp_info, fcp_output
+       USE ions_base,      ONLY : zv, ityp, nat
+       USE fcp_variables,  ONLY : lfcp, fcp_mu, fcp_nelec, fcp_ef, fcp_dos, fcp_error
        !
        IMPLICIT NONE
        !
@@ -814,6 +826,7 @@ MODULE path_io_routines
        !
        INTEGER   :: image
        REAL (DP) :: inter_image_distance
+       REAL (DP) :: ionic_charge
        !
        !
        IF ( .NOT. meta_ionode ) RETURN
@@ -840,22 +853,6 @@ MODULE path_io_routines
           !
        END DO
        !
-       IF ( lfcp ) THEN
-          !
-          WRITE(iunpath,'(/,5X,"image",2X,"Fermi energy (eV)",11X, &
-                        & "error (V)",4X,"tot_charge",/)')
-          !
-          DO image = 1, num_of_images
-             !
-             WRITE(iunpath,'(5X,I5,9X,F10.6,10X,F10.6,4X,F10.6)') &
-                 image, fcp_neb_ef(image) * autoev, &
-                 (fcp_mu - fcp_neb_ef(image)) * autoev, &
-                 SUM( zv(ityp(1:nat)) ) - fcp_neb_nelec(image)
-             !
-          END DO
-          !
-       END IF
-       !
        inter_image_distance = path_length / DBLE( num_of_images - 1 )
        !
        IF ( CI_scheme == "auto" ) &
@@ -868,6 +865,22 @@ MODULE path_io_routines
        WRITE( UNIT = iunpath, &
               FMT = '(5X,"inter-image distance", &
                       & T26," = ",F6.3," bohr")' ) inter_image_distance
+       !
+       IF ( lfcp ) THEN
+          !
+          ionic_charge = SUM( zv(ityp(1:nat)) )
+          !
+          WRITE( UNIT = iunpath, FMT = fcp_info )
+          !
+          DO image = 1, num_of_images
+             !
+             WRITE( UNIT = iunpath, FMT = fcp_output ) &
+                 image, fcp_ef(image) * autoev, ionic_charge - fcp_nelec(image), &
+                 fcp_error(image), fcp_dos(image) / autoev
+             !
+          END DO
+          !
+       END IF
        !
      END SUBROUTINE write_output
      !

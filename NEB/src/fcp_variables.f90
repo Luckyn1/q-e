@@ -40,8 +40,9 @@ MODULE fcp_variables
   !
   REAL(DP), ALLOCATABLE :: &
        fcp_nelec(:),               &! the numbers of electrons
-       fcp_ef(:),                  &! the Fermi energies
-       fcp_dos(:)                   ! the DOSs on Fermi surfaces
+       fcp_ef(:),                  &! the Fermi energies, in Hartree
+       fcp_dos(:),                 &! the DOSs on Fermi surfaces, in 1/Hartree
+       fcp_error(:)                 ! the error of FCP, in eV
   !
   ! ... variables for Line-Minimization
   !
@@ -73,6 +74,7 @@ MODULE fcp_variables
        ALLOCATE( fcp_nelec( num_of_images ) )
        ALLOCATE( fcp_ef(    num_of_images ) )
        ALLOCATE( fcp_dos(   num_of_images ) )
+       ALLOCATE( fcp_error( num_of_images ) )
        !
        IF ( lfcp_linmin ) THEN
           !
@@ -101,6 +103,7 @@ MODULE fcp_variables
        IF ( ALLOCATED( fcp_nelec ) ) DEALLOCATE( fcp_nelec )
        IF ( ALLOCATED( fcp_ef ) )    DEALLOCATE( fcp_ef )
        IF ( ALLOCATED( fcp_dos ) )   DEALLOCATE( fcp_dos )
+       IF ( ALLOCATED( fcp_error ) ) DEALLOCATE( fcp_error )
        !
        IF ( ALLOCATED( nelec0 ) )    DEALLOCATE( nelec0 )
        IF ( ALLOCATED( force0 ) )    DEALLOCATE( force0 )
