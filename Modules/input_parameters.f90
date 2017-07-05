@@ -1649,6 +1649,7 @@ MODULE input_parameters
         LOGICAL   :: ttemplate = .false.
         LOGICAL   :: twannier = .false.
         LOGICAL   :: tsolvents = .false.
+        LOGICAL   :: ttotcharge = .false.
 
 !
 !    ATOMIC_POSITIONS
@@ -1788,6 +1789,7 @@ SUBROUTINE reset_input_checks()
   tionvel = .false.
   tcell = .false.
   tsolvents = .false.
+  ttotcharge = .false.
   !
   END SUBROUTINE reset_input_checks
   !
