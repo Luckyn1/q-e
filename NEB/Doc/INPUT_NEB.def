@@ -11,6 +11,22 @@ set card_ATOMIC_POSITIONS {
     }
 }
 
+set card_TOTAL_CHARGE {
+    card TOTAL_CHARGE {
+        label { 
+            Optional card, needed only if @ref lfcp == .TRUE.
+        }
+        syntax {
+            list tot_charge_list -type REAL {
+                format { tot_charge }
+                info {          
+                    tot_charge is the total charge of the system.
+                }
+            }
+        }
+    }
+}
+
 # standard *.def description follows
 
 input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
@@ -55,10 +71,13 @@ input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
             @b BEGIN_POSITIONS
               @b FIRST_IMAGE
               ...pw ATOMIC_POSITIONS card
+              ...pw TOTAL_CHARGE card (only for FCP)
               @b INTERMEDIATE_IMAGE
               ...pw ATOMIC_POSITIONS card
+              ...pw TOTAL_CHARGE card (only for FCP)
               @b LAST_IMAGE
               ...pw ATOMIC_POSITIONS card
+              ...pw TOTAL_CHARGE card (only for FCP)
             @b END_POSITIONS
             ... other pw specific cards
           @b END_ENGINE_INPUT
@@ -303,26 +322,6 @@ input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
                         }
                     }
                 }
-
-                var tot_charge_first -type REAL {
-                    see { lfcp }
-                    default { 0.d0 }
-                    info {
-                        Total charge of the system ('tot_charge') for the first image.
-                        Initial 'tot_charge' for intermediate images will be given by
-                        linear interpolation of @ref tot_charge_first and @ref tot_charge_last.
-                    }
-                }
-
-                var tot_charge_last -type REAL {
-                    see { lfcp }
-                    default { 0.d0 }
-                    info {
-                        Total charge of the system ('tot_charge') for the last image.
-                        Initial 'tot_charge' for intermediate images will be given by
-                        linear interpolation of @ref tot_charge_first and @ref tot_charge_last.
-                    }
-                }
             }
 
 
@@ -374,12 +373,14 @@ input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
                     Atomic positions for all the images are specified within the @ref BEGIN_POSITIONS / END_POSITIONS
                     supercard, where each instance of @ref ATOMIC_POSITIONS card is prefixed either by @ref FIRST_IMAGE, 
                     @ref INTERMEDIATE_IMAGE, or @ref LAST_IMAGE keywords.
+                    IF @ref lfcp == .TRUE., total charges for all images have to be specified with @ref TOTAL_CHARGE cards.
 
                     Note that intermediate images are optional, i.e., there can be none or any number of
                     @ref INTERMEDIATE_IMAGE images.
 		}
 		supercard FIRST_IMAGE {
 		    eval $card_ATOMIC_POSITIONS
+		    eval $card_TOTAL_CHARGE
 		}
 		
 		optional {
@@ -387,11 +388,13 @@ input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
 			There can be any number (including zero) of INTERMEDIATE_IMAGE supercards.
 		    } {
 			eval $card_ATOMIC_POSITIONS
+		    eval $card_TOTAL_CHARGE
 		    }
 		}
             
 		supercard LAST_IMAGE {
 		    eval $card_ATOMIC_POSITIONS
+		    eval $card_TOTAL_CHARGE
 		}
 	    }
 
