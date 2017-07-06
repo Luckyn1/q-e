@@ -35,7 +35,7 @@ MODULE path_base
   ! ... Code written and maintained by Carlo Sbraccia ( 2003-2007 )
   !
   USE kinds,     ONLY : DP
-  USE constants, ONLY : eps32, pi, autoev, bohr_radius_angs, eV_to_kelvin
+  USE constants, ONLY : eps16, eps32, pi, autoev, bohr_radius_angs, eV_to_kelvin
   USE path_io_units_module,  ONLY : iunpath
   USE io_global, ONLY : meta_ionode, meta_ionode_id
   USE mp,        ONLY : mp_bcast
@@ -195,7 +195,7 @@ MODULE path_base
          !
          tot_charge = tot_charge_(1)
          !
-         IF ( ANY( ABS( tot_charge - tot_charge_(1:input_images) ) > eps32 ) ) THEN
+         IF ( ANY( ABS( tot_charge - tot_charge_(1:input_images) ) > eps16 ) ) THEN
             !
             CALL infomsg( 'initialize_path', &
                & 'the tot_charge of the first image is used for the all images.' )
