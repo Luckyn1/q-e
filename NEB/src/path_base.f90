@@ -59,13 +59,14 @@ MODULE path_base
       USE control_flags,    ONLY : conv_elec
       USE ions_base,        ONLY : amass, ityp, zv
       USE io_files,         ONLY : prefix, tmp_dir
+      USE klist,            ONLY : tot_charge
       USE mp_global,        ONLY : nimage
       USE path_input_parameters_module, ONLY : pos_      => pos, &
                                    climbing_ => climbing, &
                                    input_images, nstep_path_ => nstep_path
       USE path_input_parameters_module, ONLY : restart_mode
       USE path_input_parameters_module, ONLY : nat
-      USE path_input_parameters_module, ONLY : tot_charge
+      USE path_input_parameters_module, ONLY : tot_charge_ => tot_charge
       USE path_variables, ONLY : fix_atom_pos
       USE path_variables,   ONLY : climbing, pos, istep_path, nstep_path,    &
                                    dim1, num_of_images, pes, grad_pes, mass, &
@@ -181,11 +182,18 @@ MODULE path_base
          !
          ionic_charge = SUM( zv(ityp(1:nat)) )
          !
-         fcp_nelec(1:input_images) = ionic_charge - tot_charge(1:input_images)
+         fcp_nelec(1:input_images) = ionic_charge - tot_charge_(1:input_images)
          !
          fcp_ef    = 0.0_DP
          fcp_dos   = 0.0_DP
          fcp_error = 0.0_DP
+         !
+      ELSE
+         !
+         ! ... the total charge of the first image is used,
+         ! ... also for the other images.
+         !
+         tot_charge = tot_charge_(1)
          !
       END IF
       !
