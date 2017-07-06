@@ -88,6 +88,7 @@ path_base.o : ../../Modules/mp.o
 path_base.o : ../../Modules/mp_global.o
 path_base.o : ../../Modules/mp_world.o
 path_base.o : ../../Modules/random_numbers.o
+path_base.o : ../../PW/src/pwcom.o
 path_base.o : fcp_opt_routines.o
 path_base.o : fcp_variables.o
 path_base.o : path_formats.o
