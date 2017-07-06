@@ -25,7 +25,7 @@ MODULE path_formats
     energy    = "(2X,F18.10)"
   !
   CHARACTER (LEN=*), PARAMETER :: &
-    fcp_restart = "(3(2X,F18.12))"
+    fcp_restart = "(2(2X,F18.12),2X,E22.12)"
   !  
   CHARACTER (LEN=*), PARAMETER :: &  
     dat_fmt  = "(3(2X,F16.10))",    &
