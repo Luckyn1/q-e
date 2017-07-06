@@ -124,7 +124,7 @@ MODULE path_input_parameters_module
   REAL(DP)   :: fcp_mu  = 0.0_DP  ! in eV
   REAL(DP)   :: fcp_thr = 0.01_DP ! in eV
   !
-  CHARACTER(len=80) :: fcp_scheme = 'newton'
+  CHARACTER(len=80) :: fcp_scheme = 'lm'
   ! fcp_scheme = 'lm' | 'newton'
   ! set the minimization algorithm for FCP
   ! 'lm'          line-minimization

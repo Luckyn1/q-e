@@ -308,7 +308,7 @@ input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
 
                 var fcp_scheme -type CHARACTER { 
                     see { lfcp }
-                    default { 'newton' }
+                    default { 'lm' }
                     options {
                         info {
                             Specify the type of optimization scheme for FCP:
