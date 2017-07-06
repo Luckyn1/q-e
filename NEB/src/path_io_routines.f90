@@ -915,17 +915,6 @@ MODULE path_io_routines
        !
        inter_image_distance = path_length / DBLE( num_of_images - 1 )
        !
-       IF ( CI_scheme == "auto" ) &
-          WRITE( UNIT = iunpath, &
-                 FMT = '(/,5X,"climbing image = ",I2)' ) Emax_index
-       !
-       WRITE( UNIT = iunpath, &
-              FMT = '(/,5X,"path length",&
-                     & T26," = ",F6.3," bohr")' ) path_length
-       WRITE( UNIT = iunpath, &
-              FMT = '(5X,"inter-image distance", &
-                      & T26," = ",F6.3," bohr")' ) inter_image_distance
-       !
        IF ( lfcp ) THEN
           !
           ionic_charge = SUM( zv(ityp(1:nat)) )
@@ -941,6 +930,17 @@ MODULE path_io_routines
           END DO
           !
        END IF
+       !
+       IF ( CI_scheme == "auto" ) &
+          WRITE( UNIT = iunpath, &
+                 FMT = '(/,5X,"climbing image = ",I2)' ) Emax_index
+       !
+       WRITE( UNIT = iunpath, &
+              FMT = '(/,5X,"path length",&
+                     & T26," = ",F6.3," bohr")' ) path_length
+       WRITE( UNIT = iunpath, &
+              FMT = '(5X,"inter-image distance", &
+                      & T26," = ",F6.3," bohr")' ) inter_image_distance
        !
      END SUBROUTINE write_output
      !
