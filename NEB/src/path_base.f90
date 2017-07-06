@@ -195,6 +195,13 @@ MODULE path_base
          !
          tot_charge = tot_charge_(1)
          !
+         IF ( ANY( ABS( tot_charge - tot_charge_(1:input_images) ) > eps32 ) ) THEN
+            !
+            CALL infomsg( 'initialize_path', &
+               & 'the tot_charge of the first image is used for the all images.' )
+            !
+         END IF
+         !
       END IF
       !
       IF ( ALLOCATED( climbing_ ) ) THEN
