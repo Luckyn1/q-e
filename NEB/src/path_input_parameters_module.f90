@@ -133,8 +133,8 @@ MODULE path_input_parameters_module
   CHARACTER(len=80) :: fcp_scheme_allowed(2)
   DATA fcp_scheme_allowed / 'lm', 'newton' /
   !
-  INTEGER    :: fcp_ndiis = 1
-  REAL(DP)   :: fcp_rdiis = 0.2_DP
+  INTEGER    :: fcp_ndiis = 2
+  REAL(DP)   :: fcp_rdiis = 0.1_DP
   !
   REAL(DP)   :: solvation_radius = 6.0_DP
   !

@@ -116,7 +116,7 @@ MODULE fcp_opt_routines
                   step = 0.0_DP
                   CALL step_newton( dos, force, step )
                   !
-                  nelec_new = nelec + 0.2_DP * step
+                  nelec_new = nelec + 0.1_DP * step ! scale step for safety
                   !
                ELSE
                   !

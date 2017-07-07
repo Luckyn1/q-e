@@ -75,8 +75,8 @@ MODULE path_read_namelists_module
        fcp_mu           = fcp_not_set
        fcp_thr          = 0.01_DP
        fcp_scheme       = 'lm'
-       fcp_ndiis        = 1
-       fcp_rdiis        = 0.2_DP
+       fcp_ndiis        = 2
+       fcp_rdiis        = 0.1_DP
        solvation_radius = 6.0_DP
        !
        RETURN

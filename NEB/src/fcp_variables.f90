@@ -32,10 +32,10 @@ MODULE fcp_variables
        fcp_err_max      = 0.0_DP    ! the largest error, in eV
   !
   INTEGER :: &
-       fcp_ndiis        = 1         ! size of DIIS for Newton algorithm
+       fcp_ndiis        = 2         ! size of DIIS for Newton algorithm
   !
   REAL(DP) :: &
-       fcp_rdiis        = 0.2_DP    ! step of DIIS for Newton algorithm
+       fcp_rdiis        = 0.1_DP    ! step of DIIS for Newton algorithm
   !
   REAL(DP) :: &
        solvation_radius = 6.0_DP    ! solvation radius to estimate capacity,
