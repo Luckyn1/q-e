@@ -613,17 +613,15 @@ CONTAINS
       !
       IF ( lfcp ) THEN
          !
-         IF ( ABS( felec ) > 0.01_DP ) THEN
+         CALL fcp_hessian(helec)
+         !
+         IF ( ABS( felec ) < 0.01_DP ) THEN
             !
-            CALL fcp_hessian(helec)
-            !
-         ELSE
-            !
-            helec = fcp_cap
+            helec = MIN( fcp_cap, helec )
             !
          END IF
          !
-         IF ( ABS(helec) > eps4 ) THEN
+         IF ( helec > eps4 ) THEN
             !
             inv_hess(n,n) = helec
             !
@@ -709,17 +707,15 @@ CONTAINS
          IF ( lfcp ) THEN
             !
             ! replace diagonal element of FCP
-            IF ( ABS( grad(n) ) > 0.01_DP ) THEN
+            CALL fcp_hessian(helec)
+            !
+            IF ( ABS( grad(n) ) < 0.01_DP ) THEN
                !
-               CALL fcp_hessian(helec)
-               !
-            ELSE
-               !
-               helec = fcp_cap
+               helec = MIN( fcp_cap, helec )
                !
             END IF
             !
-            IF ( ABS(helec) > eps4 ) THEN
+            IF ( helec > eps4 ) THEN
                !
                inv_hess(n,n) = helec
                !

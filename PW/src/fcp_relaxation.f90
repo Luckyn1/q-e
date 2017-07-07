@@ -398,7 +398,7 @@ CONTAINS
     hess = 0.0_DP
     CALL fcp_hessian(hess)
     !
-    IF (ABS(hess) > eps4) THEN
+    IF (hess > eps4) THEN
        !
        step = hess * force
        !
