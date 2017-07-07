@@ -76,6 +76,7 @@ MODULE path_read_namelists_module
        fcp_thr          = 0.01_DP
        fcp_scheme       = 'lm'
        fcp_ndiis        = 1
+       fcp_rdiis        = 0.2_DP
        solvation_radius = 6.0_DP
        !
        ! for reading ions namelist we need to set calculation=relax
@@ -128,6 +129,7 @@ MODULE path_read_namelists_module
        CALL mp_bcast( fcp_thr,              ionode_id, world_comm )
        CALL mp_bcast( fcp_scheme,           ionode_id, world_comm )
        CALL mp_bcast( fcp_ndiis,            ionode_id, world_comm )
+       CALL mp_bcast( fcp_rdiis,            ionode_id, world_comm )
        CALL mp_bcast( solvation_radius,     ionode_id, world_comm )
        !
        RETURN

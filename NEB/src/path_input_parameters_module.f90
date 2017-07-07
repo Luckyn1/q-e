@@ -134,6 +134,7 @@ MODULE path_input_parameters_module
   DATA fcp_scheme_allowed / 'lm', 'newton' /
   !
   INTEGER    :: fcp_ndiis = 1
+  REAL(DP)   :: fcp_rdiis = 0.2_DP
   !
   REAL(DP)   :: solvation_radius = 6.0_DP
   !
@@ -145,8 +146,8 @@ MODULE path_input_parameters_module
                     first_last_opt, ds, k_max, k_min, temp_req,          &
                     path_thr, fixed_tan, use_freezing, minimum_image, &
                     qnewton_ndim, qnewton_step, &
-                    lfcp, fcp_mu, fcp_thr, fcp_scheme, fcp_ndiis, &
-                    solvation_radius
+                    lfcp, fcp_mu, fcp_thr, fcp_scheme, &
+                    fcp_ndiis, fcp_rdiis, solvation_radius
 !
 !    ATOMIC_POSITIONS
 !

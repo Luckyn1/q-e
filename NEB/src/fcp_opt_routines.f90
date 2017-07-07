@@ -54,7 +54,7 @@ MODULE fcp_opt_routines
          CALL fcp_capacitance( capacitance, solvation_radius )
          capacitance = e2 * capacitance
          !
-         step_max = ABS( capacitance * 0.05_DP )
+         step_max = ABS( capacitance * 0.05_DP ) ! = C * 0.1Ry
          !
          IF ( lfcp_linmin ) THEN
             !
@@ -116,7 +116,7 @@ MODULE fcp_opt_routines
                   step = 0.0_DP
                   CALL step_newton( dos, force, step )
                   !
-                  nelec_new = nelec + step
+                  nelec_new = nelec + 0.2_DP * step
                   !
                ELSE
                   !

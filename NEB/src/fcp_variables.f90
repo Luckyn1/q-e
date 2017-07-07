@@ -35,6 +35,9 @@ MODULE fcp_variables
        fcp_ndiis        = 1         ! size of DIIS for Newton algorithm
   !
   REAL(DP) :: &
+       fcp_rdiis        = 0.2_DP    ! step of DIIS for Newton algorithm
+  !
+  REAL(DP) :: &
        solvation_radius = 6.0_DP    ! solvation radius to estimate capacity,
                                     ! in Bohr
   !
@@ -88,7 +91,7 @@ MODULE fcp_variables
           !
           init_mdiis = .TRUE.
           !
-          CALL allocate_mdiis( mdiist, fcp_ndiis, num_of_images, 1.0_DP, 1 )
+          CALL allocate_mdiis( mdiist, fcp_ndiis, num_of_images, fcp_rdiis, 1 )
           !
        END IF
        !
