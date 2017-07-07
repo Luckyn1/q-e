@@ -311,7 +311,7 @@ CONTAINS
       !
       ! ... the bfgs algorithm starts here
       !
-      IF ( .NOT. energy_wolfe_condition( energy ) .AND. (scf_iter > 1) ) THEN
+      IF ( .NOT. energy_wolfe_condition( energy ) .AND. (scf_iter > 1) .AND. (.NOT. lfcp) ) THEN
          !
          ! ... the previous step is rejected, line search goes on
          !
@@ -402,8 +402,12 @@ CONTAINS
             !
             nr_step_length_old = nr_step_length
             !
-            WRITE( UNIT = stdout, &
-                 & FMT = '(5X,"CASE: ",A,"_new < ",A,"_old",/)' ) fname,fname
+            IF ( .NOT. lfcp ) THEN
+               !
+               WRITE( UNIT = stdout, &
+                    & FMT = '(5X,"CASE: ",A,"_new < ",A,"_old",/)' ) fname,fname
+               !
+            END IF
             !
             CALL check_wolfe_conditions( lwolfe, energy, grad )
             !
