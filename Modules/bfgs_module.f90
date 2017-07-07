@@ -229,7 +229,7 @@ CONTAINS
       FORALL ( k=nat:nat+2, i=1:3, j=1:3 ) metric(i+3*k,j+3*k) = 0.04d0 * omega * ginv(i,j)
       !
       IF ( lfcp ) THEN
-         IF ( ABS(fcp_cap) > eps8 ) THEN
+         IF ( fcp_cap > eps4 ) THEN
             metric(n,n) = (metric_fcp / (0.1d0 * fcp_cap)) ** 2
          ELSE
             metric(n,n) = 1.d0
@@ -369,7 +369,7 @@ CONTAINS
                tr_min_hit = 1
             END IF
             !
-            CALL reset_bfgs( n, lfcp, grad(n), fcp_cap )
+            CALL reset_bfgs( n, lfcp, fcp_cap )
             !
             step(:) = - ( inv_hess(:,:) .times. grad(:) )
             ! normalize step but remember its length
@@ -429,7 +429,7 @@ CONTAINS
             WRITE( UNIT = stdout, &
                    FMT = '(5X,"uphill step: resetting bfgs history",/)' )
             !
-            CALL reset_bfgs( n, lfcp, grad(n), fcp_cap )
+            CALL reset_bfgs( n, lfcp, fcp_cap )
             step(:) = - ( inv_hess(:,:) .times. grad(:) )
             !
          END IF
@@ -595,14 +595,13 @@ CONTAINS
    END SUBROUTINE bfgs
    !
    !------------------------------------------------------------------------
-   SUBROUTINE reset_bfgs( n, lfcp, felec, fcp_cap )
+   SUBROUTINE reset_bfgs( n, lfcp, fcp_cap )
       !------------------------------------------------------------------------
       ! ... inv_hess in re-initialized to the initial guess
       ! ... defined as the inverse metric
       !
       INTEGER,  INTENT(IN) :: n
       LOGICAL,  INTENT(IN) :: lfcp
-      REAL(DP), INTENT(IN) :: felec
       REAL(DP), INTENT(IN) :: fcp_cap
       !
       REAL(DP) :: helec
@@ -615,7 +614,7 @@ CONTAINS
          !
          CALL fcp_hessian(helec)
          !
-         IF ( ABS( felec ) < 0.01_DP ) THEN
+         IF ( fcp_cap > eps4 ) THEN
             !
             helec = MIN( fcp_cap, helec )
             !
@@ -709,7 +708,7 @@ CONTAINS
             ! replace diagonal element of FCP
             CALL fcp_hessian(helec)
             !
-            IF ( ABS( grad(n) ) < 0.01_DP ) THEN
+            IF ( fcp_cap > eps4 ) THEN
                !
                helec = MIN( fcp_cap, helec )
                !
@@ -812,7 +811,7 @@ CONTAINS
                          &     "behaviour in update_inverse_hessian")' )
          WRITE( stdout, '(  5X,"         resetting bfgs history",/)' )
          !
-         CALL reset_bfgs( n, lfcp, grad(n), fcp_cap )
+         CALL reset_bfgs( n, lfcp, fcp_cap )
          !
          RETURN
          !
@@ -861,7 +860,7 @@ CONTAINS
          !
          ! ... SR1-BFGS update
          !     (O.Farkas, H.B.Schlegel, J. Chem. Phys., 1999, 111, 10806-10814)
-         CALL sr1bfgs_forward_hessian( s, y, n, lfcp, grad(n), fcp_cap, stdout )
+         CALL sr1bfgs_forward_hessian( s, y, n, lfcp, fcp_cap, stdout )
          CALL sr1bfgs_inverse_hessian( n, stdout )
          !
       ELSE
@@ -883,7 +882,7 @@ CONTAINS
    END SUBROUTINE update_inverse_hessian
    !
    !------------------------------------------------------------------------
-   SUBROUTINE sr1bfgs_forward_hessian( s, y, n, lfcp, felec, fcp_cap, stdout )
+   SUBROUTINE sr1bfgs_forward_hessian( s, y, n, lfcp, fcp_cap, stdout )
       !------------------------------------------------------------------------
       !
       IMPLICIT NONE
@@ -892,7 +891,6 @@ CONTAINS
       REAL(DP), INTENT(IN)  :: y(:)
       INTEGER,  INTENT(IN)  :: n
       LOGICAL,  INTENT(IN)  :: lfcp
-      REAL(DP), INTENT(IN)  :: felec
       REAL(DP), INTENT(IN)  :: fcp_cap
       INTEGER,  INTENT(IN)  :: stdout
       !
@@ -995,7 +993,7 @@ CONTAINS
                          &     "behaviour in sr1bfgs_forward_hessian")' )
          WRITE( stdout, '(  5X,"         resetting bfgs history",/)' )
          !
-         CALL reset_bfgs( n, lfcp, felec, fcp_cap )
+         CALL reset_bfgs( n, lfcp, fcp_cap )
          !
       END IF
       !
@@ -1111,7 +1109,7 @@ CONTAINS
       REAL(DP) :: a
       LOGICAL  :: ltest
       !
-      ltest = ( energy - energy_p ) < w_1 * ( grad_p .dot. step_old ) * trust_radius_old
+      ltest = energy_wolfe_condition( energy )
       !
       ! The instruction below replaces the original instruction:
       !    ltest = ltest .AND. ( nr_step_length_old > trust_radius_old )
@@ -1148,7 +1146,7 @@ CONTAINS
          WRITE( UNIT = stdout, &
                 FMT = '(5X,"small trust_radius: resetting bfgs history",/)' )
          !
-         CALL reset_bfgs( n, lfcp, grad(n), fcp_cap )
+         CALL reset_bfgs( n, lfcp, fcp_cap )
          step(:) = - ( inv_hess(:,:) .times. grad(:) )
          !
          nr_step_length = scnorm(step)

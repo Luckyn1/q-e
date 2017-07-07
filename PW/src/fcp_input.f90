@@ -12,7 +12,7 @@ SUBROUTINE iosys_fcp()
   ! ...  Copy data read from input file (in subroutine "read_input_file") and
   ! ...  stored in modules input_parameters into internal modules of FCP
   !
-  USE bfgs_module,           ONLY : metric_fcp
+  USE bfgs_module,           ONLY : metric_fcp, w_1, w_2
   USE cell_base,             ONLY : alat, at
   USE constants,             ONLY : RYTOEV
   USE control_flags,         ONLY : lbfgs, lmd
@@ -46,6 +46,8 @@ SUBROUTINE iosys_fcp()
   REAL(DP), PARAMETER :: RELAX_STEP_DEF = 1.0E-3_DP
   REAL(DP), PARAMETER :: MASS_DEF       = 5.0E+6_DP
   REAL(DP), PARAMETER :: SCALE_RISM     = 100.0_DP
+  REAL(DP), PARAMETER :: SCALE_WOLFE1   = 5.0_DP
+  REAL(DP), PARAMETER :: SCALE_WOLFE2   = 1.5_DP
   !
   area_xy = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
   !
@@ -119,11 +121,11 @@ SUBROUTINE iosys_fcp()
      !
      IF (lmd .AND. TRIM(fcp_calc) == 'bfgs') THEN
         !
-        fcp_calc = 'damp'
+        fcp_calc = 'lm'
         !
         CALL infomsg('iosys', 'calculation='// TRIM(calculation) // &
                    & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
-                   & " ignored, 'newton' assumed")
+                   & " ignored, 'lm' assumed")
         !
      END IF
      !
@@ -149,6 +151,15 @@ SUBROUTINE iosys_fcp()
                & ' not supported, for FCP', 1)
      !
   END SELECT
+  !
+  ! ... scale Wolfe parameters, if FCP-BFGS
+  !
+  IF (lbfgs .AND. TRIM(fcp_calc) == 'bfgs') THEN
+     !
+     w_2 = MIN(SCALE_WOLFE2 * w_2, 1.0_DP)
+     w_1 = MIN(SCALE_WOLFE1 * w_1, w_2)
+     !
+  END IF
   !
   ! ... set variables from namelist
   !
