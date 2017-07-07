@@ -51,23 +51,23 @@ MODULE path_read_namelists_module
        !
        ! ... defaults for "path" optimisations variables
        !
-         restart_mode  = 'from_scratch'
-         string_method  = 'neb'
-         num_of_images  = 0
-         first_last_opt = .FALSE.
-         use_masses     = .FALSE.
-         use_freezing   = .FALSE.
-         opt_scheme     = 'quick-min'
-         temp_req       = 0.0_DP
-         ds             = 1.0_DP
-         path_thr       = 0.05_DP
-         CI_scheme      = 'no-CI'
-         k_max          = 0.1_DP
-         k_min          = 0.1_DP
-         fixed_tan      = .FALSE.
-         nstep_path     = 1
-         qnewton_ndim   = 8
-         qnewton_step   = 0.6_DP
+       restart_mode   = 'from_scratch'
+       string_method  = 'neb'
+       num_of_images  = 0
+       first_last_opt = .FALSE.
+       use_masses     = .FALSE.
+       use_freezing   = .FALSE.
+       opt_scheme     = 'quick-min'
+       temp_req       = 0.0_DP
+       ds             = 1.0_DP
+       path_thr       = 0.05_DP
+       CI_scheme      = 'no-CI'
+       k_max          = 0.1_DP
+       k_min          = 0.1_DP
+       fixed_tan      = .FALSE.
+       nstep_path     = 1
+       qnewton_ndim   = 8
+       qnewton_step   = 0.6_DP
        !
        ! ... defaults for "FCP" optimisations variables
        !
@@ -78,8 +78,6 @@ MODULE path_read_namelists_module
        fcp_ndiis        = 1
        fcp_rdiis        = 0.2_DP
        solvation_radius = 6.0_DP
-       !
-       ! for reading ions namelist we need to set calculation=relax
        !
        RETURN
        !
