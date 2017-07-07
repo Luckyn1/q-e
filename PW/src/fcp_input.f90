@@ -119,7 +119,7 @@ SUBROUTINE iosys_fcp()
      !
      IF (lmd .AND. TRIM(fcp_calc) == 'bfgs') THEN
         !
-        fcp_calc = 'newton'
+        fcp_calc = 'damp'
         !
         CALL infomsg('iosys', 'calculation='// TRIM(calculation) // &
                    & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
