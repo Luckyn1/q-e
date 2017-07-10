@@ -230,20 +230,29 @@ MODULE fcp_opt_routines
         REAL(DP), INTENT(IN)  :: force
         REAL(DP), INTENT(OUT) :: step
         !
+        REAL(DP) :: hess
         REAL(DP) :: capacitance
+        !
+        hess = dos
         !
         CALL fcp_capacitance( capacitance, solvation_radius )
         capacitance = e2 * capacitance
         !
-        capacitance = MIN( capacitance, dos )
-        !
         IF ( capacitance > eps4 ) THEN
            !
-           step = capacitance * force
+           hess = MIN( hess, capacitance )
+           !
+        END IF
+        !
+        IF ( hess > eps4 ) THEN
+           !
+           step = hess * force
            !
         ELSE
            !
            CALL errore( 'step_newton', 'capacitance is not positive', 1 )
+           !
+           step = 0.0_DP
            !
         END IF
         !
