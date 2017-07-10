@@ -52,8 +52,8 @@ MODULE fcp_relaxation
   REAL(DP)         :: force_old      ! old force acting on FCP
   LOGICAL          :: line_min_init  ! init Line-Minimization, or not ?
   LOGICAL          :: newton_init    ! init Newton-Raphson, or not ?
-  REAL(DP)         :: slope          ! slope of force, only for insulator
   INTEGER          :: ndiis          ! size of DIIS
+  REAL(DP)         :: rdiis          ! step of DIIS
   TYPE(mdiis_type) :: mdiist         ! data of MDIIS
   !
   ! ... public components
@@ -82,8 +82,8 @@ CONTAINS
     force_old     = 0.0_DP
     line_min_init = .FALSE.
     newton_init   = .FALSE.
-    slope         = 0.5_DP
     ndiis         = 4
+    rdiis         = 1.0_DP
     !
   END SUBROUTINE fcprlx_init
   !
@@ -114,20 +114,20 @@ CONTAINS
   END SUBROUTINE fcprlx_final
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE fcprlx_prm(slope_, ndiis_)
+  SUBROUTINE fcprlx_prm(ndiis_, rdiis_)
     !----------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL(DP), INTENT(IN) :: slope_
     INTEGER,  INTENT(IN) :: ndiis_
-    !
-    IF (slope_ > 0.0_DP) THEN
-       slope = slope_
-    END IF
+    REAL(DP), INTENT(IN) :: rdiis_
     !
     IF (ndiis_ > 0) THEN
        ndiis = ndiis_
+    END IF
+    !
+    IF (rdiis_ > 0.0_DP) THEN
+       rdiis = rdiis_
     END IF
     !
   END SUBROUTINE fcprlx_prm
@@ -358,7 +358,7 @@ CONTAINS
        WRITE(stdout, '(/,5X,"FCP: Newton-Raphson Algorithm is used.")')
        WRITE(stdout, '(  5X,"FCP: Size of DIIS = ",I3)') ndiis
        !
-       CALL allocate_mdiis(mdiist, ndiis, 1, 1.0_DP, 1)
+       CALL allocate_mdiis(mdiist, ndiis, 1, rdiis, 1)
        !
     END IF
     !
@@ -394,22 +394,40 @@ CONTAINS
     REAL(DP), INTENT(OUT) :: step
     !
     REAL(DP) :: hess
+    REAL(DP) :: capacitance
+    !
+    ! ... DOS on Fermi surface
     !
     hess = 0.0_DP
     CALL fcp_hessian(hess)
     !
     IF (hess > eps4) THEN
        !
-       step = hess * force
-       !
        WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is ",1PE12.2)') hess
+       !
+    END IF
+    !
+    ! ... estimated capacitance
+    !
+    CALL fcp_capacitance(capacitance, -1.0_DP)
+    !
+    IF (capacitance > eps4) THEN
+       !
+       hess = MIN(hess, capacitance)
+       !
+    END IF
+    !
+    ! ... set step
+    !
+    IF (hess > eps4) THEN
+       !
+       step = hess * force
        !
     ELSE
        !
-       step = slope * force
+       CALL errore('step_newton', 'capacitance is not positive', 1)
        !
-       WRITE(stdout, '(/,5X,"FCP: DOS on Fermi surface is zero")')
-       WRITE(stdout, '(  5X,"FCP: -> steepest descent algorithm is used.")')
+       step = 0.0_DP
        !
     END IF
     !

@@ -519,6 +519,7 @@ fcp_capacitance.o : ../../Modules/cell_base.o
 fcp_capacitance.o : ../../Modules/constants.o
 fcp_capacitance.o : ../../Modules/kind.o
 fcp_capacitance.o : esm.o
+fcp_capacitance.o : fcp_module.o
 fcp_capacitance.o : rism_module.o
 fcp_dynamics.o : ../../Modules/constants.o
 fcp_dynamics.o : ../../Modules/control_flags.o

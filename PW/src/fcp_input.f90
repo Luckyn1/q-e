@@ -35,7 +35,7 @@ SUBROUTINE iosys_fcp()
   ! ... FCP namelist
   !
   USE input_parameters,      ONLY : fcp_mu, fcp_dynamics_ => fcp_dynamics, fcp_conv_thr, &
-                                  & fcp_slope, fcp_ndiis, fcp_metric, fcp_mass, fcp_velocity, &
+                                  & fcp_ndiis, fcp_rdiis, fcp_metric, fcp_mass, fcp_velocity, &
                                   & fcp_temperature, fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                                   & freeze_all_atoms, solvation_radius
   !
@@ -43,31 +43,16 @@ SUBROUTINE iosys_fcp()
   !
   REAL(DP) :: area_xy
   !
-  REAL(DP), PARAMETER :: RELAX_STEP_DEF = 1.0E-3_DP
   REAL(DP), PARAMETER :: MASS_DEF       = 5.0E+6_DP
   REAL(DP), PARAMETER :: SCALE_RISM     = 100.0_DP
   REAL(DP), PARAMETER :: SCALE_WOLFE1   = 5.0_DP
   REAL(DP), PARAMETER :: SCALE_WOLFE2   = 1.5_DP
   !
-  area_xy = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
-  !
-  ! ... modify fcp_slope
-  !
-  IF (fcp_slope <= 0.0_DP) THEN
-     !
-     fcp_slope = RELAX_STEP_DEF * area_xy
-     !
-     IF (lrism) THEN
-        !
-        fcp_slope = fcp_slope * SCALE_RISM
-        !
-     END IF
-     !
-  END IF
-  !
   ! ... modify fcp_mass
   !
   IF (fcp_mass <= 0.0_DP) THEN
+     !
+     area_xy = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
      !
      fcp_mass = MASS_DEF / area_xy
      !
@@ -195,7 +180,7 @@ SUBROUTINE iosys_fcp()
      !
      ! ... set parameters of fcp_relaxation
      !
-     CALL fcprlx_prm(fcp_slope, fcp_ndiis)
+     CALL fcprlx_prm(fcp_ndiis, fcp_rdiis)
      !
   END IF
   !

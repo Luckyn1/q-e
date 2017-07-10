@@ -206,7 +206,7 @@ CONTAINS
     ! ... evaluate maximum step
     !
     !force = fcp_mu - ef
-    force = 0.1_DP
+    force = 0.1_DP ! max step is 0.1Ry
     !
     CALL fcp_capacitance(capacitance, solvation_radius)
     !

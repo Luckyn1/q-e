@@ -687,8 +687,8 @@ MODULE read_namelists_module
        END IF
        !
        fcp_conv_thr = 1.0E-2_DP
-       fcp_slope    = -1.0_DP  ! will initialize at iosys_fcp
        fcp_ndiis    = 4
+       fcp_rdiis    = 1.0_DP
        fcp_metric   = 0.5_DP
        fcp_mass     = -1.0_DP  ! will initialize at iosys_fcp
        fcp_velocity = fcp_not_set
@@ -1388,8 +1388,8 @@ MODULE read_namelists_module
        CALL mp_bcast( fcp_mu,           ionode_id, intra_image_comm )
        CALL mp_bcast( fcp_dynamics,     ionode_id, intra_image_comm )
        CALL mp_bcast( fcp_conv_thr,     ionode_id, intra_image_comm )
-       CALL mp_bcast( fcp_slope,        ionode_id, intra_image_comm )
        CALL mp_bcast( fcp_ndiis,        ionode_id, intra_image_comm )
+       CALL mp_bcast( fcp_rdiis,        ionode_id, intra_image_comm )
        CALL mp_bcast( fcp_metric,       ionode_id, intra_image_comm )
        CALL mp_bcast( fcp_mass,         ionode_id, intra_image_comm )
        CALL mp_bcast( fcp_velocity,     ionode_id, intra_image_comm )
@@ -1900,11 +1900,11 @@ MODULE read_namelists_module
        IF( fcp_conv_thr < 0.0_DP ) &
           CALL errore( sub_name,' fcp_conv_thr out of range ', 1 )
        !
-       !IF( fcp_slope <= 0.0_DP ) &
-       !   CALL errore( sub_name,' fcp_slope out of range ', 1 )
-       !
        IF( fcp_ndiis <= 0 ) &
-          CALL errore( sub_name,' fcp_mdiis_size out of range ', 1 )
+          CALL errore( sub_name,' fcp_ndiis out of range ', 1 )
+       !
+       IF( fcp_rdiis <= 0.0_DP ) &
+          CALL errore( sub_name,' fcp_rdiis out of range ', 1 )
        !
        IF( fcp_metric <= 0.0_DP ) &
           CALL errore( sub_name,' fcp_metric out of range ', 1 )

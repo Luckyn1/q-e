@@ -1371,11 +1371,11 @@ MODULE input_parameters
         REAL(DP) :: fcp_conv_thr = 1.0E-2_DP
           ! convergence threshold for FCP relaxation (in eV)
 
-        REAL(DP) :: fcp_slope = -1.0_DP
-          ! slope of relaxation used if insulator
-
         INTEGER :: fcp_ndiis = 4
           ! size of DIIS for Newton-Raphson algorithm
+
+        REAL(DP) :: fcp_rdiis = 1.0_DP
+          ! step of DIIS for Newton-Raphson algorithm
 
         REAL(DP) :: fcp_metric = 0.5_DP
           ! metric for BFGS algorithm
@@ -1427,7 +1427,7 @@ MODULE input_parameters
         REAL(DP) :: solvation_radius = 6.0_DP
           ! solvation radius (in bohr)
 
-        NAMELIST / fcp / fcp_mu, fcp_dynamics, fcp_conv_thr, fcp_slope, fcp_ndiis, &
+        NAMELIST / fcp / fcp_mu, fcp_dynamics, fcp_conv_thr, fcp_ndiis, fcp_rdiis, &
                          fcp_metric, fcp_mass, fcp_velocity, fcp_temperature, &
                          fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                          freeze_all_atoms, solvation_radius

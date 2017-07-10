@@ -52,8 +52,8 @@ SUBROUTINE move_ions ( idone )
   USE dynamics_module,        ONLY : smart_MC, langevin_md
   USE klist,                  ONLY : nelec, tot_charge
   USE dfunct,                 only : newd
-  USE fcp_module,             ONLY : lfcp, fcp_eps, fcp_mu, fcp_calc, solvation_radius, &
-                                     fcp_relax, fcp_verlet, fcp_terminate, output_fcp
+  USE fcp_module,             ONLY : lfcp, fcp_eps, fcp_mu, fcp_calc, fcp_relax, &
+                                     fcp_verlet, fcp_terminate, output_fcp
   USE rism_module,            ONLY : lrism, rism_new_conv_thr
   !
   IMPLICIT NONE
@@ -129,7 +129,7 @@ SUBROUTINE move_ions ( idone )
         IF ( lfcp .AND. TRIM(fcp_calc) == 'bfgs' ) THEN
            relec = nelec
            felec = (ef - fcp_mu)
-           CALL fcp_capacitance( capacitance, solvation_radius )
+           CALL fcp_capacitance( capacitance, -1.0_DP )
            tot_charge_ = tot_charge
         END IF
         !
