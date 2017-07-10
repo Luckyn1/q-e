@@ -37,7 +37,6 @@ engine_to_path_pos.o : path_io_units_module.o
 engine_to_path_tot_charge.o : ../../Modules/kind.o
 engine_to_path_tot_charge.o : ../../PW/src/pwcom.o
 engine_to_path_tot_charge.o : path_input_parameters_module.o
-fcp_opt_routines.o : ../../Modules/cell_base.o
 fcp_opt_routines.o : ../../Modules/constants.o
 fcp_opt_routines.o : ../../Modules/io_global.o
 fcp_opt_routines.o : ../../Modules/kind.o
@@ -45,7 +44,6 @@ fcp_opt_routines.o : ../../Modules/mdiis.o
 fcp_opt_routines.o : ../../Modules/mp.o
 fcp_opt_routines.o : ../../Modules/mp_world.o
 fcp_opt_routines.o : ../../PW/src/fcp_module.o
-fcp_opt_routines.o : ../../PW/src/rism_module.o
 fcp_opt_routines.o : fcp_variables.o
 fcp_opt_routines.o : path_variables.o
 fcp_variables.o : ../../Modules/kind.o

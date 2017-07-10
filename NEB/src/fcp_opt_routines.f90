@@ -116,7 +116,7 @@ MODULE fcp_opt_routines
                   step = 0.0_DP
                   CALL step_newton( dos, force, step )
                   !
-                  nelec_new = nelec + 0.1_DP * step ! scale step for safety
+                  nelec_new = nelec + step
                   !
                ELSE
                   !
@@ -221,9 +221,8 @@ MODULE fcp_opt_routines
       SUBROUTINE step_newton( dos, force, step )
         !----------------------------------------------------------------------
         !
-        USE constants,   ONLY : eps4
-        USE cell_base,   ONLY : alat, at
-        USE rism_module, ONLY : lrism
+        USE constants,     ONLY : eps4
+        USE fcp_variables, ONLY : solvation_radius
         !
         IMPLICIT NONE
         !
@@ -231,27 +230,20 @@ MODULE fcp_opt_routines
         REAL(DP), INTENT(IN)  :: force
         REAL(DP), INTENT(OUT) :: step
         !
-        REAL(DP) :: area_xy, slope
+        REAL(DP) :: capacitance
         !
-        IF ( ABS( dos ) > eps4 ) THEN
+        CALL fcp_capacitance( capacitance, solvation_radius )
+        capacitance = e2 * capacitance
+        !
+        capacitance = MIN( capacitance, dos )
+        !
+        IF ( capacitance > eps4 ) THEN
            !
-           step = dos * force
+           step = capacitance * force
            !
         ELSE
            !
-           area_xy = alat * alat * ABS(at(1, 1) * at(2, 2) - at(1, 2) * at(2, 1))
-           !
-           IF (lrism) THEN
-              !
-              slope = 0.100_DP * e2 * area_xy
-              !
-           ELSE
-              !
-              slope = 0.001_DP * e2 * area_xy
-              !
-           END IF
-           !
-           step = slope * force
+           CALL errore( 'step_newton', 'capacitance is not positive', 1 )
            !
         END IF
         !
