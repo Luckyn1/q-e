@@ -949,7 +949,7 @@ CONTAINS
       !
       B1 = 0.0_DP
       !
-      IF ( phi1 > 0.0_DP ) THEN
+      IF ( phi1 > eps16 ) THEN
          !
          IF ( ABS( sdotz ) < eps16 ) THEN
             lerr = .TRUE.
@@ -964,7 +964,7 @@ CONTAINS
       !
       B2 = 0.0_DP
       !
-      IF ( phi2 > 0.0_DP ) THEN
+      IF ( phi2 > eps16 ) THEN
          !
          IF ( ABS( sdoty ) < eps16 .OR. ABS( sBs ) < eps16 ) THEN
             lerr = .TRUE.
