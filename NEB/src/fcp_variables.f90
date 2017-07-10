@@ -85,6 +85,8 @@ MODULE fcp_variables
           ALLOCATE( force0(    num_of_images ) )
           ALLOCATE( firstcall( num_of_images ) )
           !
+          firstcall = .TRUE.
+          !
        END IF
        !
        IF ( lfcp_newton ) THEN
