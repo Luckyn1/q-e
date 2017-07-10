@@ -197,8 +197,9 @@ MODULE path_base
          !
          IF ( ANY( ABS( tot_charge - tot_charge_(1:input_images) ) > eps16 ) ) THEN
             !
-            CALL infomsg( 'initialize_path', &
-               & 'the tot_charge of the first image is used for the all images.' )
+            WRITE( iunpath, &
+                   & '(/,5X,"the tot_charge of the first image (", &
+                   & F10.6,") is used for the all images.")') tot_charge
             !
          END IF
          !
