@@ -63,7 +63,7 @@ MODULE bfgs_module
    PUBLIC :: bfgs_ndim,        &
              trust_radius_ini, trust_radius_min, trust_radius_max, &
              w_1,              w_2, &
-             metric_fcp,       with_sr1
+             with_sr1
    !
    ! ... global module variables
    !
@@ -121,9 +121,6 @@ MODULE bfgs_module
    REAL(DP)  ::          &! parameters for Wolfe conditions
       w_1,               &! 1st Wolfe condition: sufficient energy decrease
       w_2                 ! 2nd Wolfe condition: sufficient gradient decrease
-
-   REAL(DP)  ::          &! scale of metric,
-      metric_fcp          ! for diagonal element of FCP
 
    LOGICAL :: &
       with_sr1            ! if .TRUE., SR1-BFGS formula of hessian is used
@@ -230,7 +227,7 @@ CONTAINS
       !
       IF ( lfcp ) THEN
          IF ( fcp_cap > eps4 ) THEN
-            metric(n,n) = (metric_fcp / (0.1d0 * fcp_cap)) ** 2
+            metric(n,n) = (0.5d0 / (0.1d0 * fcp_cap)) ** 2
          ELSE
             metric(n,n) = 1.d0
          END IF

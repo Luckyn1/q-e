@@ -12,7 +12,7 @@ SUBROUTINE iosys_fcp()
   ! ...  Copy data read from input file (in subroutine "read_input_file") and
   ! ...  stored in modules input_parameters into internal modules of FCP
   !
-  USE bfgs_module,           ONLY : metric_fcp, w_1, w_2
+  USE bfgs_module,           ONLY : w_1, w_2
   USE cell_base,             ONLY : alat, at
   USE constants,             ONLY : RYTOEV
   USE control_flags,         ONLY : lbfgs, lmd
@@ -35,8 +35,8 @@ SUBROUTINE iosys_fcp()
   ! ... FCP namelist
   !
   USE input_parameters,      ONLY : fcp_mu, fcp_dynamics_ => fcp_dynamics, fcp_conv_thr, &
-                                  & fcp_ndiis, fcp_rdiis, fcp_metric, fcp_mass, fcp_velocity, &
-                                  & fcp_temperature, fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
+                                  & fcp_ndiis, fcp_rdiis, fcp_mass, fcp_velocity, fcp_temperature, &
+                                  & fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
                                   & freeze_all_atoms, solvation_radius
   !
   IMPLICIT NONE
@@ -96,13 +96,15 @@ SUBROUTINE iosys_fcp()
         !
      END SELECT
      !
-     !IF (lbfgs .AND. TRIM(fcp_calc) /= 'bfgs') THEN
-     !   !
-     !   CALL infomsg('iosys', 'calculation='// TRIM(calculation) // &
-     !              & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
-     !              & " ignored, 'bfgs' assumed")
-     !   !
-     !END IF
+     IF (lbfgs .AND. TRIM(fcp_calc) /= 'bfgs') THEN
+        !
+        fcp_calc = 'bfgs'
+        !
+        CALL infomsg('iosys', 'calculation='// TRIM(calculation) // &
+                   & ': fcp_dynamics=' // TRIM(fcp_dynamics_) // &
+                   & " ignored, 'bfgs' assumed")
+        !
+     END IF
      !
      IF (lmd .AND. TRIM(fcp_calc) == 'bfgs') THEN
         !
@@ -139,7 +141,7 @@ SUBROUTINE iosys_fcp()
   !
   ! ... scale Wolfe parameters, if FCP-BFGS
   !
-  IF (lbfgs .AND. TRIM(fcp_calc) == 'bfgs') THEN
+  IF (lbfgs) THEN
      !
      w_2 = MIN(SCALE_WOLFE2 * w_2, 1.0_DP)
      w_1 = MIN(SCALE_WOLFE1 * w_1, w_2)
@@ -152,6 +154,8 @@ SUBROUTINE iosys_fcp()
   !
   fcp_eps  = fcp_conv_thr / RYTOEV
   fcp_eps0 = fcp_eps
+  !
+  solvation_radius_ = solvation_radius
   !
   IF (fcp_is_dynamics()) THEN
      !
@@ -183,10 +187,6 @@ SUBROUTINE iosys_fcp()
      CALL fcprlx_prm(fcp_ndiis, fcp_rdiis)
      !
   END IF
-  !
-  metric_fcp = fcp_metric
-  !
-  solvation_radius_ = solvation_radius
   !
   ! ... freeze all atoms
   !
