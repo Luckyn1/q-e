@@ -12,7 +12,6 @@ SUBROUTINE iosys_fcp()
   ! ...  Copy data read from input file (in subroutine "read_input_file") and
   ! ...  stored in modules input_parameters into internal modules of FCP
   !
-  USE bfgs_module,           ONLY : w_1, w_2
   USE cell_base,             ONLY : alat, at
   USE constants,             ONLY : RYTOEV
   USE control_flags,         ONLY : lbfgs, lmd
@@ -43,10 +42,8 @@ SUBROUTINE iosys_fcp()
   !
   REAL(DP) :: area_xy
   !
-  REAL(DP), PARAMETER :: MASS_DEF       = 5.0E+6_DP
-  REAL(DP), PARAMETER :: SCALE_RISM     = 100.0_DP
-  REAL(DP), PARAMETER :: SCALE_WOLFE1   = 5.0_DP
-  REAL(DP), PARAMETER :: SCALE_WOLFE2   = 1.5_DP
+  REAL(DP), PARAMETER :: MASS_DEF   = 5.0E+6_DP
+  REAL(DP), PARAMETER :: SCALE_RISM = 100.0_DP
   !
   ! ... modify fcp_mass
   !
@@ -138,15 +135,6 @@ SUBROUTINE iosys_fcp()
                & ' not supported, for FCP', 1)
      !
   END SELECT
-  !
-  ! ... scale Wolfe parameters, if FCP-BFGS
-  !
-  IF (lbfgs) THEN
-     !
-     w_2 = MIN(SCALE_WOLFE2 * w_2, 1.0_DP)
-     w_1 = MIN(SCALE_WOLFE1 * w_1, w_2)
-     !
-  END IF
   !
   ! ... set variables from namelist
   !
