@@ -331,6 +331,7 @@ CONTAINS
     LOGICAL  :: conv_
     REAL(DP) :: force
     REAL(DP) :: tot_charge_
+    REAL(DP) :: ekin, temp
     !
     conv_ = .FALSE.
     IF (PRESENT(conv)) THEN
@@ -363,6 +364,12 @@ CONTAINS
     !
     tot_charge = SUM(zv(ityp(1:nat))) - nelec
     !
+    ! ... eval temperature
+    !
+    ekin = 0.5_DP * mass * vel * vel
+    !
+    temp = 2.0_DP * ekin * ry_to_kelvin
+    !
     ! ... write information
     !
     IF (.NOT. conv_) THEN
@@ -374,6 +381,7 @@ CONTAINS
     !
     WRITE(stdout, '(5X,"FCP: Velocity     = ",1PE12.2," a.u.")') vel
     WRITE(stdout, '(5X,"FCP: Acceleration = ",1PE12.2," a.u.")') acc
+    WRITE(stdout, '(5X,"FCP: Temperature  = ",F12.3," K")') temp
     WRITE(stdout, '(5X,"FCP: Fermi Energy = ",F12.6," Ry (",F12.6," eV)")') ef,    ef    * RYTOEV
     WRITE(stdout, '(5X,"FCP: Target Level = ",F12.6," Ry (",F12.6," eV)")') mu,    mu    * RYTOEV
     WRITE(stdout, '(5X,"FCP: Force on FCP = ",F12.6," Ry (",F12.6," eV)")') force, force * RYTOEV
