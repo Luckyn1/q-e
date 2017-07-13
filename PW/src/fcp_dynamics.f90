@@ -612,7 +612,7 @@ CONTAINS
     LOGICAL  :: lmoved
     !
     IF (.NOT. vel_defined) THEN
-      vel = (nelec - nelec_old) / dt
+      vel = (nelec - nelec_old) / (2.0_DP * dt)
     END IF
     !
     SELECT CASE (TRIM(thermostat))
@@ -703,7 +703,7 @@ CONTAINS
     ! ... only in the first
     !
     IF (.NOT. vel_defined) THEN
-       nelec_old = nelec - vel * dt
+       nelec_old = nelec - vel * 2.0_DP * dt
     END IF
     !
   END SUBROUTINE apply_thermostat
