@@ -658,7 +658,7 @@ CONTAINS
        WRITE(stdout, '(/,5X,"FCP: Verlet Algorithm is used.")')
     END IF
     !
-    WRITE(stdout, '(/,5X,"FCP: Mass of FCP  = ",1PE12.2," a.u.")') mass
+    WRITE(stdout, '(5X,"FCP: Mass of FCP  = ",1PE12.2," a.u.")') mass
     !
   END SUBROUTINE md_init
   !
