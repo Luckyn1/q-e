@@ -593,7 +593,9 @@ CONTAINS
     REAL(DP), INTENT(OUT) :: temp_new
     REAL(DP), INTENT(OUT) :: temp_av
     !
-    iter = 0
+    REAL(DP) :: ekin
+    !
+    ! ... print initial message
     !
     WRITE(stdout, '(/,5X,"FCP Dynamics Calculation")')
     !
@@ -628,6 +630,20 @@ CONTAINS
        !
     END IF
     !
+    IF (vel_verlet) THEN
+       WRITE(stdout, '(/,5X,"FCP: Velocity-Verlet Algorithm is used.")')
+    ELSE
+       WRITE(stdout, '(/,5X,"FCP: Verlet Algorithm is used.")')
+    END IF
+    !
+    WRITE(stdout, '(5X,"FCP: Mass of FCP  = ",1PE12.2," a.u.")') mass
+    !
+    ! ... initialize counter
+    !
+    iter = 0
+    !
+    ! ... initialize velocity
+    !
     IF (vel_definit) THEN
        !
        ! ... initial velocities available from input file
@@ -642,9 +658,6 @@ CONTAINS
        CALL start_therm()
        vel_defined = .TRUE.
        !
-       temp_new = temperature
-       temp_av  = 0.0_DP
-       !
     ELSE
        !
        vel = 0.0_DP
@@ -652,13 +665,13 @@ CONTAINS
        !
     END IF
     !
-    IF (vel_verlet) THEN
-       WRITE(stdout, '(/,5X,"FCP: Velocity-Verlet Algorithm is used.")')
-    ELSE
-       WRITE(stdout, '(/,5X,"FCP: Verlet Algorithm is used.")')
-    END IF
+    ! ... calculate initial temperature
     !
-    WRITE(stdout, '(5X,"FCP: Mass of FCP  = ",1PE12.2," a.u.")') mass
+    ekin = 0.5_DP * mass * vel * vel
+    !
+    temp_new = 2.0_DP * ekin * ry_to_kelvin
+    !
+    temp_av  = 0.0_DP
     !
   END SUBROUTINE md_init
   !
