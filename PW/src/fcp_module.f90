@@ -31,8 +31,8 @@ MODULE fcp_module
   USE esm,             ONLY : do_comp_esm, esm_bc
   USE ener,            ONLY : ef
   USE exx,             ONLY : x_gamma_extrapolation
-  USE fcp_dynamics,    ONLY : fcpdyn_final, fcpdyn_update, &
-                            & fcpdyn_set_verlet, fcpdyn_set_proj_verlet
+  USE fcp_dynamics,    ONLY : fcpdyn_final, fcpdyn_update, fcpdyn_set_verlet, &
+                            & fcpdyn_set_velocity_verlet, fcpdyn_set_proj_verlet
   USE fcp_relaxation,  ONLY : fcprlx_final, fcprlx_update, &
                             & fcprlx_set_line_min, fcprlx_set_newton
   USE fixed_occ,       ONLY : tfixed_occ
@@ -52,7 +52,8 @@ MODULE fcp_module
   REAL(DP)         :: fcp_mu           = 0.0_DP   ! target Fermi energy (in Ry)
   REAL(DP)         :: fcp_eps          = 0.0_DP   ! convergence threshold (in Ry)
   REAL(DP)         :: fcp_eps0         = 0.0_DP   ! initial convergence threshold (in Ry)
-  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation {bfgs|lm|newton|damp|verlet}
+  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation
+                                                  ! {bfgs|lm|newton|damp|verlet|velocity-verlet}
   REAL(DP)         :: solvation_radius = 0.0_DP   ! solvation radius to estimate capacity (in bohr)
   !
   ! ... public components
@@ -251,7 +252,7 @@ CONTAINS
   SUBROUTINE fcp_verlet()
     !----------------------------------------------------------------------------
     !
-    ! ... dynamics of FCP, using Verlet algorithm.
+    ! ... dynamics of FCP, using Verlet or Velocity-Verlet algorithm.
     !
     IMPLICIT NONE
     !
@@ -259,17 +260,27 @@ CONTAINS
     !
     CALL fcp_check()
     !
-    IF (TRIM(fcp_calc) /= 'verlet') THEN
+    IF (TRIM(fcp_calc) == 'verlet') THEN
+       !
+       ! ... update nelec by Verlet
+       !
+       CALL fcpdyn_set_verlet()
+       !
+       CALL fcpdyn_update(fcp_mu, dt)
+       !
+    ELSE IF (TRIM(fcp_calc) == 'velocity-verlet') THEN
+       !
+       ! ... update nelec by Velocity-Verlet
+       !
+       CALL fcpdyn_set_velocity_verlet()
+       !
+       CALL fcpdyn_update(fcp_mu, dt)
+       !
+    ELSE
        !
        CALL errore('fcp_verlet', 'incorrect calculation: ' // TRIM(fcp_calc), 1)
        !
     END IF
-    !
-    ! ... update nelec by Verlet
-    !
-    CALL fcpdyn_set_verlet()
-    !
-    CALL fcpdyn_update(fcp_mu, dt)
     !
   END SUBROUTINE fcp_verlet
   !
@@ -328,7 +339,9 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    IF (TRIM(fcp_calc) == 'damp' .OR. TRIM(fcp_calc) == 'verlet') THEN
+    IF (TRIM(fcp_calc) == 'damp'   .OR. &
+    &   TRIM(fcp_calc) == 'verlet' .OR. &
+    &   TRIM(fcp_calc) == 'velocity-verlet') THEN
        !
        fcp_is_dynamics = .TRUE.
        !

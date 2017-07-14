@@ -56,6 +56,7 @@ MODULE fcp_dynamics
   REAL(DP)          :: vel_init      ! initial velocity of FCP
   REAL(DP)          :: acc           ! acceleration of FCP
   REAL(DP)          :: mass          ! mass of FCP
+  LOGICAL           :: vel_verlet    ! if TRUE, Velocity-Verlet algorithm is used
   LOGICAL           :: vel_definit   ! if TRUE, initial velocity is defined
   LOGICAL           :: vel_defined   ! if TRUE, vel is used rather than nelec_old to do the next step
   LOGICAL           :: control_temp  ! if TRUE, a thermostat is used to control the temperature
@@ -72,6 +73,7 @@ MODULE fcp_dynamics
   PUBLIC :: fcpdyn_prm_velocity
   PUBLIC :: fcpdyn_prm_temp
   PUBLIC :: fcpdyn_set_verlet
+  PUBLIC :: fcpdyn_set_velocity_verlet
   PUBLIC :: fcpdyn_set_proj_verlet
   PUBLIC :: fcpdyn_update
   !
@@ -94,6 +96,7 @@ CONTAINS
     vel_init     = 0.0_DP
     acc          = 0.0_DP
     mass         = 10000.0_DP
+    vel_verlet   = .FALSE.
     vel_definit  = .FALSE.
     vel_defined  = .FALSE.
     control_temp = .FALSE.
@@ -275,7 +278,23 @@ CONTAINS
     !
     idyn = IDYN_VERLET
     !
+    vel_verlet = .FALSE.
+    !
   END SUBROUTINE fcpdyn_set_verlet
+  !
+  !----------------------------------------------------------------------------
+  SUBROUTINE fcpdyn_set_velocity_verlet()
+    !----------------------------------------------------------------------------
+    !
+    ! ... set the type of dynamics to Velocity-Verlet
+    !
+    IMPLICIT NONE
+    !
+    idyn = IDYN_VERLET
+    !
+    vel_verlet = .TRUE.
+    !
+  END SUBROUTINE fcpdyn_set_velocity_verlet
   !
   !----------------------------------------------------------------------------
   SUBROUTINE fcpdyn_set_proj_verlet(eps, smax)
@@ -403,6 +422,7 @@ CONTAINS
     !----------------------------------------------------------------------------
     !
     ! ... perform one step of molecular dynamics evolution, using the Verlet algorithm.
+    ! ... if vel_verlet is .TRUE., Velocity-Verlet algorithm is used.
     ! ... [NOTE: original code is from PW/src/dynamics_module.f90]
     !
     IMPLICIT NONE
@@ -415,6 +435,7 @@ CONTAINS
     REAL(DP) :: temp_av
     REAL(DP) :: temp_new
     REAL(DP) :: nelec_new
+    REAL(DP) :: vel_tmp
     INTEGER  :: iun
     LOGICAL  :: leof
     LOGICAL  :: file_exists
@@ -423,6 +444,8 @@ CONTAINS
     !
     vel_defined = .TRUE.
     temp_av     = 0.0_DP
+    temp_new    = 0.0_DP
+    vel_tmp     = 0.0_DP
     !
     ! ... check and read the file (*.fcp)
     !
@@ -445,7 +468,7 @@ CONTAINS
           !
           vel_defined = .FALSE.
           !
-          READ(UNIT = iun, FMT = *) temp_new, temp_av, mass
+          READ(UNIT = iun, FMT = *) vel_tmp, temp_new, temp_av, mass
           !
        ENDIF
        !
@@ -465,36 +488,72 @@ CONTAINS
     !
     iter = iter + 1
     !
-    ! ... control the temperature
-    !
-    IF (control_temp) THEN
-       !
-       CALL apply_thermostat(dt, temp_new, temp_av)
-       !
-    END IF
-    !
     ! ... calculate force and acceleration
     !
     force = mu - ef
     !
     acc   = force / mass
     !
-    ! ... Verlet integration scheme
-    !
-    IF (vel_defined) THEN
+    IF (vel_verlet) THEN
+       !
+       ! >>> Velocity-Verlet integration scheme
+       !
+       ! ... update velocity
+       !
+       IF (.NOT. vel_defined) THEN
+          !
+          vel = vel_tmp + 0.5_DP * acc * dt
+          !
+       END IF
+       !
+       ! ... control the temperature
+       !
+       IF (control_temp) THEN
+          !
+          CALL apply_thermostat(dt, temp_new, temp_av, .TRUE.)
+          !
+       END IF
+       !
+       ! ... calculate new number of electrons
        !
        nelec_new = nelec + vel * dt + 0.5_DP * acc * dt * dt
-       nelec_old = nelec - vel * dt + 0.5_DP * acc * dt * dt
        !
     ELSE
        !
-       nelec_new = 2.0_DP * nelec - nelec_old + acc * dt * dt
+       ! >>> Verlet integration scheme
        !
-    ENDIF
+       ! ... control the temperature
+       !
+       IF (control_temp) THEN
+          !
+          CALL apply_thermostat(dt, temp_new, temp_av, vel_defined)
+          !
+       END IF
+       !
+       ! ... calculate new number of electrons
+       !
+       IF (vel_defined) THEN
+          !
+          nelec_new = nelec + vel * dt + 0.5_DP * acc * dt * dt
+          nelec_old = nelec - vel * dt + 0.5_DP * acc * dt * dt
+          !
+       ELSE
+          !
+          nelec_new = 2.0_DP * nelec - nelec_old + acc * dt * dt
+          !
+       ENDIF
+       !
+       ! ... update velocity
+       !
+       vel = (nelec_new - nelec_old) / (2.0_DP * dt)
+       !
+    END IF
     !
-    ! ... calculate velocity and kinetic energy
+    ! ... modified velocity for Velocity-Verlet
     !
-    vel = (nelec_new - nelec_old) / (2.0_DP * dt)
+    vel_tmp = vel + 0.5_DP * acc * dt
+    !
+    ! ... calculate kinetic energy
     !
     ekin = 0.5_DP * mass * vel * vel
     !
@@ -511,7 +570,7 @@ CONTAINS
     leof = .FALSE.
     WRITE(UNIT = iun, FMT = *) iter, nelec, leof
     !
-    WRITE(UNIT = iun, FMT = *) temp_new, temp_av, mass
+    WRITE(UNIT = iun, FMT = *) vel_tmp, temp_new, temp_av, mass
     !
     CLOSE(UNIT = iun, STATUS = 'KEEP')
     !
@@ -593,12 +652,18 @@ CONTAINS
        !
     END IF
     !
+    IF (vel_verlet) THEN
+       WRITE(stdout, '(/,5X,"FCP: Velocity-Verlet Algorithm is used.")')
+    ELSE
+       WRITE(stdout, '(/,5X,"FCP: Verlet Algorithm is used.")')
+    END IF
+    !
     WRITE(stdout, '(/,5X,"FCP: Mass of FCP  = ",1PE12.2," a.u.")') mass
     !
   END SUBROUTINE md_init
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE apply_thermostat(dt, temp_new, temp_av)
+  SUBROUTINE apply_thermostat(dt, temp_new, temp_av, has_vel)
     !----------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -606,12 +671,13 @@ CONTAINS
     REAL(DP), INTENT(IN)    :: dt
     REAL(DP), INTENT(IN)    :: temp_new
     REAL(DP), INTENT(INOUT) :: temp_av
+    LOGICAL,  INTENT(IN)    :: has_vel
     !
     REAL(DP) :: kt
     REAL(DP) :: sigma
     LOGICAL  :: lmoved
     !
-    IF (.NOT. vel_defined) THEN
+    IF (.NOT. has_vel) THEN
       vel = (nelec - nelec_old) / dt
     END IF
     !
@@ -702,7 +768,7 @@ CONTAINS
     ! ... the old number of electron is updated to reflect the new velocities,
     ! ... only in the first
     !
-    IF (.NOT. vel_defined) THEN
+    IF (.NOT. has_vel) THEN
        nelec_old = nelec - vel * dt
     END IF
     !

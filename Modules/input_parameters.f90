@@ -1358,15 +1358,17 @@ MODULE input_parameters
           ! target Fermi energy (in eV)
 
         CHARACTER(LEN=8) :: fcp_dynamics = 'none'
-          ! 'none':   Not specified
-          ! 'lm':     Line-Minimization
-          ! 'newton': Newton-Raphson algorithm (with DIIS)
-          ! 'bfgs':   BFGS algorithm (coupling with ions)
-          ! 'damp':   Damped dynamics (quick-min Verlet)
-          ! 'verlet': Verlet dynamics
+          ! 'none':            Not specified
+          ! 'lm':              Line-Minimization
+          ! 'newton':          Newton-Raphson algorithm (with DIIS)
+          ! 'bfgs':            BFGS algorithm (coupling with ions)
+          ! 'damp':            Damped dynamics (quick-min Verlet)
+          ! 'verlet':          Verlet dynamics
+          ! 'velocity-verlet': Velocity-Verlet dynamics
 
-        CHARACTER(LEN=8) :: fcp_dynamics_allowed(6)
-        DATA fcp_dynamics_allowed / 'none', 'lm', 'newton', 'bfgs', 'damp', 'verlet' /
+        CHARACTER(LEN=8) :: fcp_dynamics_allowed(7)
+        DATA fcp_dynamics_allowed / 'none', 'lm', 'newton', 'bfgs', &
+                                    'damp', 'verlet', 'velocity-verlet' /
 
         REAL(DP) :: fcp_conv_thr = 1.0E-2_DP
           ! convergence threshold for FCP relaxation (in eV)

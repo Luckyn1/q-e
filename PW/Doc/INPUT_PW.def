@@ -2568,8 +2568,12 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 info {
                     @b CASE ( @ref calculation == 'md' )
                 }
+                opt -val 'velocity-verlet' {
+                    @b (default) Velocity-Verlet algorithm to integrate Newton's equation.
+                    @ref ion_dynamics must be @b 'verlet' too
+                }
                 opt -val 'verlet' {
-                    @b (default) Verlet algorithm to integrate Newton's equation.
+                    @b Verlet algorithm to integrate Newton's equation.
                     @ref ion_dynamics must be @b 'verlet' too
                 }
             }

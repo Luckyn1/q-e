@@ -121,6 +121,10 @@ SUBROUTINE iosys_fcp()
         !
         fcp_calc = 'verlet'
         !
+     CASE('vv', 'vverlet', 'velocityverlet', 'velocity-verlet')
+        !
+        fcp_calc = 'velocity-verlet'
+        !
      CASE DEFAULT
         !
         CALL errore('iosys', 'calculation=' // TRIM(calculation) // &

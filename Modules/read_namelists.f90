@@ -680,7 +680,7 @@ MODULE read_namelists_module
        !
        IF ( .NOT. ions_are_set ) THEN
           !
-          ! ... ( 'none' | 'lm' | 'newton' | 'bfgs' | 'damp' | 'verlet' )
+          ! ... ( 'none' | 'lm' | 'newton' | 'bfgs' | 'damp' | 'verlet' | 'velocity-verlet' )
           !
           fcp_dynamics = 'none'
           !
@@ -2163,7 +2163,7 @@ MODULE read_namelists_module
                 ion_dynamics      = 'verlet'
              ELSE IF( prog == 'PW' ) THEN
                 ion_dynamics = 'verlet'
-                IF (lfcp) fcp_dynamics = 'verlet'
+                IF (lfcp) fcp_dynamics = 'velocity-verlet'
              END IF
           CASE ('vc-relax')
              IF( prog == 'CP' ) THEN
