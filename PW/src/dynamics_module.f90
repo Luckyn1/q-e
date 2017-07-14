@@ -518,7 +518,7 @@ CONTAINS
          REAL(DP) :: sigma, kt
          !
          IF(.not.vel_defined)THEN
-            vel(:,:) = ( tau(:,:) - tau_old(:,:) ) / ( 2.D0*dt ) * dble( if_pos(:,:) )
+            vel(:,:) = ( tau(:,:) - tau_old(:,:) ) / dt * dble( if_pos(:,:) )
          ENDIF
          !
          SELECT CASE( trim( thermostat ) )
@@ -614,7 +614,7 @@ CONTAINS
          ! ... the old positions are updated to reflect the new velocities
          !
          IF(.not.vel_defined)THEN
-            tau_old(:,:) = tau(:,:) - vel(:,:) * 2.D0 * dt
+            tau_old(:,:) = tau(:,:) - vel(:,:) * dt
          ENDIF
          !
       END SUBROUTINE apply_thermostat
