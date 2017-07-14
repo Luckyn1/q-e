@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE fcp_dyn_calcavg(iter, nelec, vel, acc, force, temp)
+SUBROUTINE fcp_dyn_calcavg(iter, nelec, vel, acc, force, mass, temp)
   !----------------------------------------------------------------------------
   !
   ! ... calculate physical properties through the dynamics of FCP
