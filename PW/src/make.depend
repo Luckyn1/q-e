@@ -521,6 +521,8 @@ fcp_capacitance.o : ../../Modules/kind.o
 fcp_capacitance.o : esm.o
 fcp_capacitance.o : fcp_module.o
 fcp_capacitance.o : rism_module.o
+fcp_dyn_calcavg.o : ../../Modules/kind.o
+fcp_dyn_printavg.o : ../../Modules/kind.o
 fcp_dynamics.o : ../../Modules/constants.o
 fcp_dynamics.o : ../../Modules/control_flags.o
 fcp_dynamics.o : ../../Modules/io_files.o

@@ -118,7 +118,7 @@ CONTAINS
     !
     IF (idyn == IDYN_VERLET .AND. iter > 0) THEN
        !
-       CALL print_averages()
+       CALL fcp_dyn_printavg(iter)
        !
     END IF
     !
@@ -584,13 +584,13 @@ CONTAINS
     !
     CLOSE(UNIT = iun, STATUS = 'KEEP')
     !
+    ! ... evaluate some properties
+    !
+    CALL fcp_dyn_calcavg(iter, nelec, vel, acc, force, mass, temp_new)
+    !
     ! ... here the nelec are shifted
     !
     nelec = nelec_new
-    !
-    ! ... evaluate some properties
-    !
-    CALL compute_averages()
     !
   END SUBROUTINE verlet
   !
@@ -871,30 +871,6 @@ CONTAINS
     vel = vel * aux
     !
   END SUBROUTINE thermalize
-  !
-  !----------------------------------------------------------------------------
-  SUBROUTINE compute_averages()
-    !----------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    ! TODO
-    ! TODO compute physical properties
-    ! TODO
-    !
-  END SUBROUTINE compute_averages
-  !
-  !----------------------------------------------------------------------------
-  SUBROUTINE print_averages()
-    !----------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    ! TODO
-    ! TODO print physical properties
-    ! TODO
-    !
-  END SUBROUTINE print_averages
   !
   !----------------------------------------------------------------------------
   SUBROUTINE proj_verlet(mu, dt, conv)

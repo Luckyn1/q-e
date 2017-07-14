@@ -79,6 +79,8 @@ ewald.o \
 ewald_dipole.o \
 exx.o \
 fcp_capacitance.o \
+fcp_dyn_calcavg.o \
+fcp_dyn_printavg.o \
 fcp_dynamics.o \
 fcp_hessian.o \
 fcp_input.o \
