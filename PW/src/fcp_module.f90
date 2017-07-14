@@ -48,13 +48,13 @@ MODULE fcp_module
   PRIVATE
   !
   ! ... variables for FCP method
-  LOGICAL          :: lfcp             = .FALSE.  ! to calculate FCP method, or not
-  REAL(DP)         :: fcp_mu           = 0.0_DP   ! target Fermi energy (in Ry)
-  REAL(DP)         :: fcp_eps          = 0.0_DP   ! convergence threshold (in Ry)
-  REAL(DP)         :: fcp_eps0         = 0.0_DP   ! initial convergence threshold (in Ry)
-  CHARACTER(LEN=8) :: fcp_calc         = ''       ! type of calculation
-                                                  ! {bfgs|lm|newton|damp|verlet|velocity-verlet}
-  REAL(DP)         :: solvation_radius = 0.0_DP   ! solvation radius to estimate capacity (in bohr)
+  LOGICAL           :: lfcp             = .FALSE.  ! to calculate FCP method, or not
+  REAL(DP)          :: fcp_mu           = 0.0_DP   ! target Fermi energy (in Ry)
+  REAL(DP)          :: fcp_eps          = 0.0_DP   ! convergence threshold (in Ry)
+  REAL(DP)          :: fcp_eps0         = 0.0_DP   ! initial convergence threshold (in Ry)
+  CHARACTER(LEN=16) :: fcp_calc         = ''       ! type of calculation
+                                                   ! {bfgs|lm|newton|damp|verlet|velocity-verlet}
+  REAL(DP)          :: solvation_radius = 0.0_DP   ! solvation radius to estimate capacity (in bohr)
   !
   ! ... public components
   PUBLIC :: lfcp

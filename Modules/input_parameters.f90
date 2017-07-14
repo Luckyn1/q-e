@@ -1357,7 +1357,7 @@ MODULE input_parameters
         REAL(DP) :: fcp_mu = 0.0_DP
           ! target Fermi energy (in eV)
 
-        CHARACTER(LEN=8) :: fcp_dynamics = 'none'
+        CHARACTER(LEN=16) :: fcp_dynamics = 'none'
           ! 'none':            Not specified
           ! 'lm':              Line-Minimization
           ! 'newton':          Newton-Raphson algorithm (with DIIS)
@@ -1366,7 +1366,7 @@ MODULE input_parameters
           ! 'verlet':          Verlet dynamics
           ! 'velocity-verlet': Velocity-Verlet dynamics
 
-        CHARACTER(LEN=8) :: fcp_dynamics_allowed(7)
+        CHARACTER(LEN=16) :: fcp_dynamics_allowed(7)
         DATA fcp_dynamics_allowed / 'none', 'lm', 'newton', 'bfgs', &
                                     'damp', 'verlet', 'velocity-verlet' /
 
