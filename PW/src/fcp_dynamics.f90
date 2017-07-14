@@ -435,7 +435,7 @@ CONTAINS
     REAL(DP) :: temp_av
     REAL(DP) :: temp_new
     REAL(DP) :: nelec_new
-    REAL(DP) :: vel_tmp
+    REAL(DP) :: vel_mod
     INTEGER  :: iun
     LOGICAL  :: leof
     LOGICAL  :: file_exists
@@ -445,7 +445,7 @@ CONTAINS
     vel_defined = .TRUE.
     temp_av     = 0.0_DP
     temp_new    = 0.0_DP
-    vel_tmp     = 0.0_DP
+    vel_mod     = 0.0_DP
     !
     ! ... check and read the file (*.fcp)
     !
@@ -468,7 +468,7 @@ CONTAINS
           !
           vel_defined = .FALSE.
           !
-          READ(UNIT = iun, FMT = *) vel_tmp, temp_new, temp_av, mass
+          READ(UNIT = iun, FMT = *) vel_mod, temp_new, temp_av, mass
           !
        ENDIF
        !
@@ -498,11 +498,21 @@ CONTAINS
        !
        ! >>> Velocity-Verlet integration scheme
        !
-       ! ... update velocity
-       !
        IF (.NOT. vel_defined) THEN
           !
-          vel = vel_tmp + 0.5_DP * acc * dt
+          ! ... update velocity
+          !
+          vel = vel_mod + 0.5_DP * acc * dt
+          !
+          ! ... calculate kinetic energy
+          !
+          ekin = 0.5_DP * mass * vel * vel
+          !
+          ! ... find the new temperature and update the average
+          !
+          temp_new = 2.0_DP * ekin * ry_to_kelvin
+          !
+          temp_av  = temp_av + temp_new
           !
        END IF
        !
@@ -547,21 +557,21 @@ CONTAINS
        !
        vel = (nelec_new - nelec_old) / (2.0_DP * dt)
        !
+       ! ... calculate kinetic energy
+       !
+       ekin = 0.5_DP * mass * vel * vel
+       !
+       ! ... find the new temperature and update the average
+       !
+       temp_new = 2.0_DP * ekin * ry_to_kelvin
+       !
+       temp_av  = temp_av + temp_new
+       !
     END IF
     !
     ! ... modified velocity for Velocity-Verlet
     !
-    vel_tmp = vel + 0.5_DP * acc * dt
-    !
-    ! ... calculate kinetic energy
-    !
-    ekin = 0.5_DP * mass * vel * vel
-    !
-    ! ... find the new temperature and update the average
-    !
-    temp_new = 2.0_DP * ekin * ry_to_kelvin
-    !
-    temp_av  = temp_av + temp_new
+    vel_mod = vel + 0.5_DP * acc * dt
     !
     ! ... save all the needed quantities on file
     !
@@ -570,7 +580,7 @@ CONTAINS
     leof = .FALSE.
     WRITE(UNIT = iun, FMT = *) iter, nelec, leof
     !
-    WRITE(UNIT = iun, FMT = *) vel_tmp, temp_new, temp_av, mass
+    WRITE(UNIT = iun, FMT = *) vel_mod, temp_new, temp_av, mass
     !
     CLOSE(UNIT = iun, STATUS = 'KEEP')
     !
@@ -671,7 +681,7 @@ CONTAINS
     !
     temp_new = 2.0_DP * ekin * ry_to_kelvin
     !
-    temp_av  = 0.0_DP
+    temp_av  = temp_new
     !
   END SUBROUTINE md_init
   !
