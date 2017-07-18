@@ -25,7 +25,6 @@ SUBROUTINE fcp_capacitance(capacitance)
   REAL(DP) :: epsr
   REAL(DP) :: z0
   REAL(DP) :: area_xy
-  REAL(DP) :: epsr
   REAL(DP) :: zsol
   REAL(DP) :: rho0
   REAL(DP) :: beta
@@ -129,7 +128,7 @@ CONTAINS
        !
        rho1 = solVs(isolV)%density
        rho2 = solVs(isolV)%subdensity
-       rhov = 0.5_DP * (rhov1 + rhov2)
+       rhov = 0.5_DP * (rho1 + rho2)
        !
        IF (ABS(qsol(isolV)) > eps8) THEN
           !
