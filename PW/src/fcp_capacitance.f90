@@ -36,9 +36,9 @@ SUBROUTINE fcp_capacitance(capacitance)
      ! ... Parallel plate capacitor
      !
      IF (TRIM(esm_bc) == 'bc2') THEN
-        fac  = 1.0_DP
-     ELSE
         fac  = 2.0_DP
+     ELSE
+        fac  = 1.0_DP
      END IF
      !
      epsr = 1.0_DP
@@ -46,16 +46,16 @@ SUBROUTINE fcp_capacitance(capacitance)
      !
   ELSE IF (TRIM(esm_bc) == 'bc1' .AND. rism3d_is_laue()) THEN
      !
-     ! ... Gouy-Chapman's theory
+     ! ... Debye-Huckel's theory
      !
      beta = 1.0_DP / K_BOLTZMANN_RY / rism3t%temp
      !
      CALL get_solvent_data(epsr, zsol, rho0)
      !
-     fac = COSH(0.5_DP * zsol * beta * ABS(2.0_DP * rism3t%vsol))
-     !
      IF (rism3d_is_both_hands()) THEN
-        fac = fac * 2.0_DP
+        fac = 2.0_DP
+     ELSE
+        fac = 1.0_DP
      END IF
      !
      z0 = SQRT(0.5_DP * (epsr / fpi / e2) / (beta * rho0 * zsol * zsol))
