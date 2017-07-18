@@ -36,12 +36,12 @@ SUBROUTINE fcp_capacitance(capacitance)
      ! ... Parallel plate capacitor
      !
      IF (TRIM(esm_bc) == 'bc2') THEN
-        fac  = 2.0_DP
+        fac = 2.0_DP
      ELSE
-        fac  = 1.0_DP
+        fac = 1.0_DP
      END IF
      !
-     z0   = 0.5_DP * alat * at(3, 3) + esm_w
+     z0 = 0.5_DP * alat * at(3, 3) + esm_w
      !
      epsr = 1.0_DP
      !
