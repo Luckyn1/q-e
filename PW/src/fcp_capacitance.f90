@@ -29,8 +29,6 @@ SUBROUTINE fcp_capacitance(capacitance)
   REAL(DP) :: rho0
   REAL(DP) :: beta
   !
-  REAL(DP), PARAMETER :: SCALE_DEBYE_HUCKEL = 0.02_DP
-  !
   ! ... set permittivity and length of z-axis
   !
   IF (TRIM(esm_bc) == 'bc2' .OR. TRIM(esm_bc) == 'bc3' .OR. TRIM(esm_bc) == 'bc4') THEN
@@ -43,8 +41,9 @@ SUBROUTINE fcp_capacitance(capacitance)
         fac  = 1.0_DP
      END IF
      !
-     epsr = 1.0_DP
      z0   = 0.5_DP * alat * at(3, 3) + esm_w
+     !
+     epsr = 1.0_DP
      !
   ELSE IF (TRIM(esm_bc) == 'bc1' .AND. rism3d_is_laue()) THEN
      !
@@ -60,9 +59,9 @@ SUBROUTINE fcp_capacitance(capacitance)
         fac = 1.0_DP
      END IF
      !
-     fac = fac * SCALE_DEBYE_HUCKEL
-     !
      z0 = SQRT(0.5_DP * (epsr / fpi / e2) / (beta * rho0 * zsol * zsol))
+     !
+     epsr = 1.0_DP ! ignore solvent's permittivity
      !
   ELSE
      !
