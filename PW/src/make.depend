@@ -518,9 +518,9 @@ exx.o : us_exx.o
 fcp_capacitance.o : ../../Modules/cell_base.o
 fcp_capacitance.o : ../../Modules/constants.o
 fcp_capacitance.o : ../../Modules/kind.o
+fcp_capacitance.o : ../../Modules/rism3d_facade.o
+fcp_capacitance.o : ../../Modules/solvmol.o
 fcp_capacitance.o : esm.o
-fcp_capacitance.o : fcp_module.o
-fcp_capacitance.o : rism_module.o
 fcp_dyn_calcavg.o : ../../Modules/kind.o
 fcp_dyn_printavg.o : ../../Modules/kind.o
 fcp_dynamics.o : ../../Modules/constants.o

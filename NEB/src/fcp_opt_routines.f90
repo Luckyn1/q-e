@@ -39,8 +39,7 @@ MODULE fcp_opt_routines
       SUBROUTINE fcp_opt_perform()
          !----------------------------------------------------------------------
          !
-         USE fcp_module,    ONLY : fcp_check
-         USE fcp_variables, ONLY : solvation_radius
+         USE fcp_module, ONLY : fcp_check
          !
          IMPLICIT NONE
          !
@@ -51,10 +50,16 @@ MODULE fcp_opt_routines
          !
          ! ... evaluate maximum step
          !
-         CALL fcp_capacitance( capacitance, solvation_radius )
-         capacitance = e2 * capacitance
+         IF ( meta_ionode ) THEN
+            !
+            CALL fcp_capacitance( capacitance )
+            capacitance = e2 * capacitance
+            !
+            step_max = ABS( capacitance * 0.05_DP ) ! = C * 0.1Ry
+            !
+         END IF
          !
-         step_max = ABS( capacitance * 0.05_DP ) ! = C * 0.1Ry
+         CALL mp_bcast( step_max, meta_ionode_id, world_comm )
          !
          IF ( lfcp_linmin ) THEN
             !
@@ -221,8 +226,7 @@ MODULE fcp_opt_routines
       SUBROUTINE step_newton( dos, force, step )
         !----------------------------------------------------------------------
         !
-        USE constants,     ONLY : eps4
-        USE fcp_variables, ONLY : solvation_radius
+        USE constants, ONLY : eps4
         !
         IMPLICIT NONE
         !
@@ -235,7 +239,7 @@ MODULE fcp_opt_routines
         !
         hess = dos
         !
-        CALL fcp_capacitance( capacitance, solvation_radius )
+        CALL fcp_capacitance( capacitance )
         capacitance = e2 * capacitance
         !
         IF ( capacitance > eps4 ) THEN

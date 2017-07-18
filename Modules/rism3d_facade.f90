@@ -116,6 +116,7 @@ MODULE rism3d_facade
   PUBLIC :: rism3d_read_to_restart
   PUBLIC :: rism3d_is_laue
   PUBLIC :: rism3d_set_laue
+  PUBLIC :: rism3d_is_both_hands
   PUBLIC :: rism3d_printpot
   PUBLIC :: rism3d_print_clock
   !
@@ -623,6 +624,32 @@ CONTAINS
     rism3t%itype = ITYPE_LAUERISM
     !
   END SUBROUTINE rism3d_set_laue
+  !
+  !----------------------------------------------------------------------------
+  LOGICAL FUNCTION rism3d_is_both_hands()
+    !----------------------------------------------------------------------------
+    !
+    ! ... Laue-RISM with both-hands or not.
+    !
+    IMPLICIT NONE
+    !
+    IF (.NOT. lrism3d) THEN
+      rism3d_is_both_hands = .FALSE.
+      RETURN
+    END IF
+    !
+    IF (rism3t%itype /= ITYPE_LAUERISM) THEN
+      rism3d_is_both_hands = .FALSE.
+      RETURN
+    END IF
+    !
+    IF (rism3t%lfft%xright .AND. rism3t%lfft%xleft) THEN
+      rism3d_is_both_hands = .TRUE.
+    ELSE
+      rism3d_is_both_hands = .FALSE.
+    END IF
+    !
+  END FUNCTION rism3d_is_both_hands
   !
   !----------------------------------------------------------------------------
   SUBROUTINE rism3d_printpot()

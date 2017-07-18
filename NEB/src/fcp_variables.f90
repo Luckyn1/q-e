@@ -37,10 +37,6 @@ MODULE fcp_variables
   REAL(DP) :: &
        fcp_rdiis        = 1.0_DP    ! step of DIIS for Newton algorithm
   !
-  REAL(DP) :: &
-       solvation_radius = 6.0_DP    ! solvation radius to estimate capacity,
-                                    ! in Bohr
-  !
   REAL(DP), ALLOCATABLE :: &
        fcp_nelec(:),               &! the numbers of electrons
        fcp_ef(:),                  &! the Fermi energies, in Hartree

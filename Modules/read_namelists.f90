@@ -717,7 +717,6 @@ MODULE read_namelists_module
        END IF
        !
        freeze_all_atoms = .FALSE.
-       solvation_radius = 6.0_DP
        !
        RETURN
        !
@@ -1397,7 +1396,6 @@ MODULE read_namelists_module
        CALL mp_bcast( fcp_delta_t,      ionode_id, intra_image_comm )
        CALL mp_bcast( fcp_nraise,       ionode_id, intra_image_comm )
        CALL mp_bcast( freeze_all_atoms, ionode_id, intra_image_comm )
-       CALL mp_bcast( solvation_radius, ionode_id, intra_image_comm )
        !
        RETURN
        !

@@ -46,8 +46,7 @@ SUBROUTINE ioneb()
                             fcp_mu_ => fcp_mu, &
                             fcp_thr_ => fcp_thr, &
                             fcp_ndiis_ => fcp_ndiis, &
-                            fcp_rdiis_ => fcp_rdiis, &
-                            solvation_radius_ => solvation_radius
+                            fcp_rdiis_ => fcp_rdiis
   !
   USE path_input_parameters_module, ONLY : restart_mode, nstep_path,   &
                                string_method, num_of_images, path_thr, &
@@ -56,7 +55,7 @@ SUBROUTINE ioneb()
                                ds, use_freezing, fixed_tan,            &
                                qnewton_ndim, qnewton_step,             &
                                lfcp, fcp_mu, fcp_thr, fcp_scheme,      &
-                               fcp_ndiis, fcp_rdiis, solvation_radius
+                               fcp_ndiis, fcp_rdiis
   !
   IMPLICIT NONE
   !
@@ -225,12 +224,11 @@ SUBROUTINE ioneb()
   !
   ! ... "FCP"-optimization variables
   !
-  lfcp_             = lfcp
-  fcp_mu_           = fcp_mu / autoev
-  fcp_thr_          = fcp_thr
-  fcp_ndiis_        = fcp_ndiis
-  fcp_rdiis_        = fcp_rdiis
-  solvation_radius_ = solvation_radius
+  lfcp_      = lfcp
+  fcp_mu_    = fcp_mu / autoev
+  fcp_thr_   = fcp_thr
+  fcp_ndiis_ = fcp_ndiis
+  fcp_rdiis_ = fcp_rdiis
   !
   IF ( lfcp_ ) CALL fcp_check( .TRUE. )
   !

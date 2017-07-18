@@ -71,13 +71,12 @@ MODULE path_read_namelists_module
        !
        ! ... defaults for "FCP" optimisations variables
        !
-       lfcp             = .FALSE.
-       fcp_mu           = fcp_not_set
-       fcp_thr          = 0.01_DP
-       fcp_scheme       = 'lm'
-       fcp_ndiis        = 4
-       fcp_rdiis        = 1.0_DP
-       solvation_radius = 6.0_DP
+       lfcp       = .FALSE.
+       fcp_mu     = fcp_not_set
+       fcp_thr    = 0.01_DP
+       fcp_scheme = 'lm'
+       fcp_ndiis  = 4
+       fcp_rdiis  = 1.0_DP
        !
        RETURN
        !
@@ -128,7 +127,6 @@ MODULE path_read_namelists_module
        CALL mp_bcast( fcp_scheme,           ionode_id, world_comm )
        CALL mp_bcast( fcp_ndiis,            ionode_id, world_comm )
        CALL mp_bcast( fcp_rdiis,            ionode_id, world_comm )
-       CALL mp_bcast( solvation_radius,     ionode_id, world_comm )
        !
        RETURN
        !

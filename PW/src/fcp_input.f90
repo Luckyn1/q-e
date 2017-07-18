@@ -19,7 +19,6 @@ SUBROUTINE iosys_fcp()
                                   & fcpdyn_prm_velocity, fcpdyn_prm_temp
   USE fcp_module,            ONLY : fcp_mu_ => fcp_mu, &
                                   & fcp_eps, fcp_eps0, fcp_calc, fcp_check, &
-                                  & solvation_radius_ => solvation_radius, &
                                   & fcp_is_dynamics
   USE fcp_relaxation,        ONLY : fcprlx_init, fcprlx_prm
   USE ions_base,             ONLY : if_pos
@@ -36,7 +35,7 @@ SUBROUTINE iosys_fcp()
   USE input_parameters,      ONLY : fcp_mu, fcp_dynamics_ => fcp_dynamics, fcp_conv_thr, &
                                   & fcp_ndiis, fcp_rdiis, fcp_mass, fcp_velocity, fcp_temperature, &
                                   & fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
-                                  & freeze_all_atoms, solvation_radius
+                                  & freeze_all_atoms
   !
   IMPLICIT NONE
   !
@@ -142,12 +141,9 @@ SUBROUTINE iosys_fcp()
   !
   ! ... set variables from namelist
   !
-  fcp_mu_ = fcp_mu / RYTOEV
-  !
+  fcp_mu_  = fcp_mu / RYTOEV
   fcp_eps  = fcp_conv_thr / RYTOEV
   fcp_eps0 = fcp_eps
-  !
-  solvation_radius_ = solvation_radius
   !
   IF (fcp_is_dynamics()) THEN
      !

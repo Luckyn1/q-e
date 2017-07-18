@@ -1423,13 +1423,10 @@ MODULE input_parameters
           ! freeze (or fix) all atoms.
           ! to perform relaxation or dynamics only with FCP.
 
-        REAL(DP) :: solvation_radius = 6.0_DP
-          ! solvation radius (in bohr)
-
         NAMELIST / fcp / fcp_mu, fcp_dynamics, fcp_conv_thr, fcp_ndiis, fcp_rdiis, &
                          fcp_mass, fcp_velocity, fcp_temperature, &
                          fcp_tempw, fcp_tolp, fcp_delta_t, fcp_nraise, &
-                         freeze_all_atoms, solvation_radius
+                         freeze_all_atoms
 
 !
 !=----------------------------------------------------------------------------=!
