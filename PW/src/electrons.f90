@@ -50,7 +50,7 @@ SUBROUTINE electrons()
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE ions_base,            ONLY : nat
   !
-  USE rism_module,          ONLY : lrism, rism_calc3d 
+  USE rism_module,          ONLY : lrism, rism_calc3d
   !
   !
   IMPLICIT NONE
@@ -795,8 +795,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
      END IF
      !
      IF ( lrism ) THEN
-        etot = etot + esol + vsol
-        hwf_energy = hwf_energy + esol + vsol
+        etot = etot + esol - 0.5_DP * vsol * tot_charge
+        hwf_energy = hwf_energy + esol - 0.5_DP * vsol * tot_charge
      END IF
      !
      ! ... adds possible external contribution from plugins to the energy
@@ -1159,7 +1159,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
           ENDIF
           IF ( lrism ) THEN
              IF ( ABS( vsol ) > eps8 ) THEN
-                WRITE( stdout, 9078 ) esol, vsol
+                WRITE( stdout, 9078 ) esol, -0.5_DP * vsol * tot_charge
              ELSE
                 WRITE( stdout, 9079 ) esol
              END IF

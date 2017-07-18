@@ -117,7 +117,7 @@ MODULE rism
     REAL(DP),    POINTER :: usol(:)      ! solvation's chemical potential for each site
     REAL(DP),    POINTER :: usol_GF(:)   ! solvation's chemical potential for each site (by G.F.)
     REAL(DP)             :: esol         ! solvation's energy
-    REAL(DP)             :: vsol         ! potential shifting energy (for Laue-RISM)
+    REAL(DP)             :: vsol         ! potential shifting (for Laue-RISM)
     COMPLEX(DP), POINTER :: rhog(:)      ! charge density of solvent in G-space or Laue-rep.
     COMPLEX(DP), POINTER :: vpot(:)      ! coulomb potential of solvent in G-space or Laue-rep.
     INTEGER              :: pbc_nfit     ! number of fitting points for rhog_pbc and vpot_pbc. (for Laue-RISM)
