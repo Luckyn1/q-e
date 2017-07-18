@@ -95,6 +95,7 @@ CONTAINS
     INTEGER               :: isolV
     INTEGER               :: iatom
     REAL(DP)              :: qv
+    REAL(DP)              :: epsv
     REAL(DP)              :: rho1
     REAL(DP)              :: rho2
     REAL(DP)              :: rhov
@@ -145,7 +146,15 @@ CONTAINS
           !
           ! ... this is a neutral molecule
           !
-          epsr = epsr + rhov * solVs(isolV)%permittivity
+          epsv = solVs(isolV)%permittivity
+          !
+          IF (epsv < eps8) THEN
+             !
+             epsv = 1.0_DP
+             !
+          END IF
+          !
+          epsr = epsr + rhov * epsv
           rhot = rhot + rhov
           !
        END IF
