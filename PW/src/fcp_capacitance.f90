@@ -29,7 +29,7 @@ SUBROUTINE fcp_capacitance(capacitance)
   REAL(DP) :: rho0
   REAL(DP) :: beta
   !
-  REAL(DP), PARAMETER :: SCALE_DEBYE_HUCKEL = 0.1_DP
+  REAL(DP), PARAMETER :: SCALE_DEBYE_HUCKEL = 0.02_DP
   !
   ! ... set permittivity and length of z-axis
   !
