@@ -29,6 +29,8 @@ SUBROUTINE fcp_capacitance(capacitance)
   REAL(DP) :: rho0
   REAL(DP) :: beta
   !
+  REAL(DP), PARAMETER :: SCALE_DEBYE_HUCKEL = 0.1_DP
+  !
   ! ... set permittivity and length of z-axis
   !
   IF (TRIM(esm_bc) == 'bc2' .OR. TRIM(esm_bc) == 'bc3' .OR. TRIM(esm_bc) == 'bc4') THEN
@@ -57,6 +59,8 @@ SUBROUTINE fcp_capacitance(capacitance)
      ELSE
         fac = 1.0_DP
      END IF
+     !
+     fac = fac * SCALE_DEBYE_HUCKEL
      !
      z0 = SQRT(0.5_DP * (epsr / fpi / e2) / (beta * rho0 * zsol * zsol))
      !
@@ -145,14 +149,7 @@ CONTAINS
           !
           ! ... this is a neutral molecule
           !
-          epsv = solVs(isolV)%permittivity
-          !
-          IF (epsv < eps8) THEN
-             !
-             epsv = 1.0_DP
-             !
-          END IF
-          !
+          epsv = MAX(solVs(isolV)%permittivity, 1.0_DP)
           epsr = epsr + rhov * epsv
           rhot = rhot + rhov
           !
