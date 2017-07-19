@@ -61,7 +61,8 @@ SUBROUTINE fcp_capacitance(capacitance)
      !
      z0 = SQRT(0.5_DP * (epsr / fpi / e2) / (beta * rho0 * zsol * zsol))
      !
-     epsr = 1.0_DP ! ignore solvent's permittivity
+     epsr = 1.0_DP ! ignore solvent's permittivity,
+     !             ! because solvent molecules between ions and an electrode are rigid.
      !
   ELSE
      !
