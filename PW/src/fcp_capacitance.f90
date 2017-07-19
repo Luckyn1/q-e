@@ -96,13 +96,18 @@ CONTAINS
     INTEGER               :: iv, nv
     INTEGER               :: isolV
     INTEGER               :: iatom
-    REAL(DP)              :: qv
     REAL(DP)              :: epsv
     REAL(DP)              :: rho1
     REAL(DP)              :: rho2
     REAL(DP)              :: rhov
     REAL(DP)              :: rhot
+    REAL(DP)              :: qv
+    REAL(DP)              :: qabs
     REAL(DP), ALLOCATABLE :: qsol(:)
+    !
+    REAL(DP), PARAMETER   :: EPSR_DEF = 78.4_DP     ! water
+    REAL(DP), PARAMETER   :: ZSOL_DEF = 1.0_DP
+    REAL(DP), PARAMETER   :: RHO0_DEF = 8.92E-05_DP ! 1mol/L
     !
     ALLOCATE(qsol(nsolV))
     !
@@ -129,20 +134,18 @@ CONTAINS
     !
     DO isolV = 1, nsolV
        !
+       qabs = qsol(isolV)
+       !
        rho1 = solVs(isolV)%density
        rho2 = solVs(isolV)%subdensity
        rhov = 0.5_DP * (rho1 + rho2)
        !
-       IF (ABS(qsol(isolV)) > eps8) THEN
+       IF (qabs > eps8) THEN
           !
           ! ... this is an ion
           !
-          IF (zsol < ABS(qsol(isolV))) THEN
-             !
-             zsol = ABS(qsol(isolV))
-             rho0 = rhov
-             !
-          END IF
+          zsol = MAX(zsol, qabs)
+          rho0 = rho0 + rhov * qabs
           !
        ELSE
           !
@@ -162,9 +165,15 @@ CONTAINS
        !
     END IF
     !
-    IF (epsr < eps8) epsr = 1.0_DP
-    IF (zsol < eps8) zsol = 1.0_DP
-    IF (rho0 < eps8) rho0 = 1.0_DP
+    IF (zsol > eps8) THEN
+       !
+       rho0 = 0.5_DP * rho0 / zsol
+       !
+    END IF
+    !
+    IF (epsr < eps8) epsr = EPSR_DEF
+    IF (zsol < eps8) zsol = ZSOL_DEF
+    IF (rho0 < eps8) rho0 = RHO0_DEF
     !
     DEALLOCATE(qsol)
     !
