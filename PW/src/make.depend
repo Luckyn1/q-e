@@ -439,6 +439,7 @@ electrons.o : buffers.o
 electrons.o : esm.o
 electrons.o : exx.o
 electrons.o : fcp_module.o
+electrons.o : gcscf_module.o
 electrons.o : io_rho_xml.o
 electrons.o : ldaU.o
 electrons.o : newd.o
@@ -689,6 +690,20 @@ g2_kin.o : pwcom.o
 g_psi.o : ../../Modules/kind.o
 g_psi.o : g_psi_mod.o
 g_psi_mod.o : ../../Modules/kind.o
+gcscf_input.o : ../../Modules/constants.o
+gcscf_input.o : ../../Modules/input_parameters.o
+gcscf_input.o : ../../Modules/kind.o
+gcscf_input.o : gcscf_module.o
+gcscf_module.o : ../../Modules/funct.o
+gcscf_module.o : ../../Modules/ions_base.o
+gcscf_module.o : ../../Modules/kind.o
+gcscf_module.o : ../../Modules/mp.o
+gcscf_module.o : ../../Modules/mp_pools.o
+gcscf_module.o : esm.o
+gcscf_module.o : exx.o
+gcscf_module.o : fcp_module.o
+gcscf_module.o : pwcom.o
+gcscf_module.o : rism_module.o
 gen_at_dj.o : ../../Modules/atom.o
 gen_at_dj.o : ../../Modules/cell_base.o
 gen_at_dj.o : ../../Modules/constants.o
@@ -996,6 +1011,7 @@ input.o : dynamics_module.o
 input.o : esm.o
 input.o : exx.o
 input.o : fcp_module.o
+input.o : gcscf_module.o
 input.o : ldaU.o
 input.o : martyna_tuckerman.o
 input.o : pwcom.o
@@ -1118,6 +1134,7 @@ mix_rho.o : ../../Modules/mp_bands.o
 mix_rho.o : ../../Modules/recvec.o
 mix_rho.o : ../../Modules/uspp.o
 mix_rho.o : ../../Modules/wavefunctions.o
+mix_rho.o : gcscf_module.o
 mix_rho.o : pwcom.o
 mix_rho.o : scf_mod.o
 move_ions.o : ../../FFTXlib/fft_types.o
@@ -1903,6 +1920,7 @@ scf_mod.o : ../../Modules/recvec.o
 scf_mod.o : ../../Modules/uspp.o
 scf_mod.o : ../../Modules/wavefunctions.o
 scf_mod.o : buffers.o
+scf_mod.o : gcscf_module.o
 scf_mod.o : ldaU.o
 scf_mod.o : paw_onecenter.o
 scf_mod.o : pwcom.o
@@ -2359,6 +2377,7 @@ weights.o : ../../Modules/kind.o
 weights.o : ../../Modules/mp.o
 weights.o : ../../Modules/mp_images.o
 weights.o : ../../Modules/mp_pools.o
+weights.o : gcscf_module.o
 weights.o : pwcom.o
 weights.o : tetra.o
 wfcinit.o : ../../Modules/becmod.o
