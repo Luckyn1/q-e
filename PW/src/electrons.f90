@@ -1125,7 +1125,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
      SUBROUTINE print_energies ( printout )
        !-----------------------------------------------------------------------
        !
-       USE constants, ONLY : eps8
+       USE constants, ONLY : eps8, RYTOEV
        INTEGER, INTENT (IN) :: printout
        !
    
@@ -1219,9 +1219,9 @@ SUBROUTINE electrons_scf ( printout, exxen )
           IF ( lgcscf ) THEN
              !
              IF ( dr2 > eps8 ) THEN
-                WRITE( stdout, 9180 ) etot, hwf_energy, dr2, tot_charge
+                WRITE( stdout, 9180 ) etot, hwf_energy, dr2, tot_charge, ef * RYTOEV
              ELSE
-                WRITE( stdout, 9182 ) etot, hwf_energy, dr2, tot_charge
+                WRITE( stdout, 9182 ) etot, hwf_energy, dr2, tot_charge, ef * RYTOEV
              END IF
              !
           ELSE
@@ -1299,7 +1299,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
 9180 FORMAT(/'     total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',0PF17.8,' Ry' &
-            /'     total charge of GC-SCF    =',0PF17.8,' e' )
+            /'     total charge of GC-SCF    =',0PF17.8,' e'  &
+            /'     the Fermi energy          =',0PF17.8,' eV')
 9181 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',0PF17.8,' Ry' &
@@ -1307,7 +1308,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
 9182 FORMAT(/'     total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',1PE17.1,' Ry' &
-            /'     total charge of GC-SCF    =',0PF17.8,' e' )
+            /'     total charge of GC-SCF    =',0PF17.8,' e'  &
+            /'     the Fermi energy          =',0PF17.8,' eV')
 9183 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',1PE17.1,' Ry' &
