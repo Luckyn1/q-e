@@ -13,6 +13,7 @@ MODULE gcscf_module
   ! ... JCP 146, 114104 (2017), R.Sundararaman, W.A.Goddard-III, T.A.Arias
   !
   USE constants,       ONLY : RYTOEV
+  USE control_flags,   ONLY : imix
   USE esm,             ONLY : do_comp_esm, esm_bc
   USE exx,             ONLY : x_gamma_extrapolation
   USE fcp_module,      ONLY : lfcp
@@ -99,6 +100,13 @@ CONTAINS
     IF (two_fermi_energies) THEN
        CALL errore('gcscf_check', 'please do not set tot_magnetization, for GC-SCF', 1)
     END IF
+    !
+    ! ... only TF or local-TF mixing
+    !
+    IF (imix /= 1 .AND. imix /= 2) THEN
+       CALL errore('gcscf_check', 'please set mixing_mode = "TF" or "local-TF", for GC-SCF', 1)
+    END IF
+    !
     !
   END SUBROUTINE gcscf_check
   !
