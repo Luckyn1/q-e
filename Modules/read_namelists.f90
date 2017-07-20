@@ -31,7 +31,9 @@ MODULE read_namelists_module
   !
   REAL(DP), PARAMETER :: fcp_not_set = 1.0E+99_DP
   !
-  PUBLIC :: read_namelists, sm_not_set, fcp_not_set
+  REAL(DP), PARAMETER :: gcscf_not_set = 1.0E+99_DP
+  !
+  PUBLIC :: read_namelists, sm_not_set, fcp_not_set, gcscf_not_set
   !
   ! ... modules needed by read_xml.f90
   !
@@ -282,6 +284,12 @@ MODULE read_namelists_module
        esm_nfit=4
        esm_debug=.FALSE.
        esm_debug_gpmax=0
+       !
+       ! ... GC-SCF
+       !
+       lgcscf = .FALSE.
+       gcscf_mu = gcscf_not_set
+       gcscf_gg0 = 0.2_DP
        !
        space_group=0
        uniqueb = .FALSE.
@@ -1000,6 +1008,12 @@ MODULE read_namelists_module
        CALL mp_bcast( esm_debug,          ionode_id, intra_image_comm )
        CALL mp_bcast( esm_debug_gpmax,    ionode_id, intra_image_comm )
        !
+       ! ... GC-SCF method broadcast
+       !
+       CALL mp_bcast( lgcscf,             ionode_id, intra_image_comm )
+       CALL mp_bcast( gcscf_mu,           ionode_id, intra_image_comm )
+       CALL mp_bcast( gcscf_gg0,          ionode_id, intra_image_comm )
+       !
        ! ... space group information
        !
        CALL mp_bcast( space_group,        ionode_id, intra_image_comm )
@@ -1683,6 +1697,12 @@ MODULE read_namelists_module
        !
        IF ( monopole .and. tot_charge == 0 ) &
           CALL errore(sub_name, ' charged plane (monopole) to compensate tot_charge of 0', 1)
+       !
+       ! ... control on GC-SCF variables
+       !
+       IF( lgcscf .AND. gcscf_mu == gcscf_not_set ) &
+          CALL errore( sub_name,' gcscf_mu is not set ', 1 )
+       !
        RETURN
        !
      END SUBROUTINE

@@ -206,6 +206,8 @@ SUBROUTINE iosys()
 
   USE qmmm, ONLY : qmmm_config
 
+  USE gcscf_module, ONLY : gcscf_iosys
+
   USE fcp_module, ONLY : fcp_iosys
 
   USE rism_module, ONLY : rism_iosys
@@ -1591,6 +1593,10 @@ SUBROUTINE iosys()
   ! ... set variables for FCP (this must be after RISM, to check condition)
   !
   CALL fcp_iosys(lfcp)
+  !
+  ! ... set variables for FCP (this must be after RISM and FCP, to check condition)
+  !
+  CALL gcscf_iosys()
   !
   ! ... End of reading input parameters
   !

@@ -14,6 +14,7 @@ MODULE gcscf_module
   !
   USE esm,             ONLY : do_comp_esm, esm_bc
   USE exx,             ONLY : x_gamma_extrapolation
+  USE fcp_module,      ONLY : lfcp
   USE fixed_occ,       ONLY : tfixed_occ
   USE funct,           ONLY : exx_is_active
   USE kinds,           ONLY : DP
@@ -70,6 +71,12 @@ CONTAINS
     !
     IF (exx_is_active() .AND. (.NOT. x_gamma_extrapolation)) THEN
        CALL errore('gcscf_check', 'GC-SCF calculation requires Vexx(G=0)', 1)
+    END IF
+    !
+    ! ... cannot use FCP
+    !
+    IF (lfcp) THEN
+       CALL errore('gcscf_check', 'cannot use FCP with GC-SCF', 1)
     END IF
     !
     ! ... only for metallic system

@@ -553,6 +553,15 @@ MODULE input_parameters
         LOGICAL :: esm_debug = .FALSE.
           ! used to enable debug mode (output v_hartree and v_local)
 
+        LOGICAL :: lgcscf = .FALSE.
+          ! if .TRUE., GC-SCF is used
+
+        REAL(DP) :: gcscf_mu = 0.0_DP
+          ! target Fermi energy of GC-SCF (in eV)
+
+        REAL(DP) :: gcscf_gg0 = 0.2_DP
+          ! wavelength shift for mixing (in 1/bohr)
+
         INTEGER :: esm_debug_gpmax = 0
           ! if esm_debug is .TRUE., calcualte v_hartree and v_local
           ! for abs(gp)<=esm_debug_gpmax (gp is integer and has tpiba unit)
@@ -599,7 +608,7 @@ MODULE input_parameters
              xdm, xdm_a1, xdm_a2,                                             &
              step_pen, A_pen, sigma_pen, alpha_pen, no_t_rev,                 &
              esm_bc, esm_efield, esm_w, esm_nfit, esm_debug, esm_debug_gpmax, &
-             esm_a, esm_zb,                                                   &
+             esm_a, esm_zb, lgcscf, gcscf_mu, gcscf_gg0                       &
              space_group, uniqueb, origin_choice, rhombohedral,               &
              zmon, relaxz, block, block_1, block_2, block_height
 
