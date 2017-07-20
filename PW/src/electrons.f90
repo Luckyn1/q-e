@@ -403,6 +403,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
       eext=0.0_DP   ! external forces contribution to the total energy
   LOGICAL :: &
       first, exst
+  LOGICAL :: &
+      lgcscf_
   !
   ! ... auxiliary variables for calculating and storing temporary copies of
   ! ... the charge density and of the HXC-potential
@@ -526,7 +528,24 @@ SUBROUTINE electrons_scf ( printout, exxen )
         ! ... sum_band computes new becsum (stored in uspp modules)
         ! ... and a subtly different copy in rho%bec (scf module)
         !
-        CALL sum_band()
+        IF ( first .OR. ( dr2 >= SQRT( tr2 ) ) ) THEN
+           !
+           ! ... constant-N, always
+           !
+           lgcscf_ = lgcscf
+           lgcscf  = .FALSE.
+           !
+           CALL sum_band()
+           !
+           lgcscf  = lgcscf_
+           !
+        ELSE
+           !
+           ! ... constant-mu, if lgcscf = .TRUE.
+           !
+           CALL sum_band()
+           !
+        END IF
         !
         ! ... the Harris-Weinert-Foulkes energy is computed here using only
         ! ... quantities obtained from the input density
