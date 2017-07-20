@@ -1920,7 +1920,6 @@ scf_mod.o : ../../Modules/recvec.o
 scf_mod.o : ../../Modules/uspp.o
 scf_mod.o : ../../Modules/wavefunctions.o
 scf_mod.o : buffers.o
-scf_mod.o : gcscf_module.o
 scf_mod.o : ldaU.o
 scf_mod.o : paw_onecenter.o
 scf_mod.o : pwcom.o

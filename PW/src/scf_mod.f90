@@ -427,7 +427,7 @@ CONTAINS
  end subroutine davcio_mix_type
  !
  !----------------------------------------------------------------------------
- FUNCTION rho_ddot( rho1, rho2, gf )
+ FUNCTION rho_ddot( rho1, rho2, gf, g0 )
   !----------------------------------------------------------------------------
   !
   ! ... calculates 4pi/G^2*rho1(-G)*rho2(G) = V1_Hartree(-G)*rho2(G)
@@ -440,15 +440,15 @@ CONTAINS
   USE spin_orb,      ONLY : domag
   USE control_flags, ONLY : gamma_only
   USE paw_onecenter, ONLY : paw_ddot
-  USE gcscf_module,  ONLY : lgcscf, gcscf_g0
   USE mp_bands,      ONLY : intra_bgrp_comm
   USE mp,            ONLY : mp_sum
   !
   IMPLICIT NONE
   !
-  type(mix_type), INTENT(IN) :: rho1, rho2
-  INTEGER,        INTENT(IN) :: gf
-  REAL(DP)                :: rho_ddot
+  type(mix_type),    INTENT(IN) :: rho1, rho2
+  INTEGER,           INTENT(IN) :: gf
+  REAL(DP), OPTIONAL INTENT(IN) :: g0
+  REAL(DP)                      :: rho_ddot
   !
   REAL(DP) :: fac
   REAL(DP) :: gg0
@@ -458,15 +458,19 @@ CONTAINS
   !
   rho_ddot = 0.D0
   !
-  IF ( lgcscf ) THEN
+  IF ( PRESENT(g0) ) THEN
      !
-     gg0 = gcscf_g0 * gcscf_g0
+     gg0 = g0 * g0
+     !
+  ELSE
+     !
+     gg0 = -1.0_DP
      !
   END IF
   !
   IF ( nspin == 1 ) THEN
      !
-     IF ( lgcscf ) THEN
+     IF ( gg0 > 0.0_DP ) THEN
         !
         DO ig = gstart, gf
            !
@@ -503,7 +507,7 @@ CONTAINS
      !
      ! ... first the charge
      !
-     IF ( lgcscf ) THEN
+     IF ( gg0 > 0.0_DP ) THEN
         !
         DO ig = gstart, gf
            !
@@ -565,7 +569,7 @@ CONTAINS
      !
   ELSE IF ( nspin == 4 ) THEN
      !
-     IF ( lgcscf ) THEN
+     IF ( gg0 > 0.0_DP ) THEN
         !
         DO ig = gstart, gf
            !
@@ -791,7 +795,7 @@ FUNCTION ns_ddot( rho1, rho2 )
   !
 END FUNCTION ns_ddot
  !----------------------------------------------------------------------------
- FUNCTION local_tf_ddot( rho1, rho2, ngm0 )
+ FUNCTION local_tf_ddot( rho1, rho2, ngm0, g0 )
   !----------------------------------------------------------------------------
   !
   ! ... calculates 4pi/G^2*rho1(-G)*rho2(G) = V1_Hartree(-G)*rho2(G)
@@ -802,15 +806,15 @@ END FUNCTION ns_ddot
   USE cell_base,     ONLY : omega, tpiba2
   USE gvect,         ONLY : gg, gstart
   USE control_flags, ONLY : gamma_only
-  USE gcscf_module,  ONLY : lgcscf, gcscf_g0
   USE mp_bands,      ONLY : intra_bgrp_comm
   USE mp,            ONLY : mp_sum
   !
   IMPLICIT NONE
   !
-  INTEGER, INTENT(IN)     :: ngm0
-  COMPLEX(DP), INTENT(IN) :: rho1(ngm0), rho2(ngm0)
-  REAL(DP)                :: local_tf_ddot
+  INTEGER,            INTENT(IN) :: ngm0
+  COMPLEX(DP),        INTENT(IN) :: rho1(ngm0), rho2(ngm0)
+  REAL(DP), OPTIONAL, INTENT(IN) :: g0
+  REAL(DP)                       :: local_tf_ddot
   !
   REAL(DP) :: fac
   REAL(DP) :: gg0
@@ -820,13 +824,17 @@ END FUNCTION ns_ddot
   !
   fac = e2 * fpi / tpiba2
   !
-  IF ( lgcscf ) THEN
+  IF ( PRESENT(g0) ) THEN
      !
-     gg0 = gcscf_g0 * gcscf_g0
+     gg0 = g0 * g0
+     !
+  ELSE
+     !
+     gg0 = -1.0_DP
      !
   END IF
   !
-  IF ( lgcscf ) THEN
+  IF ( gg0 > 0.0_DP ) THEN
      !
      DO ig = gstart, ngm0
         local_tf_ddot = local_tf_ddot + REAL( CONJG(rho1(ig))*rho2(ig) ) / ( gg(ig) + gg0 )

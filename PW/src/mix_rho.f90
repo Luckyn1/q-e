@@ -48,6 +48,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   USE control_flags,  ONLY : imix, ngm0, tr2, io_level
   ! ... for PAW:
   USE uspp_param,     ONLY : nhm
+  USE gcscf_module,   ONLY : lgcscf, gcscf_g0
   USE scf,            ONLY : scf_type, create_scf_type, destroy_scf_type, &
                              mix_type, create_mix_type, destroy_mix_type, &
                              assign_scf_to_mix_type, assign_mix_to_scf_type, &
@@ -130,7 +131,15 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
 
   call mix_type_AXPY ( -1.d0, rhoin_m, rhout_m )
   !
-  dr2 = rho_ddot( rhout_m, rhout_m, ngms )  !!!! this used to be ngm NOT ngms
+  IF ( lgcscf ) THEN
+     !
+     dr2 = rho_ddot( rhout_m, rhout_m, ngms, gcscf_g0 )  !!!! this used to be ngm NOT ngms
+     !
+  ELSE
+     !
+     dr2 = rho_ddot( rhout_m, rhout_m, ngms )  !!!! this used to be ngm NOT ngms
+     !
+  END IF
   !
   IF (dr2 < 0.0_DP) CALL errore('mix_rho','negative dr2',1)
   !
@@ -196,7 +205,11 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
      call mix_type_AXPY ( -1.d0, rhoin_m, dv(ipos) )
 #if defined(__NORMALIZE_BETAMIX)
      ! NORMALIZE
-     norm2 = rho_ddot( df(ipos), df(ipos), ngm0 )
+     IF ( lgcscf ) THEN
+        norm2 = rho_ddot( df(ipos), df(ipos), ngm0, gcscf_g0 )
+     ELSE
+        norm2 = rho_ddot( df(ipos), df(ipos), ngm0 )
+     END IF
      obn = 1.d0/sqrt(norm2)
      call mix_type_SCAL (obn,df(ipos))
      call mix_type_SCAL (obn,dv(ipos))
@@ -233,7 +246,16 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
         !
         DO j = i, iter_used
             !
-            betamix(i,j) = rho_ddot( df(j), df(i), ngm0 )
+            IF ( lgcscf ) THEN
+               !
+               betamix(i,j) = rho_ddot( df(j), df(i), ngm0, gcscf_g0 )
+               !
+            ELSE
+               !
+               betamix(i,j) = rho_ddot( df(j), df(i), ngm0 )
+               !
+            END IF
+            !
             betamix(j,i) = betamix(i,j)
             !
         END DO
@@ -258,7 +280,17 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
             j = 1:iter_used, j > i ) betamix(j,i) = betamix(i,j)
     !
     DO i = 1, iter_used
-        work(i) = rho_ddot( df(i), rhout_m, ngm0 )
+        !
+        IF ( lgcscf ) THEN
+           !
+           work(i) = rho_ddot( df(i), rhout_m, ngm0, gcscf_g0 )
+           !
+        ELSE
+           !
+           work(i) = rho_ddot( df(i), rhout_m, ngm0 )
+           !
+        END IF
+        !
     END DO
     !
     DO i = 1, iter_used
@@ -584,13 +616,29 @@ SUBROUTINE approx_screening2( drho, rhobest )
      !
      DO i = 1, m
         !
-        aa(i,m) = local_tf_ddot( w(1,i), w(1,m), ngm0)
+        IF ( lgcscf ) THEN
+           !
+           aa(i,m) = local_tf_ddot( w(1,i), w(1,m), ngm0, gcscf_g0)
+           !
+        ELSE
+           !
+           aa(i,m) = local_tf_ddot( w(1,i), w(1,m), ngm0)
+           !
+        END IF
         !
         aa(m,i) = aa(i,m)
         !
      END DO
      !
-     bb(m) = local_tf_ddot( w(1,m), dv, ngm0)
+     IF ( lgcscf ) THEN
+        !
+        bb(m) = local_tf_ddot( w(1,m), dv, ngm0, gcscf_g0)
+        !
+     ELSE
+        !
+        bb(m) = local_tf_ddot( w(1,m), dv, ngm0)
+        !
+     END IF
      !
      ! ... solve it -> vec
      !
@@ -616,7 +664,15 @@ SUBROUTINE approx_screening2( drho, rhobest )
         !
      END DO
      !
-     dr2_best = local_tf_ddot( wbest, wbest, ngm0 )
+     IF ( lgcscf ) THEN
+        !
+        dr2_best = local_tf_ddot( wbest, wbest, ngm0, gcscf_g0 )
+        !
+     ELSE
+        !
+        dr2_best = local_tf_ddot( wbest, wbest, ngm0 )
+        !
+     END IF
      !
      IF ( target == 0.D0 ) target = MAX( 1.D-12, 1.D-6*dr2_best )
      !
