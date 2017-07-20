@@ -445,10 +445,10 @@ CONTAINS
   !
   IMPLICIT NONE
   !
-  type(mix_type),    INTENT(IN) :: rho1, rho2
-  INTEGER,           INTENT(IN) :: gf
-  REAL(DP), OPTIONAL INTENT(IN) :: g0
-  REAL(DP)                      :: rho_ddot
+  type(mix_type),     INTENT(IN) :: rho1, rho2
+  INTEGER,            INTENT(IN) :: gf
+  REAL(DP), OPTIONAL, INTENT(IN) :: g0
+  REAL(DP)                       :: rho_ddot
   !
   REAL(DP) :: fac
   REAL(DP) :: gg0
