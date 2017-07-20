@@ -541,6 +541,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
            !
         ELSE
            !
+           ! ... constant-N,  if lgcscf = .FALSE.
            ! ... constant-mu, if lgcscf = .TRUE.
            !
            CALL sum_band()
