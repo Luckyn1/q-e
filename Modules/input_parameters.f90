@@ -553,6 +553,10 @@ MODULE input_parameters
         LOGICAL :: esm_debug = .FALSE.
           ! used to enable debug mode (output v_hartree and v_local)
 
+        INTEGER :: esm_debug_gpmax = 0
+          ! if esm_debug is .TRUE., calcualte v_hartree and v_local
+          ! for abs(gp)<=esm_debug_gpmax (gp is integer and has tpiba unit)
+
         LOGICAL :: lgcscf = .FALSE.
           ! if .TRUE., GC-SCF is used
 
@@ -562,12 +566,8 @@ MODULE input_parameters
         REAL(DP) :: gcscf_g0 = 0.2_DP
           ! wavelength shift for mixing (in 1/bohr)
 
-        REAL(DP) :: gcscf_beta = 0.5_DP
+        REAL(DP) :: gcscf_beta = 0.1_DP
           ! mixing rate of Fermi energy
-
-        INTEGER :: esm_debug_gpmax = 0
-          ! if esm_debug is .TRUE., calcualte v_hartree and v_local
-          ! for abs(gp)<=esm_debug_gpmax (gp is integer and has tpiba unit)
 
         INTEGER :: space_group = 0
           ! space group number for coordinates given in crystallographic form

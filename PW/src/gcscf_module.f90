@@ -48,6 +48,7 @@ MODULE gcscf_module
   PUBLIC :: gcscf_check
   PUBLIC :: gcscf_iosys
   PUBLIC :: gcscf_summary
+  PUBLIC :: gcscf_set_nelec
   PUBLIC :: gcscf_calc_nelec
   !
 CONTAINS
@@ -142,6 +143,24 @@ CONTAINS
     FLUSH(stdout)
     !
   END SUBROUTINE gcscf_summary
+  !
+  !----------------------------------------------------------------------------
+  SUBROUTINE gcscf_set_nelec(charge)
+    !----------------------------------------------------------------------------
+    !
+    ! ... set number of electrons from weights
+    !
+    IMPLICIT NONE
+    !
+    REAL(DP), INTENT(IN) :: charge
+    !
+    IF (.NOT. lgcscf) RETURN
+    !
+    nelec = charge
+    !
+    tot_charge = SUM(zv(ityp(1:nat))) - nelec
+    !
+  END SUBROUTINE gcscf_set_nelec
   !
   !----------------------------------------------------------------------------
   SUBROUTINE gcscf_calc_nelec()

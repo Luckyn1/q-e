@@ -10,7 +10,7 @@ SUBROUTINE iosys_gcscf()
   !--------------------------------------------------------------------------
   !
   ! ...  Copy data read from input file (in subroutine "read_input_file") and
-  ! ...  stored in modules input_parameters into internal modules of FCP
+  ! ...  stored in modules input_parameters into internal modules of GC-SCF
   !
   USE constants,    ONLY : RYTOEV
   USE gcscf_module, ONLY : lgcscf_     => lgcscf,     &
@@ -22,7 +22,7 @@ SUBROUTINE iosys_gcscf()
   !
   ! ... SYSTEM namelist
   !
-  USE input_parameters, ONLY : lgcscf, gcscf_mu, gcscf_g0
+  USE input_parameters, ONLY : lgcscf, gcscf_mu, gcscf_g0, gcscf_beta
   !
   IMPLICIT NONE
   !

@@ -371,7 +371,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
-  USE gcscf_module,         ONLY : lgcscf
+  USE gcscf_module,         ONLY : lgcscf, gcscf_set_nelec
   USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
@@ -671,6 +671,10 @@ SUBROUTINE electrons_scf ( printout, exxen )
            !
            CALL scf_type_COPY( rhoin, rho )
            !
+           IF ( lgcscf ) THEN
+              CALL gcscf_set_nelec( charge )
+           END IF
+           !
         ELSE 
            !
            ! ... convergence reached:
@@ -757,7 +761,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
         !
      END IF
      !
-     IF ( (.NOT. lgcscf) .AND. ABS( charge - nelec ) / charge > 1.D-7 ) THEN
+     IF ( ABS( charge - nelec ) / charge > 1.D-7 ) THEN
         WRITE( stdout, 9050 ) charge, nelec
         IF ( ABS( charge - nelec ) / charge > 1.D-3 ) THEN
            IF (.not.lgauss) THEN
