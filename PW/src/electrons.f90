@@ -371,6 +371,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
+  USE gcscf_module,         ONLY : lgcscf
   USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
@@ -736,7 +737,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
         !
      END IF
      !
-     IF ( ABS( charge - nelec ) / charge > 1.D-7 ) THEN
+     IF ( (.NOT. lgcscf) .AND. ABS( charge - nelec ) / charge > 1.D-7 ) THEN
         WRITE( stdout, 9050 ) charge, nelec
         IF ( ABS( charge - nelec ) / charge > 1.D-3 ) THEN
            IF (.not.lgauss) THEN
@@ -1178,19 +1179,44 @@ SUBROUTINE electrons_scf ( printout, exxen )
           !
        ELSE IF ( conv_elec ) THEN
           !
-          IF ( dr2 > eps8 ) THEN
-             WRITE( stdout, 9081 ) etot, hwf_energy, dr2
+          IF ( lgcscf ) THEN
+             !
+             IF ( dr2 > eps8 ) THEN
+                WRITE( stdout, 9181 ) etot, hwf_energy, dr2, tot_charge
+             ELSE
+                WRITE( stdout, 9183 ) etot, hwf_energy, dr2, tot_charge
+             END IF
+             !
           ELSE
-             WRITE( stdout, 9083 ) etot, hwf_energy, dr2
+             !
+             IF ( dr2 > eps8 ) THEN
+                WRITE( stdout, 9081 ) etot, hwf_energy, dr2
+             ELSE
+                WRITE( stdout, 9083 ) etot, hwf_energy, dr2
+             END IF
+             !
           END IF
           !
        ELSE
           !
-          IF ( dr2 > eps8 ) THEN
-             WRITE( stdout, 9080 ) etot, hwf_energy, dr2
+          IF ( lgcscf ) THEN
+             !
+             IF ( dr2 > eps8 ) THEN
+                WRITE( stdout, 9180 ) etot, hwf_energy, dr2, tot_charge
+             ELSE
+                WRITE( stdout, 9182 ) etot, hwf_energy, dr2, tot_charge
+             END IF
+             !
           ELSE
-             WRITE( stdout, 9082 ) etot, hwf_energy, dr2
+             !
+             IF ( dr2 > eps8 ) THEN
+                WRITE( stdout, 9080 ) etot, hwf_energy, dr2
+             ELSE
+                WRITE( stdout, 9082 ) etot, hwf_energy, dr2
+             END IF
+             !
           END IF
+          !
        END IF
        !
        CALL plugin_print_energies()
@@ -1253,6 +1279,22 @@ SUBROUTINE electrons_scf ( printout, exxen )
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',1PE17.1,' Ry' )
 9085 FORMAT(/'     total all-electron energy =',0PF17.6,' Ry' )
+9180 FORMAT(/'     total energy              =',0PF17.8,' Ry' &
+            /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
+            /'     estimated scf accuracy    <',0PF17.8,' Ry' &
+            /'     total charge of GC-SCF    =',0PF17.8,' Ry' )
+9181 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
+            /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
+            /'     estimated scf accuracy    <',0PF17.8,' Ry' &
+            /'     total charge of GC-SCF    =',0PF17.8,' Ry' )
+9182 FORMAT(/'     total energy              =',0PF17.8,' Ry' &
+            /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
+            /'     estimated scf accuracy    <',1PE17.1,' Ry' &
+            /'     total charge of GC-SCF    =',0PF17.8,' Ry' )
+9183 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
+            /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
+            /'     estimated scf accuracy    <',1PE17.1,' Ry' &
+            /'     total charge of GC-SCF    =',0PF17.8,' Ry' )
 
   END SUBROUTINE print_energies
   !
