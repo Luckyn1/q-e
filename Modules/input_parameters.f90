@@ -566,7 +566,7 @@ MODULE input_parameters
         REAL(DP) :: gcscf_g0 = 0.2_DP
           ! wavelength shift for mixing (in 1/bohr)
 
-        REAL(DP) :: gcscf_beta = 0.1_DP
+        REAL(DP) :: gcscf_beta = 0.2_DP
           ! mixing rate of Fermi energy
 
         INTEGER :: space_group = 0
