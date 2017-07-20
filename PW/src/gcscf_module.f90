@@ -17,18 +17,23 @@ MODULE gcscf_module
   USE fcp_module,      ONLY : lfcp
   USE fixed_occ,       ONLY : tfixed_occ
   USE funct,           ONLY : exx_is_active
+  USE ions_base,       ONLY : nat, ityp, zv
   USE kinds,           ONLY : DP
-  USE klist,           ONLY : tot_charge, lgauss, degauss, ltetra, two_fermi_energies
+  USE klist,           ONLY : nks, wk, nelec, tot_charge, &
+                            & lgauss, degauss, ltetra, two_fermi_energies
+  USE mp,              ONLY : mp_sum
+  USE mp_pools,        ONLY : inter_pool_comm
   USE rism_module,     ONLY : lrism
+  USE wvfct,           ONLY : nbnd, wg
   !
   IMPLICIT NONE
   SAVE
   PRIVATE
   !
   ! ... variables for FCP method
-  LOGICAL           :: lgcscf   = .FALSE.  ! to calculate GC-SCF method, or not
-  REAL(DP)          :: gcscf_mu = 0.0_DP   ! target Fermi energy (in Ry)
-  REAL(DP)          :: gcscf_g0 = 0.0_DP   ! wavelength shift for mixing (in 1/bohr)
+  LOGICAL  :: lgcscf   = .FALSE.  ! to calculate GC-SCF method, or not
+  REAL(DP) :: gcscf_mu = 0.0_DP   ! target Fermi energy (in Ry)
+  REAL(DP) :: gcscf_g0 = 0.0_DP   ! wavelength shift for mixing (in 1/bohr)
   !
   ! ... public components
   PUBLIC :: lgcscf
@@ -37,6 +42,7 @@ MODULE gcscf_module
   !
   PUBLIC :: gcscf_check
   PUBLIC :: gcscf_iosys
+  PUBLIC :: gcscf_calc_nelec
   !
 CONTAINS
   !
@@ -104,5 +110,34 @@ CONTAINS
     CALL iosys_gcscf()
     !
   END SUBROUTINE gcscf_iosys
+  !
+  !----------------------------------------------------------------------------
+  SUBROUTINE gcscf_calc_nelec()
+    !----------------------------------------------------------------------------
+    !
+    ! ... calculate number of electrons from weights
+    !
+    IMPLICIT NONE
+    !
+    INTEGER :: ik
+    INTEGER :: ibnd
+    !
+    nelec = 0.0_DP
+    !
+    DO ik = 1, nks
+       !
+       DO ibnd = 1, nbnd
+          !
+          nelec = nelec + wg(ibnd, ik)
+          !
+       END DO
+       !
+    END DO
+    !
+    CALL mp_sum(nelec, inter_pool_comm)
+    !
+    tot_charge = SUM(zv(ityp(1:nat))) - nelec
+    !
+  END SUBROUTINE gcscf_calc_nelec
   !
 END MODULE gcscf_module
