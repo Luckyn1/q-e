@@ -695,6 +695,7 @@ gcscf_input.o : ../../Modules/input_parameters.o
 gcscf_input.o : ../../Modules/kind.o
 gcscf_input.o : gcscf_module.o
 gcscf_module.o : ../../Modules/funct.o
+gcscf_module.o : ../../Modules/io_global.o
 gcscf_module.o : ../../Modules/ions_base.o
 gcscf_module.o : ../../Modules/kind.o
 gcscf_module.o : ../../Modules/mp.o
