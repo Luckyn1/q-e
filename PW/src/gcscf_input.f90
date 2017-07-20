@@ -27,9 +27,9 @@ SUBROUTINE iosys_gcscf()
   !
   ! ... set variables from namelist
   !
-  lgcscf = lgcscf
+  lgcscf_ = lgcscf
   !
-  IF (.NOT. lgcscf) THEN
+  IF (.NOT. lgcscf_) THEN
      !
      RETURN
      !
