@@ -1547,6 +1547,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                   in @ref SYSTEM namelist.
                 - ESM-RISM is also supported (@ref assume_isolated = 'esm' and @ref esm_bc = 'bc1'
                   and @ref trism = .TRUE.).
+                - @ref mixing_mode has to be 'TF' or 'local-TF'
             }
         }
 
@@ -1555,6 +1556,13 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             info {
                 The target Fermi energy (eV) of GC-SCF. One can start 
                 with appropriate total charge of the system by giving @ref tot_charge .
+            }
+        }
+
+        var gcscf_beta -type REAL {
+            status { 0.1 }
+            info {
+                mixing factor of the Fermi energy
             }
         }
 
