@@ -1152,11 +1152,24 @@ SUBROUTINE electrons_scf ( printout, exxen )
        IF ( printout == 0 ) RETURN
        IF ( ( conv_elec .OR. MOD(iter,iprint) == 0 ) .AND. printout > 1 ) THEN
           !
-          IF ( dr2 > eps8 ) THEN
-             WRITE( stdout, 9081 ) etot, hwf_energy, dr2
+          IF ( lgcscf ) THEN
+             !
+             IF ( dr2 > eps8 ) THEN
+                WRITE( stdout, 9181 ) etot, hwf_energy, dr2, tot_charge
+             ELSE
+                WRITE( stdout, 9183 ) etot, hwf_energy, dr2, tot_charge
+             END IF
+             !
           ELSE
-             WRITE( stdout, 9083 ) etot, hwf_energy, dr2
+             !
+             IF ( dr2 > eps8 ) THEN
+                WRITE( stdout, 9081 ) etot, hwf_energy, dr2
+             ELSE
+                WRITE( stdout, 9083 ) etot, hwf_energy, dr2
+             END IF
+             !
           END IF
+          !
           IF ( only_paw ) WRITE( stdout, 9085 ) etot+total_core_energy
           !
           WRITE( stdout, 9060 ) &
