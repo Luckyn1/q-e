@@ -440,6 +440,7 @@ CONTAINS
   USE spin_orb,      ONLY : domag
   USE control_flags, ONLY : gamma_only
   USE paw_onecenter, ONLY : paw_ddot
+  USE gcscf_module,  ONLY : lgcscf, gcscf_g0
   USE mp_bands,      ONLY : intra_bgrp_comm
   USE mp,            ONLY : mp_sum
   !
@@ -450,40 +451,93 @@ CONTAINS
   REAL(DP)                :: rho_ddot
   !
   REAL(DP) :: fac
+  REAL(DP) :: gg0
   INTEGER  :: ig
   !
   fac = e2 * fpi / tpiba2
   !
   rho_ddot = 0.D0
-  
+  !
+  IF ( lgcscf ) THEN
+     !
+     gg0 = gcscf_g0 * gcscf_g0
+     !
+  END IF
+  !
   IF ( nspin == 1 ) THEN
      !
-     DO ig = gstart, gf
+     IF ( lgcscf ) THEN
         !
-        rho_ddot = rho_ddot + &
-                   REAL( CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP ) / gg(ig)
+        DO ig = gstart, gf
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP ) / ( gg(ig) + gg0 )
+           !
+        END DO
         !
-     END DO
+        IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+        !
+        IF ( gstart == 2 ) THEN
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(1,1) )*rho2%of_g(1,1), DP ) / ( gg(1) + gg0 )
+           !
+        END IF
+        !
+     ELSE
+        !
+        DO ig = gstart, gf
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP ) / gg(ig)
+           !
+        END DO
+        !
+        IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+        !
+     END IF
      !
      rho_ddot = fac*rho_ddot
-     !
-     IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
      !
   ELSE IF ( nspin == 2 ) THEN
      !
      ! ... first the charge
      !
-     DO ig = gstart, gf
+     IF ( lgcscf ) THEN
         !
-        rho_ddot = rho_ddot + &
-                   REAL( CONJG( rho1%of_g(ig,1)+rho1%of_g(ig,2) ) * &
-                              ( rho2%of_g(ig,1)+rho2%of_g(ig,2) ), DP ) / gg(ig)
+        DO ig = gstart, gf
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(ig,1)+rho1%of_g(ig,2) ) * &
+                                 ( rho2%of_g(ig,1)+rho2%of_g(ig,2) ), DP ) / ( gg(ig) + gg0 )
+           !
+        END DO
         !
-     END DO
+        IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+        !
+        IF ( gstart == 2 ) THEN
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(1,1)+rho1%of_g(1,2) ) * &
+                                 ( rho2%of_g(1,1)+rho2%of_g(1,2) ), DP ) / ( gg(1) + gg0 )
+           !
+        END IF
+        !
+     ELSE
+        !
+        DO ig = gstart, gf
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(ig,1)+rho1%of_g(ig,2) ) * &
+                                 ( rho2%of_g(ig,1)+rho2%of_g(ig,2) ), DP ) / gg(ig)
+           !
+        END DO
+        !
+        IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+        !
+     END IF
      !
      rho_ddot = fac*rho_ddot
-     !
-     IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
      !
      ! ... then the magnetization
      !
@@ -511,16 +565,38 @@ CONTAINS
      !
   ELSE IF ( nspin == 4 ) THEN
      !
-     DO ig = gstart, gf
+     IF ( lgcscf ) THEN
         !
-        rho_ddot = rho_ddot + &
-                   REAL( CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP ) / gg(ig)
+        DO ig = gstart, gf
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP ) / ( gg(ig) + gg0 )
+           !
+        END DO
         !
-     END DO
+        IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+        !
+        IF ( gstart == 2 ) THEN
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(1,1) )*rho2%of_g(1,1), DP ) / ( gg(1) + gg0 )
+           !
+        END IF
+        !
+     ELSE
+        !
+        DO ig = gstart, gf
+           !
+           rho_ddot = rho_ddot + &
+                      REAL( CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP ) / gg(ig)
+           !
+        END DO
+        !
+        IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+        !
+     END IF
      !
      rho_ddot = fac*rho_ddot
-     !
-     IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
      !
      IF (domag) THEN
         fac = e2*fpi / (tpi**2)  ! lambda=1 a.u.
@@ -726,6 +802,7 @@ END FUNCTION ns_ddot
   USE cell_base,     ONLY : omega, tpiba2
   USE gvect,         ONLY : gg, gstart
   USE control_flags, ONLY : gamma_only
+  USE gcscf_module,  ONLY : lgcscf, gcscf_g0
   USE mp_bands,      ONLY : intra_bgrp_comm
   USE mp,            ONLY : mp_sum
   !
@@ -736,19 +813,42 @@ END FUNCTION ns_ddot
   REAL(DP)                :: local_tf_ddot
   !
   REAL(DP) :: fac
+  REAL(DP) :: gg0
   INTEGER  :: ig
   !
   local_tf_ddot = 0.D0
   !
   fac = e2 * fpi / tpiba2
   !
-  DO ig = gstart, ngm0
-     local_tf_ddot = local_tf_ddot + REAL( CONJG(rho1(ig))*rho2(ig) ) / gg(ig)
-  END DO
+  IF ( lgcscf ) THEN
+     !
+     gg0 = gcscf_g0 * gcscf_g0
+     !
+  END IF
+  !
+  IF ( lgcscf ) THEN
+     !
+     DO ig = gstart, ngm0
+        local_tf_ddot = local_tf_ddot + REAL( CONJG(rho1(ig))*rho2(ig) ) / ( gg(ig) + gg0 )
+     END DO
+     !
+     IF ( gamma_only ) local_tf_ddot = 2.D0 * local_tf_ddot
+     !
+     IF ( gstart == 2 ) THEN
+        local_tf_ddot = local_tf_ddot + REAL( CONJG(rho1(1))*rho2(1) ) / ( gg(1) + gg0 )
+     END IF
+     !
+  ELSE
+     !
+     DO ig = gstart, ngm0
+        local_tf_ddot = local_tf_ddot + REAL( CONJG(rho1(ig))*rho2(ig) ) / gg(ig)
+     END DO
+     !
+     IF ( gamma_only ) local_tf_ddot = 2.D0 * local_tf_ddot
+     !
+  END IF
   !
   local_tf_ddot = fac * local_tf_ddot * omega * 0.5D0
-  !
-  IF ( gamma_only ) local_tf_ddot = 2.D0 * local_tf_ddot
   !
   CALL mp_sum(  local_tf_ddot , intra_bgrp_comm )
   !
