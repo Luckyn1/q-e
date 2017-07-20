@@ -94,6 +94,7 @@ SUBROUTINE setup()
   USE paw_variables,      ONLY : okpaw
   USE extfield,           ONLY : monopole
   USE fcp_module,         ONLY : lfcp
+  USE gcscf_module,       ONLY : lgcscf
   USE rism_module,        ONLY : lrism, rism_calc1d
   !
   IMPLICIT NONE
@@ -170,18 +171,18 @@ SUBROUTINE setup()
   nelec = ionic_charge - tot_charge
   !
 #if defined (__XSD)
-  IF ( lbands .OR. ( lfcp .AND. restart )) THEN
+  IF ( lbands .OR. ( (lfcp .OR. lgcscf) .AND. restart )) THEN
      ALLOCATE ( output_obj, parinfo_obj, geninfo_obj )
      CALL pw_readschema_file( ierr , output_obj, parinfo_obj, geninfo_obj )
   END IF
   !
   ! 
-  IF ( lfcp .AND. restart ) THEN
+  IF ( (lfcp .OR. lgcscf) .AND. restart ) THEN
      CALL init_vars_from_schema( 'ef', ierr,  output_obj, parinfo_obj, geninfo_obj)
      tot_charge = ionic_charge - nelec
   END IF
 #else 
-  IF ( lfcp .AND. restart ) THEN
+  IF ( (lfcp .OR. lgcscf) .AND. restart ) THEN
      CALL pw_readfile( 'ef', ierr )
      tot_charge = ionic_charge - nelec
   END IF
@@ -596,7 +597,7 @@ SUBROUTINE setup()
      !
   END IF
 #if defined(__XSD) 
-  IF ( lbands .OR. ( lfcp .AND. restart ) ) THEN
+  IF ( lbands .OR. ( (lfcp .OR. lgcscf) .AND. restart ) ) THEN
      CALL qes_reset_output ( output_obj ) 
      CALL qes_reset_parallel_info ( parinfo_obj ) 
      CALL qes_reset_general_info ( geninfo_obj ) 
