@@ -13,9 +13,10 @@ SUBROUTINE iosys_gcscf()
   ! ...  stored in modules input_parameters into internal modules of FCP
   !
   USE constants,    ONLY : RYTOEV
-  USE gcscf_module, ONLY : lgcscf_   => lgcscf,   &
-                         & gcscf_mu_ => gcscf_mu, &
-                         & gcscf_g0_ => gcscf_g0, &
+  USE gcscf_module, ONLY : lgcscf_     => lgcscf,     &
+                         & gcscf_mu_   => gcscf_mu,   &
+                         & gcscf_g0_   => gcscf_g0,   &
+                         & gcscf_beta_ => gcscf_beta, &
                          & gcscf_check
   USE kinds,        ONLY : DP
   !
@@ -35,8 +36,9 @@ SUBROUTINE iosys_gcscf()
      !
   END IF
   !
-  gcscf_mu_ = gcscf_mu / RYTOEV
-  gcscf_g0_ = gcscf_g0
+  gcscf_mu_   = gcscf_mu / RYTOEV
+  gcscf_g0_   = gcscf_g0
+  gcscf_beta_ = gcscf_beta
   !
   ! ... check condition
   !

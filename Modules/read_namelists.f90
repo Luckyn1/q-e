@@ -290,6 +290,7 @@ MODULE read_namelists_module
        lgcscf = .FALSE.
        gcscf_mu = gcscf_not_set
        gcscf_g0 = 0.2_DP
+       gcscf_beta = 0.5_DP
        !
        space_group=0
        uniqueb = .FALSE.
@@ -1013,6 +1014,7 @@ MODULE read_namelists_module
        CALL mp_bcast( lgcscf,             ionode_id, intra_image_comm )
        CALL mp_bcast( gcscf_mu,           ionode_id, intra_image_comm )
        CALL mp_bcast( gcscf_g0,           ionode_id, intra_image_comm )
+       CALL mp_bcast( gcscf_beta,         ionode_id, intra_image_comm )
        !
        ! ... space group information
        !
@@ -1707,6 +1709,9 @@ MODULE read_namelists_module
           !
           IF( gcscf_g0 <= 0.0_DP ) &
              CALL errore( sub_name,' gcscf_g0 out of range ',1)
+          !
+          IF( gcscf_beta < 0.0_DP .OR. 1.0_DP < gcscf_beta ) &
+             CALL errore( sub_name,' gcscf_beta out of range ',1)
           !
        END IF
        !

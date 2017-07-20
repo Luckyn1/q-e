@@ -562,6 +562,9 @@ MODULE input_parameters
         REAL(DP) :: gcscf_g0 = 0.2_DP
           ! wavelength shift for mixing (in 1/bohr)
 
+        REAL(DP) :: gcscf_beta = 0.5_DP
+          ! mixing rate of Fermi energy
+
         INTEGER :: esm_debug_gpmax = 0
           ! if esm_debug is .TRUE., calcualte v_hartree and v_local
           ! for abs(gp)<=esm_debug_gpmax (gp is integer and has tpiba unit)
@@ -608,7 +611,7 @@ MODULE input_parameters
              xdm, xdm_a1, xdm_a2,                                             &
              step_pen, A_pen, sigma_pen, alpha_pen, no_t_rev,                 &
              esm_bc, esm_efield, esm_w, esm_nfit, esm_debug, esm_debug_gpmax, &
-             esm_a, esm_zb, lgcscf, gcscf_mu, gcscf_g0,                       &
+             esm_a, esm_zb, lgcscf, gcscf_mu, gcscf_g0, gcscf_beta,           &
              space_group, uniqueb, origin_choice, rhombohedral,               &
              zmon, relaxz, block, block_1, block_2, block_height
 

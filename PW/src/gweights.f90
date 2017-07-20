@@ -8,7 +8,7 @@
 !
 !--------------------------------------------------------------------
 subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
-     et, ef, demet, wg, is, isk, ef_given)
+     et, ef, demet, wg, is, isk, beta)
   !--------------------------------------------------------------------
   !     calculates Ef and weights with the gaussian spreading technique
   ! ... Wrapper routine: computes first Ef, then the weights
@@ -23,14 +23,19 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
   real(DP), intent(inout) :: wg (nbnd, nks)
   real(DP), intent(inout) :: ef
   real(DP), intent(out) :: demet
-  logical, intent(in) :: ef_given
+  real(DP), intent(in) :: beta
   !
+  real(DP) :: ef_now
   real(DP), external :: efermig
   
   ! Calculate the Fermi energy ef
 
-  if (.not. ef_given) then
-     ef = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
+  ef_now = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
+
+  if (beta > 0.0_DP) then
+     ef = beta * ef + (1.0_DP - beta) * ef_now
+  else
+     ef = ef_now
   end if
 
   ! Calculate weights
