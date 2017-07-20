@@ -1,5 +1,5 @@
 !
-! Copyright (C) 2001-2017 Quantum ESPRESSO group
+! Copyright (C) 2017 Quantum ESPRESSO group
 ! This file is distributed under the terms of the
 ! GNU General Public License. See the file `License'
 ! in the root directory of the present distribution,
@@ -26,14 +26,14 @@ MODULE gcscf_module
   PRIVATE
   !
   ! ... variables for FCP method
-  LOGICAL           :: lgcscf    = .FALSE.  ! to calculate GC-SCF method, or not
-  REAL(DP)          :: gcscf_mu  = 0.0_DP   ! target Fermi energy (in Ry)
-  REAL(DP)          :: gcscf_gg0 = 0.0_DP   ! wavelength shift for mixing (in 1/bohr)
+  LOGICAL           :: lgcscf   = .FALSE.  ! to calculate GC-SCF method, or not
+  REAL(DP)          :: gcscf_mu = 0.0_DP   ! target Fermi energy (in Ry)
+  REAL(DP)          :: gcscf_g0 = 0.0_DP   ! wavelength shift for mixing (in 1/bohr)
   !
   ! ... public components
   PUBLIC :: lgcscf
   PUBLIC :: gcscf_mu
-  PUBLIC :: gcscf_gg0
+  PUBLIC :: gcscf_g0
   !
   PUBLIC :: gcscf_check
   PUBLIC :: gcscf_iosys

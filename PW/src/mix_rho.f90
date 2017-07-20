@@ -331,34 +331,64 @@ SUBROUTINE approx_screening( drho )
   USE lsda_mod,      ONLY : nspin
   USE control_flags, ONLY : ngm0
   USE scf,           ONLY : mix_type
-  USE wavefunctions_module, ONLY : psic
+  USE gcscf_module,  ONLY : lgcscf, gcscf_g0
   !
   IMPLICIT NONE  
   !
   type (mix_type), intent(INOUT) :: drho ! (in/out)
   !
-  REAL(DP) :: rrho, rmag, rs, agg0
+  REAL(DP) :: rrho, rmag, rs, agg0, bgg0
   INTEGER  :: ig, is
   !
   rs = ( 3.D0 * omega / fpi / nelec )**( 1.D0 / 3.D0 )
   !
   agg0 = ( 12.D0 / pi )**( 2.D0 / 3.D0 ) / tpiba2 / rs
   !
+  IF ( lgcscf ) THEN
+     !
+     bgg0 = gcscf_g0 * gcscf_g0
+     !
+  END IF
+  !
   IF ( nspin == 1 .OR. nspin == 4 ) THEN
      !
-     drho%of_g(:ngm0,1) =  drho%of_g(:ngm0,1) * gg(:ngm0) / (gg(:ngm0)+agg0)
+     IF ( lgcscf ) THEN
+        !
+        drho%of_g(:ngm0,1) =  drho%of_g(:ngm0,1) * (gg(:ngm0)+bgg0) / (gg(:ngm0)+agg0+bgg0)
+        !
+     ELSE
+        !
+        drho%of_g(:ngm0,1) =  drho%of_g(:ngm0,1) * gg(:ngm0) / (gg(:ngm0)+agg0)
+        !
+     END IF
      !
   ELSE IF ( nspin == 2 ) THEN
      !
-     DO ig = 1, ngm0
+     IF ( lgcscf ) THEN
         !
-        rrho = ( drho%of_g(ig,1) + drho%of_g(ig,2) ) * gg(ig) / (gg(ig)+agg0)
-        rmag = ( drho%of_g(ig,1) - drho%of_g(ig,2) )
+        DO ig = 1, ngm0
+           !
+           rrho = ( drho%of_g(ig,1) + drho%of_g(ig,2) ) * (gg(ig)+bgg0) / (gg(ig)+agg0+bgg0)
+           rmag = ( drho%of_g(ig,1) - drho%of_g(ig,2) )
+           !
+           drho%of_g(ig,1) =  0.5D0*( rrho + rmag )
+           drho%of_g(ig,2) =  0.5D0*( rrho - rmag )
+           !
+        END DO
         !
-        drho%of_g(ig,1) =  0.5D0*( rrho + rmag )
-        drho%of_g(ig,2) =  0.5D0*( rrho - rmag )
+     ELSE
         !
-     END DO
+        DO ig = 1, ngm0
+           !
+           rrho = ( drho%of_g(ig,1) + drho%of_g(ig,2) ) * gg(ig) / (gg(ig)+agg0)
+           rmag = ( drho%of_g(ig,1) - drho%of_g(ig,2) )
+           !
+           drho%of_g(ig,1) =  0.5D0*( rrho + rmag )
+           drho%of_g(ig,2) =  0.5D0*( rrho - rmag )
+           !
+        END DO
+        !
+     END IF
      !
   END IF
   !
@@ -386,6 +416,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
   USE mp_bands,             ONLY : intra_bgrp_comm
   USE fft_base,             ONLY : dffts
   USE fft_interfaces,       ONLY : fwfft, invfft
+  USE gcscf_module,         ONLY : lgcscf, gcscf_g0
   !
   IMPLICIT NONE
   !
@@ -399,7 +430,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
   REAL(DP) :: &
     rs, avg_rsm1, target, dr2_best
   REAL(DP) :: &
-    aa(mmx,mmx), invaa(mmx,mmx), bb(mmx), work(mmx), vec(mmx), agg0
+    aa(mmx,mmx), invaa(mmx,mmx), bb(mmx), work(mmx), vec(mmx), agg0, bgg0
   COMPLEX(DP), ALLOCATABLE :: &
     v(:,:),     &! v(ngm0,mmx)
     w(:,:),     &! w(ngm0,mmx)
@@ -430,7 +461,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
   !
   target = 0.D0
   !
-  IF ( gg(1) < eps8 ) drho%of_g(1,1) = ZERO
+  IF ( (.NOT. lgcscf) .AND. gg(1) < eps8 ) drho%of_g(1,1) = ZERO
   !
   ALLOCATE( alpha( dffts%nnr ) )
   ALLOCATE( v( ngm0, mmx ), &
@@ -485,6 +516,12 @@ SUBROUTINE approx_screening2( drho, rhobest )
   avg_rsm1 = ( dffts%nr1*dffts%nr2*dffts%nr3 ) / avg_rsm1
   agg0     = ( 12.D0 / pi )**( 2.D0 / 3.D0 ) / tpiba2 / avg_rsm1
   !
+  IF ( lgcscf ) THEN
+     !
+     bgg0 = gcscf_g0 * gcscf_g0
+     !
+  END IF
+  !
   ! ... calculate deltaV and the first correction vector
   !
   psic(:) = ZERO
@@ -499,8 +536,17 @@ SUBROUTINE approx_screening2( drho, rhobest )
   !
   CALL fwfft ('Smooth', psic, dffts)
   !
-  dv(:) = psic(nls(:ngm0)) * gg(:ngm0) * tpiba2
-  v(:,1)= psic(nls(:ngm0)) * gg(:ngm0) / ( gg(:ngm0) + agg0 )
+  IF ( lgcscf ) THEN
+     !
+     dv(:) = psic(nls(:ngm0)) * ( gg(:ngm0) + bgg0 ) * tpiba2
+     v(:,1)= psic(nls(:ngm0)) * ( gg(:ngm0) + bgg0 ) / ( gg(:ngm0) + agg0 + bgg0 )
+     !
+  ELSE
+     !
+     dv(:) = psic(nls(:ngm0)) * gg(:ngm0) * tpiba2
+     v(:,1)= psic(nls(:ngm0)) * gg(:ngm0) / ( gg(:ngm0) + agg0 )
+     !
+  END IF
   !
   m       = 1
   aa(:,:) = 0.D0
@@ -524,7 +570,15 @@ SUBROUTINE approx_screening2( drho, rhobest )
      !
      CALL fwfft ('Smooth', psic, dffts)
      !
-     w(:,m) = w(:,m) + gg(:ngm0) * tpiba2 * psic(nls(:ngm0))
+     IF ( lgcscf ) THEN
+        !
+        w(:,m) = w(:,m) + ( gg(:ngm0) + bgg0 ) * tpiba2 * psic(nls(:ngm0))
+        !
+     ELSE
+        !
+        w(:,m) = w(:,m) + gg(:ngm0) * tpiba2 * psic(nls(:ngm0))
+        !
+     END IF
      !
      ! ... build the linear system
      !
@@ -602,7 +656,15 @@ SUBROUTINE approx_screening2( drho, rhobest )
      !
      m = m + 1
      !
-     v(:,m) = wbest(:) / ( gg(:ngm0) + agg0 )
+     IF ( lgcscf ) THEN
+        !
+        v(:,m) = wbest(:) / ( gg(:ngm0) + agg0 + bgg0 )
+        !
+     ELSE
+        !
+        v(:,m) = wbest(:) / ( gg(:ngm0) + agg0 )
+        !
+     END IF
      !
   END DO repeat_loop
   !

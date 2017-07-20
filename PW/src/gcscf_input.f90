@@ -1,5 +1,5 @@
 !
-! Copyright (C) 2001-2017 Quantum ESPRESSO group
+! Copyright (C) 2017 Quantum ESPRESSO group
 ! This file is distributed under the terms of the
 ! GNU General Public License. See the file `License'
 ! in the root directory of the present distribution,
@@ -13,15 +13,15 @@ SUBROUTINE iosys_gcscf()
   ! ...  stored in modules input_parameters into internal modules of FCP
   !
   USE constants,    ONLY : RYTOEV
-  USE gcscf_module, ONLY : lgcscf_    => lgcscf,    &
-                         & gcscf_mu_  => gcscf_mu,  &
-                         & gcscf_gg0_ => gcscf_gg0, &
+  USE gcscf_module, ONLY : lgcscf_   => lgcscf,   &
+                         & gcscf_mu_ => gcscf_mu, &
+                         & gcscf_g0_ => gcscf_g0, &
                          & gcscf_check
   USE kinds,        ONLY : DP
   !
   ! ... SYSTEM namelist
   !
-  USE input_parameters, ONLY : lgcscf, gcscf_mu, gcscf_gg0
+  USE input_parameters, ONLY : lgcscf, gcscf_mu, gcscf_g0
   !
   IMPLICIT NONE
   !
@@ -35,8 +35,8 @@ SUBROUTINE iosys_gcscf()
      !
   END IF
   !
-  gcscf_mu_  = gcscf_mu / RYTOEV
-  gcscf_gg0_ = gcscf_gg0
+  gcscf_mu_ = gcscf_mu / RYTOEV
+  gcscf_g0_ = gcscf_g0
   !
   ! ... check condition
   !
