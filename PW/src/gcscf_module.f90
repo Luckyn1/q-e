@@ -44,6 +44,7 @@ MODULE gcscf_module
   !
   PUBLIC :: gcscf_check
   PUBLIC :: gcscf_iosys
+  PUBLIC :: gcscf_summary
   PUBLIC :: gcscf_calc_nelec
   !
 CONTAINS
