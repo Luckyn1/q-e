@@ -12,19 +12,33 @@ SUBROUTINE iosys_gcscf()
   ! ...  Copy data read from input file (in subroutine "read_input_file") and
   ! ...  stored in modules input_parameters into internal modules of GC-SCF
   !
-  USE constants,    ONLY : RYTOEV
-  USE gcscf_module, ONLY : lgcscf_     => lgcscf,     &
-                         & gcscf_mu_   => gcscf_mu,   &
-                         & gcscf_g0_   => gcscf_g0,   &
-                         & gcscf_beta_ => gcscf_beta, &
-                         & gcscf_check
-  USE kinds,        ONLY : DP
+  USE constants,     ONLY : RYTOEV
+  USE control_flags, ONLY : imix
+  USE gcscf_module,  ONLY : lgcscf_     => lgcscf,     &
+                          & gcscf_mu_   => gcscf_mu,   &
+                          & gcscf_g0_   => gcscf_g0,   &
+                          & gcscf_beta_ => gcscf_beta, &
+                          & gcscf_check
+  USE kinds,         ONLY : DP
   !
   ! ... SYSTEM namelist
   !
   USE input_parameters, ONLY : lgcscf, gcscf_mu, gcscf_g0, gcscf_beta
   !
+  ! ... ELECTRONS namelist
+  !
+  USE input_parameters, ONLY : mixing_mode
+  !
   IMPLICIT NONE
+  !
+  IF (imix /= 1 .AND. imix /= 2) THEN
+     !
+     imix = 1  ! mixing_mode = 'TF'
+     !imix = 2 ! mixing_mode = 'local-TF'
+     !
+     CALL infomsg('iosys', 'mixing_mode=' // TRIM(mixing_mode) // " is ignored, 'TF' is adopted")
+     !
+  END IF
   !
   ! ... set variables from namelist
   !

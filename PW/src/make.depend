@@ -691,6 +691,7 @@ g_psi.o : ../../Modules/kind.o
 g_psi.o : g_psi_mod.o
 g_psi_mod.o : ../../Modules/kind.o
 gcscf_input.o : ../../Modules/constants.o
+gcscf_input.o : ../../Modules/control_flags.o
 gcscf_input.o : ../../Modules/input_parameters.o
 gcscf_input.o : ../../Modules/kind.o
 gcscf_input.o : gcscf_module.o
