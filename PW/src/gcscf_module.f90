@@ -17,6 +17,7 @@ MODULE gcscf_module
   USE fcp_module,      ONLY : lfcp
   USE fixed_occ,       ONLY : tfixed_occ
   USE funct,           ONLY : exx_is_active
+  USE io_global,       ONLY : stdout
   USE ions_base,       ONLY : nat, ityp, zv
   USE kinds,           ONLY : DP
   USE klist,           ONLY : nks, wk, nelec, tot_charge, &
@@ -112,6 +113,25 @@ CONTAINS
   END SUBROUTINE gcscf_iosys
   !
   !----------------------------------------------------------------------------
+  SUBROUTINE gcscf_summary()
+    !----------------------------------------------------------------------------
+    !
+    ! ... This routine writes on output the GC-SCF's information.
+    !
+    IMPLICIT NONE
+    !
+    IF (.NOT. lgcscf) RETURN
+    !
+    WRITE(stdout, '(/,5X,">>>> Grand-Canonical SCF is activated <<<<")' )
+    WRITE(stdout, '(5X,"Initial Total Charge = ",F12.6," e"   )') tot_charge
+    WRITE(stdout, '(5X,"Target Fermi Energy  = ",F12.6," Ry"  )') gcscf_mu
+    WRITE(stdout, '(5X,"                     = ",F12.6," eV"  )') gcscf_mu * RYTOEV
+    !
+    FLUSH(stdout)
+    !
+  END SUBROUTINE gcscf_summary
+  !
+  !----------------------------------------------------------------------------
   SUBROUTINE gcscf_calc_nelec()
     !----------------------------------------------------------------------------
     !
@@ -121,6 +141,8 @@ CONTAINS
     !
     INTEGER :: ik
     INTEGER :: ibnd
+    !
+    IF (.NOT. lgcscf) RETURN
     !
     nelec = 0.0_DP
     !

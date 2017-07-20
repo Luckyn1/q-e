@@ -52,6 +52,7 @@ SUBROUTINE summary()
   USE martyna_tuckerman,ONLY: do_comp_mt
   USE realus,          ONLY : real_space
   USE exx,             ONLY : ecutfock
+  USE gcscf_module,    ONLY : lgcscf, gcscf_summary
   USE fcp_module,      ONLY : lfcp, fcp_summary
   !
   IMPLICIT NONE
@@ -151,6 +152,10 @@ SUBROUTINE summary()
   ! ... ESM (Effective screening medium)
   !
   IF ( do_comp_esm )  CALL esm_summary()
+  !
+  ! ... GC-SCF (Grand-Canonical SCF)
+  !
+  IF ( lgcscf )  CALL gcscf_summary()
   !
   ! ... FCP (Ficticious charge particle)
   !
