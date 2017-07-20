@@ -12,6 +12,7 @@ MODULE gcscf_module
   ! ... This module controls Grand-Canonical SCF.
   ! ... JCP 146, 114104 (2017), R.Sundararaman, W.A.Goddard-III, T.A.Arias
   !
+  USE constants,       ONLY : RYTOEV
   USE esm,             ONLY : do_comp_esm, esm_bc
   USE exx,             ONLY : x_gamma_extrapolation
   USE fcp_module,      ONLY : lfcp
