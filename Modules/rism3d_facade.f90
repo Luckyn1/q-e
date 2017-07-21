@@ -392,10 +392,10 @@ CONTAINS
     ELSE IF (PRESENT(epsv_curr)) THEN
       IF (conv_level == 1 .AND. epsv_curr > 0.0_DP) THEN
         ! medium level
-        epsv_ = epsv_curr * SQRT(epsv_curr)
+        epsv_ = MAX(epsv, epsv_curr * SQRT(epsv_curr))
       ELSE
         ! low level
-        epsv_ = epsv_curr
+        epsv_ = MAX(epsv, epsv_curr)
       END IF
     ELSE
       epsv_ = epsv
