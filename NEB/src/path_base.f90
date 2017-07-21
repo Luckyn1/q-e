@@ -122,6 +122,10 @@ MODULE path_base
       CALL mp_bcast( lgcscf,   meta_ionode_id, world_comm )
       CALL mp_bcast( gcscf_mu, meta_ionode_id, world_comm )
       !
+      IF ( lgcscf .AND. lfcp ) &
+         CALL errore( 'initialize_path', &
+                    & 'cannot use GC-SCF and FCP simultaneously', 1 )
+      !
       !
       IF ( nimage > 1 ) THEN
          !
