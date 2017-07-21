@@ -14,16 +14,18 @@ SUBROUTINE iosys_gcscf()
   !
   USE constants,     ONLY : RYTOEV
   USE control_flags, ONLY : imix
-  USE gcscf_module,  ONLY : lgcscf_     => lgcscf,     &
-                          & gcscf_mu_   => gcscf_mu,   &
-                          & gcscf_g0_   => gcscf_g0,   &
-                          & gcscf_beta_ => gcscf_beta, &
+  USE gcscf_module,  ONLY : lgcscf_           => lgcscf,           &
+                          & gcscf_ignore_mun_ => gcscf_ignore_mun, &
+                          & gcscf_mu_         => gcscf_mu,         &
+                          & gcscf_g0_         => gcscf_g0,         &
+                          & gcscf_beta_       => gcscf_beta,       &
                           & gcscf_check
   USE kinds,         ONLY : DP
   !
   ! ... SYSTEM namelist
   !
-  USE input_parameters, ONLY : lgcscf, gcscf_mu, gcscf_g0, gcscf_beta
+  USE input_parameters, ONLY : lgcscf, gcscf_ignore_mun, &
+                             & gcscf_mu, gcscf_g0, gcscf_beta
   !
   ! ... ELECTRONS namelist
   !
@@ -36,7 +38,8 @@ SUBROUTINE iosys_gcscf()
      imix = 1  ! mixing_mode = 'TF'
      !imix = 2 ! mixing_mode = 'local-TF'
      !
-     CALL infomsg('iosys', 'mixing_mode=' // TRIM(mixing_mode) // " is ignored, 'TF' is adopted")
+     CALL infomsg('iosys', &
+     & 'mixing_mode=' // TRIM(mixing_mode) // " is ignored, 'TF' is adopted")
      !
   END IF
   !
@@ -50,9 +53,10 @@ SUBROUTINE iosys_gcscf()
      !
   END IF
   !
-  gcscf_mu_   = gcscf_mu / RYTOEV
-  gcscf_g0_   = gcscf_g0
-  gcscf_beta_ = gcscf_beta
+  gcscf_ignore_mun_ = gcscf_ignore_mun
+  gcscf_mu_         = gcscf_mu / RYTOEV
+  gcscf_g0_         = gcscf_g0
+  gcscf_beta_       = gcscf_beta
   !
   ! ... check condition
   !

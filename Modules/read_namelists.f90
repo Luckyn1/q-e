@@ -288,6 +288,7 @@ MODULE read_namelists_module
        ! ... GC-SCF
        !
        lgcscf = .FALSE.
+       gcscf_ignore_mun = .FALSE.
        gcscf_mu = gcscf_not_set
        gcscf_g0 = 0.8_DP
        gcscf_beta = 0.05_DP
@@ -1012,6 +1013,7 @@ MODULE read_namelists_module
        ! ... GC-SCF method broadcast
        !
        CALL mp_bcast( lgcscf,             ionode_id, intra_image_comm )
+       CALL mp_bcast( gcscf_ignore_mun,   ionode_id, intra_image_comm )
        CALL mp_bcast( gcscf_mu,           ionode_id, intra_image_comm )
        CALL mp_bcast( gcscf_g0,           ionode_id, intra_image_comm )
        CALL mp_bcast( gcscf_beta,         ionode_id, intra_image_comm )

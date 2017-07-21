@@ -1543,6 +1543,8 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 with Grand-Canonical SCF. (JCP 146, 114104 (2017), R.Sundararaman, et al.)
 
                 NB:
+                - The total energy displayed in output includes the potentiostat
+                  contribution (-mu*N).
                 - @ref assume_isolated = 'esm' and @ref esm_bc = 'bc2' or 'bc3' must be set
                   in @ref SYSTEM namelist.
                 - ESM-RISM is also supported (@ref assume_isolated = 'esm' and @ref esm_bc = 'bc1'

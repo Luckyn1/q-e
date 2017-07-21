@@ -371,7 +371,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
-  USE gcscf_module,         ONLY : lgcscf, gcscf_set_nelec
+  USE gcscf_module,         ONLY : lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_set_nelec
   USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
@@ -794,6 +794,11 @@ SUBROUTINE electrons_scf ( printout, exxen )
         hwf_energy = hwf_energy + etotmonofield
      END IF
      !
+     IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
+        etot = etot + gcscf_mu * tot_charge
+        hwf_energy = hwf_energy + gcscf_mu * tot_charge
+     END IF
+     !
      IF ( lfcp ) THEN
         etot = etot + fcp_mu * tot_charge
         hwf_energy = hwf_energy + fcp_mu * tot_charge
@@ -1188,9 +1193,13 @@ SUBROUTINE electrons_scf ( printout, exxen )
           !
           IF ( lgauss ) WRITE( stdout, 9070 ) demet
           !
-          ! ... With Fictitious charge particle (FCP), etot is the grand
-          ! ... potential energy Omega = E - muN, -muN is the potentiostat
-          ! ... contribution.
+          ! ... With Grandcanonical-SCF (GC-SCF) or Fictitious charge particle (FCP),
+          ! ... etot is the grand potential energy Omega = E - muN, -muN is
+          ! ... the potentiostat contribution.
+          !
+          IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
+             WRITE( stdout, 9072 ) gcscf_mu*tot_charge
+          END IF
           !
           IF ( lfcp ) WRITE( stdout, 9072 ) fcp_mu*tot_charge
           !

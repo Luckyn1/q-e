@@ -34,13 +34,15 @@ MODULE gcscf_module
   PRIVATE
   !
   ! ... variables for FCP method
-  LOGICAL  :: lgcscf     = .FALSE.  ! to calculate GC-SCF method, or not
-  REAL(DP) :: gcscf_mu   = 0.0_DP   ! target Fermi energy (in Ry)
-  REAL(DP) :: gcscf_g0   = 0.0_DP   ! wavelength shift for mixing (in 1/bohr)
-  REAL(DP) :: gcscf_beta = 0.0_DP   ! mixing rate of Fermi energy
+  LOGICAL  :: lgcscf           = .FALSE.  ! to calculate GC-SCF method, or not
+  LOGICAL  :: gcscf_ignore_mun = .FALSE.  ! ignore -mu * N, or not
+  REAL(DP) :: gcscf_mu         = 0.0_DP   ! target Fermi energy (in Ry)
+  REAL(DP) :: gcscf_g0         = 0.0_DP   ! wavelength shift for mixing (in 1/bohr)
+  REAL(DP) :: gcscf_beta       = 0.0_DP   ! mixing rate of Fermi energy
   !
   ! ... public components
   PUBLIC :: lgcscf
+  PUBLIC :: gcscf_ignore_mun
   PUBLIC :: gcscf_mu
   PUBLIC :: gcscf_g0
   PUBLIC :: gcscf_beta

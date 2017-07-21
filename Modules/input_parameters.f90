@@ -559,6 +559,9 @@ MODULE input_parameters
 
         LOGICAL :: lgcscf = .FALSE.
           ! if .TRUE., GC-SCF is used
+          j
+        LOGICAL :: gcscf_ignore_mun = .FALSE.
+          ! if .TRUE., ignore the term of -mu * N
 
         REAL(DP) :: gcscf_mu = 0.0_DP
           ! target Fermi energy of GC-SCF (in eV)
@@ -611,8 +614,8 @@ MODULE input_parameters
              xdm, xdm_a1, xdm_a2,                                             &
              step_pen, A_pen, sigma_pen, alpha_pen, no_t_rev,                 &
              esm_bc, esm_efield, esm_w, esm_nfit, esm_debug, esm_debug_gpmax, &
-             esm_a, esm_zb, lgcscf, gcscf_mu, gcscf_g0, gcscf_beta,           &
-             space_group, uniqueb, origin_choice, rhombohedral,               &
+             esm_a, esm_zb, lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_g0,     &
+             gcscf_beta, space_group, uniqueb, origin_choice, rhombohedral,   &
              zmon, relaxz, block, block_1, block_2, block_height
 
 !=----------------------------------------------------------------------------=!
