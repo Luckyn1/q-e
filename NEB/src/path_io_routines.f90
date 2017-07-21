@@ -906,7 +906,8 @@ MODULE path_io_routines
        USE path_variables, ONLY : num_of_images, error, path_length, &
                                   activation_energy, pes, pos, frozen, &
                                   CI_scheme, Emax_index
-       USE path_formats,   ONLY : run_info, run_output, fcp_info, fcp_output
+       USE path_formats,   ONLY : run_info, run_output, fcp_info, fcp_output, &
+                                  gcscf_info, gcscf_output
        USE ions_base,      ONLY : zv, ityp, nat
        USE fcp_variables,  ONLY : lfcp, fcp_nelec, fcp_ef, fcp_dos, fcp_error
        USE gcscf_variables,ONLY : lgcscf, gcscf_mu, gcscf_nelec, gcscf_ef
@@ -972,7 +973,7 @@ MODULE path_io_routines
              !
              WRITE( UNIT = iunpath, FMT = gcscf_output ) &
                  image, gcscf_ef(image) * autoev, ionic_charge - gcscf_nelec(image), &
-                 ABS( gcscf_mu - gcscf_ef(i) ) * autoev
+                 ABS( gcscf_mu - gcscf_ef(image) ) * autoev
              !
           END DO
           !
