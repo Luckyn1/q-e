@@ -1552,8 +1552,12 @@ MODULE input_parameters
         INTEGER :: rism1d_nproc_switch = 16
           ! number of processes to calculate 1D-RISM
 
-        LOGICAL :: rism3d_conv_always = .FALSE.
-          ! converge 3D-RISM always competely, or not
+        INTEGER :: rism3d_conv_level = -1
+          ! convergence level of 3D-RISM
+          ! -1 : auto
+          !  0 : low
+          !  1 : medium
+          !  2 : high (always)
 
         LOGICAL :: rism3d_planar_average = .FALSE.
           ! calculate planar average of solvents after 3D-RISM calculation, or not
@@ -1626,7 +1630,7 @@ MODULE input_parameters
                           rism1d_maxstep, rism3d_maxstep, rism1d_conv_thr, rism3d_conv_thr, &
                           mdiis1d_size, mdiis3d_size, mdiis1d_step, mdiis3d_step, &
                           rism1d_bond_width, rism1d_nproc, rism1d_nproc_switch, &
-                          rism3d_conv_always, rism3d_planar_average, &
+                          rism3d_conv_level, rism3d_planar_average, &
                           laue_nfit, laue_expand_right, laue_expand_left, &
                           laue_starting_right, laue_starting_left, &
                           laue_buffer_right, laue_buffer_left, laue_both_hands, laue_reference, &

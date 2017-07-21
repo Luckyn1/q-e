@@ -2977,10 +2977,11 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             }
         }
 
-        var rism3d_conv_always -type LOGICAL {
-            default { .FALSE. }
+        var rism3d_conv_level -type INTEGER {
+            default { -1 }
             info {
-                If .TRUE., 3D-RISM calculation is imposed always to be converged.
+                Convergence level of 3D-RISM.
+                One can set -1(auto), 0(low), 1(medium) or 2(high).
             }
         }
 

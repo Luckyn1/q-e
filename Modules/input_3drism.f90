@@ -22,7 +22,7 @@ SUBROUTINE iosys_3drism(laue, linit)
   USE rism,             ONLY : CLOSURE_HNC, CLOSURE_KH
   USE rism3d_facade,    ONLY : starting_corr, niter, epsv, starting_epsv, mdiis_size, mdiis_step, &
                              & ecutsolv_ => ecutsolv, rism3t, rism3d_initialize, &
-                             & conv_always, planar_average, laue_nfit_ => laue_nfit, &
+                             & conv_level, planar_average, laue_nfit_ => laue_nfit, &
                              & expand_r, expand_l, starting_r, starting_l, buffer_r, buffer_l, &
                              & both_hands, ireference, IREFERENCE_NULL, IREFERENCE_AVERAGE, &
                              & IREFERENCE_RIGHT, IREFERENCE_LEFT
@@ -39,7 +39,7 @@ SUBROUTINE iosys_3drism(laue, linit)
   USE input_parameters, ONLY : closure, starting3d, tempv, permittivity, ecutsolv, smear3d, &
                                solute_lj, solute_epsilon, solute_sigma, rmax_lj, &
                                rism3d_maxstep, rism3d_conv_thr, mdiis3d_size, mdiis3d_step, &
-                               rism3d_conv_always, rism3d_planar_average, &
+                               rism3d_conv_level, rism3d_planar_average, &
                                laue_nfit, laue_expand_right, laue_expand_left, &
                                laue_starting_right, laue_starting_left, &
                                laue_buffer_right, laue_buffer_left, &
@@ -150,7 +150,7 @@ SUBROUTINE iosys_3drism(laue, linit)
   mdiis_size     = mdiis3d_size
   mdiis_step     = mdiis3d_step
   ecutsolv_      = ecutsolv
-  conv_always    = rism3d_conv_always
+  conv_level     = rism3d_conv_level
   planar_average = rism3d_planar_average
   laue_nfit_     = laue_nfit
   expand_r       = laue_expand_right

@@ -51,7 +51,7 @@ MODULE rism3d_facade
   INTEGER                :: mdiis_size     = 0        ! size of MDIIS
   REAL(DP)               :: mdiis_step     = 0.0_DP   ! step of MDIIS
   REAL(DP)               :: ecutsolv       = 0.0_DP   ! energy cutoff for solvents on G-space (in Ry)
-  LOGICAL                :: conv_always    = .FALSE.  ! converge always completely, or not
+  INTEGER                :: conv_level     = 0        ! convergence level (0:low, 1:medium, 2:high)
   LOGICAL                :: planar_average = .FALSE.  ! calculate planar average, or not
   INTEGER                :: laue_nfit      = 0        ! #points to fit potential (for Laue-RISM)
   REAL(DP)               :: qsol           = 0.0_DP   ! total charge of solvent system (for Laue-RISM)
@@ -82,7 +82,7 @@ MODULE rism3d_facade
   PUBLIC :: mdiis_size
   PUBLIC :: mdiis_step
   PUBLIC :: ecutsolv
-  PUBLIC :: conv_always
+  PUBLIC :: conv_level
   PUBLIC :: planar_average
   PUBLIC :: laue_nfit
   PUBLIC :: qsol
@@ -386,10 +386,17 @@ CONTAINS
     CALL start_clock('3DRISM_run')
     !
     ! ... check epsv_curr
-    IF (conv_always) THEN
+    IF (conv_level >= 2) THEN
+      ! high level
       epsv_ = epsv
     ELSE IF (PRESENT(epsv_curr)) THEN
-      epsv_ = epsv_curr
+      IF (conv_level == 1 .AND. epsv_curr > 0.0_DP) THEN
+        ! medium level
+        epsv_ = epsv_curr * SQRT(epsv_curr)
+      ELSE
+        ! low level
+        epsv_ = epsv_curr
+      END IF
     ELSE
       epsv_ = epsv
     END IF

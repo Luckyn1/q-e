@@ -21,6 +21,7 @@ SUBROUTINE iosys_gcscf()
                           & gcscf_beta_       => gcscf_beta,       &
                           & gcscf_check
   USE kinds,         ONLY : DP
+  USE rism3d_facade, ONLY : lrism3d, conv_level
   !
   ! ... SYSTEM namelist
   !
@@ -33,6 +34,18 @@ SUBROUTINE iosys_gcscf()
   !
   IMPLICIT NONE
   !
+  ! ... GC-SCF is used, or not ?
+  !
+  lgcscf_ = lgcscf
+  !
+  IF (.NOT. lgcscf_) THEN
+     !
+     RETURN
+     !
+  END IF
+  !
+  ! ... modify imix
+  !
   IF (imix /= 1 .AND. imix /= 2) THEN
      !
      imix = 1  ! mixing_mode = 'TF'
@@ -43,15 +56,18 @@ SUBROUTINE iosys_gcscf()
      !
   END IF
   !
-  ! ... set variables from namelist
+  ! ... modify conv_level
   !
-  lgcscf_ = lgcscf
-  !
-  IF (.NOT. lgcscf_) THEN
+  IF (lrism3d .AND. conv_level < 0) THEN
      !
-     RETURN
+     conv_level = 1 ! rism3d_conv_level -> "medium"
+     !
+     CALL infomsg('iosys', &
+     & 'convergence of 3D-RISM is set: rism3d_conv_level=2(medium)')
      !
   END IF
+  !
+  ! ... set variables from namelist
   !
   gcscf_ignore_mun_ = gcscf_ignore_mun
   gcscf_mu_         = gcscf_mu / RYTOEV
