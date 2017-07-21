@@ -222,6 +222,10 @@ SUBROUTINE compute_scf( fii, lii, stat  )
         CALL mp_sum( fcp_ef(fii:lii),  inter_image_comm )
         CALL mp_sum( fcp_dos(fii:lii), inter_image_comm )
      END IF
+     IF ( lgcscf ) THEN
+        CALL mp_sum( gcscf_nelec(fii:lii), inter_image_comm )
+        CALL mp_sum( gcscf_ef(fii:lii),    inter_image_comm )
+     END IF
      CALL mp_sum( istat,               inter_image_comm )
      !
   END IF
