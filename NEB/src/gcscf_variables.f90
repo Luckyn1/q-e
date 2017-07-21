@@ -24,8 +24,7 @@ MODULE gcscf_variables
   !
   REAL(DP), ALLOCATABLE :: &
        gcscf_nelec(:),     &! the numbers of electrons
-       gcscf_ef(:),        &! the Fermi energies, in Hartree
-       gcscf_error(:)       ! the errors of the Fermi energies, in eV
+       gcscf_ef(:)          ! the Fermi energies, in Hartree
   !
   CONTAINS
      !
@@ -39,7 +38,6 @@ MODULE gcscf_variables
        !
        ALLOCATE( gcscf_nelec( num_of_images ) )
        ALLOCATE( gcscf_ef(    num_of_images ) )
-       ALLOCATE( gcscf_error( num_of_images ) )
        !
      END SUBROUTINE gcscf_allocation
      !
@@ -51,7 +49,6 @@ MODULE gcscf_variables
        !
        IF ( ALLOCATED( gcscf_nelec ) ) DEALLOCATE( gcscf_nelec )
        IF ( ALLOCATED( gcscf_ef ) )    DEALLOCATE( gcscf_ef )
-       IF ( ALLOCATED( gcscf_error ) ) DEALLOCATE( gcscf_error )
        !
      END SUBROUTINE gcscf_deallocation
      !

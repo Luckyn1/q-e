@@ -80,6 +80,10 @@ MODULE path_base
                                    int_file, xyz_file, axsf_file, broy_file, qnew_file
       USE fcp_variables,    ONLY : lfcp, fcp_allocation, &
                                    fcp_nelec, fcp_ef, fcp_dos, fcp_error
+      USE gcscf_module,     ONLY : lgcscf_   => lgcscf, &
+                                   gcscf_mu_ => gcscf_mu
+      USE gcscf_variables,  ONLY : lgcscf, gcscf_allocation, &
+                                   gcscf_mu, gcscf_nelec, gcscf_ef
       !
       IMPLICIT NONE
       !
@@ -145,6 +149,7 @@ MODULE path_base
       !
       CALL path_allocation()
       if ( lfcp ) CALL fcp_allocation()
+      if ( lgcscf ) CALL gcscf_allocation()
       !
       IF ( use_masses ) THEN
          !
@@ -202,6 +207,18 @@ MODULE path_base
                    & F10.6,") is used for the all images.")') tot_charge
             !
          END IF
+         !
+      END IF
+      !
+      lgcscf   = lgcscf_
+      gcscf_mu = gcscf_mu_
+      CALL mp_bcast( lgcscf,   meta_ionode_id, world_comm )
+      CALL mp_bcast( gcscf_mu, meta_ionode_id, world_comm )
+      !
+      IF ( lgcscf ) THEN
+         !
+         gcscf_nelec = 0.0_DP
+         gcscf_ef    = 0.0_DP
          !
       END IF
       !

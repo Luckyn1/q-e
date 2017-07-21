@@ -42,6 +42,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
   USE path_io_routines, ONLY : new_image_init, get_new_image, &
                                stop_other_images
   USE fcp_variables,    ONLY : lfcp, fcp_mu, fcp_nelec, fcp_ef, fcp_dos
+  USE gcscf_variables,  ONLY : lgcscf, gcscf_nelec, gcscf_ef
   USE klist,            ONLY : nelec, tot_charge
   USE extrapolation,    ONLY : update_neb
   USE funct,            ONLY : stop_exx, dft_is_hybrid
@@ -110,6 +111,26 @@ SUBROUTINE compute_scf( fii, lii, stat  )
         !
      END IF
      !
+     IF ( lgcscf ) THEN
+        !
+        IF ( my_image_id == root_image ) THEN
+           !
+           FORALL( image = fii:lii, .NOT.frozen(image) )
+              !
+              gcscf_nelec(image) = 0.D0
+              gcscf_ef(   image) = 0.D0
+              !
+           END FORALL
+           !
+        ELSE
+           !
+           gcscf_nelec(fii:lii) = 0.D0
+           gcscf_ef(   fii:lii) = 0.D0
+           !
+        END IF
+        !
+  END IF
+  !
   END IF
   !
   ! ... all processes are syncronized (needed to have a readable output)
@@ -390,6 +411,15 @@ SUBROUTINE compute_scf( fii, lii, stat  )
          !
          CALL fcp_hessian( fcp_dos(image) )
          fcp_dos(image) = fcp_dos(image) * e2
+         !
+      END IF
+      !
+      ! ... the total charge and the Fermi energy are saved, for GC-SCF
+      !
+      IF ( lgcscf ) THEN
+         !
+         gcscf_nelec(image) = nelec
+         gcscf_ef(   image) = ef / e2
          !
       END IF
       !
