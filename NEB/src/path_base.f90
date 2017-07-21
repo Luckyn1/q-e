@@ -113,8 +113,14 @@ MODULE path_base
       ! ... the dimension of all "path" arrays (dim1) is set here
       ! ... ( it corresponds to the dimension of the configurational space )
       !
-      !
       dim1 = 3*nat
+      !
+      ! ... set variables of GC-SCF
+      !
+      lgcscf   = lgcscf_
+      gcscf_mu = gcscf_mu_
+      CALL mp_bcast( lgcscf,   meta_ionode_id, world_comm )
+      CALL mp_bcast( gcscf_mu, meta_ionode_id, world_comm )
       !
       !
       IF ( nimage > 1 ) THEN
@@ -209,11 +215,6 @@ MODULE path_base
          END IF
          !
       END IF
-      !
-      lgcscf   = lgcscf_
-      gcscf_mu = gcscf_mu_
-      CALL mp_bcast( lgcscf,   meta_ionode_id, world_comm )
-      CALL mp_bcast( gcscf_mu, meta_ionode_id, world_comm )
       !
       IF ( lgcscf ) THEN
          !
