@@ -559,7 +559,7 @@ MODULE input_parameters
 
         LOGICAL :: lgcscf = .FALSE.
           ! if .TRUE., GC-SCF is used
-          j
+
         LOGICAL :: gcscf_ignore_mun = .FALSE.
           ! if .TRUE., ignore the term of -mu * N
 
