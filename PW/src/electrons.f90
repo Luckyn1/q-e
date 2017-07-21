@@ -1308,21 +1308,21 @@ SUBROUTINE electrons_scf ( printout, exxen )
 9180 FORMAT(/'     total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',0PF17.8,' Ry' &
-            /'     total charge of GC-SCF    =',0PF17.8,' e'  &
+           //'     total charge of GC-SCF    =',0PF17.8,' e'  &
             /'     the Fermi energy          =',0PF17.8,' eV')
 9181 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',0PF17.8,' Ry' &
-            /'     total charge of GC-SCF    =',0PF17.8,' e' )
+           //'     total charge of GC-SCF    =',0PF17.8,' e' )
 9182 FORMAT(/'     total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',1PE17.1,' Ry' &
-            /'     total charge of GC-SCF    =',0PF17.8,' e'  &
+           //'     total charge of GC-SCF    =',0PF17.8,' e'  &
             /'     the Fermi energy          =',0PF17.8,' eV')
 9183 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',1PE17.1,' Ry' &
-            /'     total charge of GC-SCF    =',0PF17.8,' e' )
+           //'     total charge of GC-SCF    =',0PF17.8,' e' )
 
   END SUBROUTINE print_energies
   !
