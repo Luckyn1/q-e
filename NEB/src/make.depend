@@ -61,6 +61,8 @@ input.o : ../../PW/src/fcp_module.o
 input.o : fcp_variables.o
 input.o : path_input_parameters_module.o
 input.o : path_variables.o
+gcscf_variables.o : ../../Modules/kind.o
+gcscf_variables.o : path_variables.o
 neb.o : ../../Modules/check_stop.o
 neb.o : ../../Modules/command_line_options.o
 neb.o : ../../Modules/environment.o
