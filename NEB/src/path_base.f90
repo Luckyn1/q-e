@@ -35,7 +35,8 @@ MODULE path_base
   ! ... Code written and maintained by Carlo Sbraccia ( 2003-2007 )
   !
   USE kinds,     ONLY : DP
-  USE constants, ONLY : eps16, eps32, pi, autoev, bohr_radius_angs, eV_to_kelvin
+  USE constants, ONLY : eps16, eps32, pi, e2, &
+                        autoev, bohr_radius_angs, eV_to_kelvin
   USE path_io_units_module,  ONLY : iunpath
   USE io_global, ONLY : meta_ionode, meta_ionode_id
   USE mp,        ONLY : mp_bcast
@@ -118,7 +119,7 @@ MODULE path_base
       ! ... set variables of GC-SCF
       !
       lgcscf   = lgcscf_
-      gcscf_mu = gcscf_mu_
+      gcscf_mu = gcscf_mu_ / e2
       CALL mp_bcast( lgcscf,   meta_ionode_id, world_comm )
       CALL mp_bcast( gcscf_mu, meta_ionode_id, world_comm )
       !
