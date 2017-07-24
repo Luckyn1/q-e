@@ -534,6 +534,9 @@ SUBROUTINE electrons_scf ( printout, exxen )
         hwf_energy = eband + deband_hwf + (etxc - etxcc) + ewld + ehart + demet
         If ( okpaw ) hwf_energy = hwf_energy + epaw
         IF ( lda_plus_u ) hwf_energy = hwf_energy + eth
+        IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
+           hwf_energy = hwf_energy + gcscf_mu * tot_charge
+        END IF
         !
         IF ( lda_plus_u )  THEN
            !
@@ -796,7 +799,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
      !
      IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
         etot = etot + gcscf_mu * tot_charge
-        hwf_energy = hwf_energy + gcscf_mu * tot_charge
+        !hwf_energy = hwf_energy + gcscf_mu * tot_charge
      END IF
      !
      IF ( lfcp ) THEN
