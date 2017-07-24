@@ -17,7 +17,8 @@ SUBROUTINE iosys_gcscf()
   USE gcscf_module,  ONLY : lgcscf_           => lgcscf,           &
                           & gcscf_ignore_mun_ => gcscf_ignore_mun, &
                           & gcscf_mu_         => gcscf_mu,         &
-                          & gcscf_g0_         => gcscf_g0,         &
+                          & gcscf_gk_         => gcscf_gk,         &
+                          & gcscf_gh_         => gcscf_gh,         &
                           & gcscf_beta_       => gcscf_beta,       &
                           & gcscf_check
   USE kinds,         ONLY : DP
@@ -26,7 +27,7 @@ SUBROUTINE iosys_gcscf()
   ! ... SYSTEM namelist
   !
   USE input_parameters, ONLY : lgcscf, gcscf_ignore_mun, &
-                             & gcscf_mu, gcscf_g0, gcscf_beta
+                             & gcscf_mu, gcscf_gk, gcscf_gh, gcscf_beta
   !
   ! ... ELECTRONS namelist
   !
@@ -71,7 +72,8 @@ SUBROUTINE iosys_gcscf()
   !
   gcscf_ignore_mun_ = gcscf_ignore_mun
   gcscf_mu_         = gcscf_mu / RYTOEV
-  gcscf_g0_         = gcscf_g0
+  gcscf_gk_         = gcscf_gk
+  gcscf_gh_         = gcscf_gh
   gcscf_beta_       = gcscf_beta
   !
   ! ... check condition

@@ -566,8 +566,11 @@ MODULE input_parameters
         REAL(DP) :: gcscf_mu = 0.0_DP
           ! target Fermi energy of GC-SCF (in eV)
 
-        REAL(DP) :: gcscf_g0 = 0.8_DP
-          ! wavelength shift for mixing (in 1/bohr)
+        REAL(DP) :: gcscf_gk = 0.8_DP
+          ! wavelength shift for Kerker operator (in 1/bohr)
+
+        REAL(DP) :: gcscf_gh = 0.8_DP
+          ! wavelength shift for Hartree metric (in 1/bohr)
 
         REAL(DP) :: gcscf_beta = 0.05_DP
           ! mixing rate of Fermi energy
@@ -614,9 +617,9 @@ MODULE input_parameters
              xdm, xdm_a1, xdm_a2,                                             &
              step_pen, A_pen, sigma_pen, alpha_pen, no_t_rev,                 &
              esm_bc, esm_efield, esm_w, esm_nfit, esm_debug, esm_debug_gpmax, &
-             esm_a, esm_zb, lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_g0,     &
-             gcscf_beta, space_group, uniqueb, origin_choice, rhombohedral,   &
-             zmon, relaxz, block, block_1, block_2, block_height
+             esm_a, esm_zb, lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_gk,     &
+             gcscf_gh, gcscf_beta, space_group, uniqueb, origin_choice,       &
+             rhombohedral, zmon, relaxz, block, block_1, block_2, block_height
 
 !=----------------------------------------------------------------------------=!
 !  ELECTRONS Namelist Input Parameters

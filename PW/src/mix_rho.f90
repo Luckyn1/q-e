@@ -48,7 +48,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   USE control_flags,  ONLY : imix, ngm0, tr2, io_level
   ! ... for PAW:
   USE uspp_param,     ONLY : nhm
-  USE gcscf_module,   ONLY : lgcscf, gcscf_g0, gcscf_mu
+  USE gcscf_module,   ONLY : lgcscf, gcscf_gh, gcscf_mu, gcscf_ignore_mun
   USE scf,            ONLY : scf_type, create_scf_type, destroy_scf_type, &
                              mix_type, create_mix_type, destroy_mix_type, &
                              assign_scf_to_mix_type, assign_mix_to_scf_type, &
@@ -131,9 +131,9 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
 
   call mix_type_AXPY ( -1.d0, rhoin_m, rhout_m )
   !
-  IF ( lgcscf ) THEN
+  IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
      !
-     dr2 = rho_ddot( rhout_m, rhout_m, ngms, gcscf_g0 )  !!!! this used to be ngm NOT ngms
+     dr2 = rho_ddot( rhout_m, rhout_m, ngms, mu = gcscf_mu )
      !
   ELSE
      !
@@ -206,7 +206,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
 #if defined(__NORMALIZE_BETAMIX)
      ! NORMALIZE
      IF ( lgcscf ) THEN
-        norm2 = rho_ddot( df(ipos), df(ipos), ngm0, gcscf_g0 )
+        norm2 = rho_ddot( df(ipos), df(ipos), ngm0, gcscf_gh )
      ELSE
         norm2 = rho_ddot( df(ipos), df(ipos), ngm0 )
      END IF
@@ -248,7 +248,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
             !
             IF ( lgcscf ) THEN
                !
-               betamix(i,j) = rho_ddot( df(j), df(i), ngm0, gcscf_g0 )
+               betamix(i,j) = rho_ddot( df(j), df(i), ngm0, gcscf_gh )
                !
             ELSE
                !
@@ -283,7 +283,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
         !
         IF ( lgcscf ) THEN
            !
-           work(i) = rho_ddot( df(i), rhout_m, ngm0, gcscf_g0 )
+           work(i) = rho_ddot( df(i), rhout_m, ngm0, gcscf_gh )
            !
         ELSE
            !
@@ -363,7 +363,7 @@ SUBROUTINE approx_screening( drho )
   USE lsda_mod,      ONLY : nspin
   USE control_flags, ONLY : ngm0
   USE scf,           ONLY : mix_type
-  USE gcscf_module,  ONLY : lgcscf, gcscf_g0
+  USE gcscf_module,  ONLY : lgcscf, gcscf_gk
   !
   IMPLICIT NONE  
   !
@@ -378,7 +378,7 @@ SUBROUTINE approx_screening( drho )
   !
   IF ( lgcscf ) THEN
      !
-     bgg0 = gcscf_g0 * gcscf_g0
+     bgg0 = gcscf_gk * gcscf_gk
      !
   END IF
   !
@@ -448,7 +448,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
   USE mp_bands,             ONLY : intra_bgrp_comm
   USE fft_base,             ONLY : dffts
   USE fft_interfaces,       ONLY : fwfft, invfft
-  USE gcscf_module,         ONLY : lgcscf, gcscf_g0
+  USE gcscf_module,         ONLY : lgcscf, gcscf_gk, gcscf_gh
   !
   IMPLICIT NONE
   !
@@ -550,7 +550,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
   !
   IF ( lgcscf ) THEN
      !
-     bgg0 = gcscf_g0 * gcscf_g0
+     bgg0 = gcscf_gk * gcscf_gk
      !
   END IF
   !
@@ -618,7 +618,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
         !
         IF ( lgcscf ) THEN
            !
-           aa(i,m) = local_tf_ddot( w(1,i), w(1,m), ngm0, gcscf_g0)
+           aa(i,m) = local_tf_ddot( w(1,i), w(1,m), ngm0, gcscf_gh)
            !
         ELSE
            !
@@ -632,7 +632,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
      !
      IF ( lgcscf ) THEN
         !
-        bb(m) = local_tf_ddot( w(1,m), dv, ngm0, gcscf_g0)
+        bb(m) = local_tf_ddot( w(1,m), dv, ngm0, gcscf_gh)
         !
      ELSE
         !
@@ -666,7 +666,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
      !
      IF ( lgcscf ) THEN
         !
-        dr2_best = local_tf_ddot( wbest, wbest, ngm0, gcscf_g0 )
+        dr2_best = local_tf_ddot( wbest, wbest, ngm0, gcscf_gh )
         !
      ELSE
         !
