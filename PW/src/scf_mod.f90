@@ -639,8 +639,8 @@ CONTAINS
      !
      IF ( nspin == 2 ) THEN
         !
-        rho0 = REAL( CONJG( rho1%of_g(ig,1)+rho1%of_g(ig,2) ) * &
-                          ( rho2%of_g(ig,1)+rho2%of_g(ig,2) ), DP )
+        rho0 = REAL( CONJG( rho1%of_g(1,1)+rho1%of_g(1,2) ) * &
+                          ( rho2%of_g(1,1)+rho2%of_g(1,2) ), DP )
         !
      ELSE
         !
