@@ -406,6 +406,7 @@ SUBROUTINE extrapolate_charge( rho_extr )
   USE io_rho_xml,           ONLY : write_rho, read_rho
   USE paw_variables,        ONLY : okpaw, ddd_paw
   USE paw_onecenter,        ONLY : PAW_potential
+  USE gcscf_module,         ONLY : lgcscf, gcscf_calc_nelec
   !
   IMPLICIT NONE
   !
@@ -432,6 +433,8 @@ SUBROUTINE extrapolate_charge( rho_extr )
      IF ( rho_extr < 0 ) THEN
         !
         CALL sum_band ()
+        !
+        IF ( lgcscf ) CALL gcscf_calc_nelec()
         !
         WRITE( UNIT = stdout, FMT = '(5X, &
              & "charge density from extrapolated wavefunctions")' )

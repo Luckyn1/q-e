@@ -23,7 +23,7 @@ SUBROUTINE weights()
                                    opt_tetra_weights
   USE lsda_mod,             ONLY : nspin, current_spin, isk
   USE wvfct,                ONLY : nbnd, wg, et
-  USE gcscf_module,         ONLY : lgcscf, gcscf_mu, gcscf_beta, gcscf_calc_nelec
+  USE gcscf_module,         ONLY : lgcscf, gcscf_mu, gcscf_beta
   USE mp_images,            ONLY : intra_image_comm
   USE mp_pools,             ONLY : inter_pool_comm
   USE mp,                   ONLY : mp_bcast, mp_sum
@@ -134,8 +134,6 @@ SUBROUTINE weights()
               !
               CALL gweights( nks, wk, nbnd, nelec, degauss, &
                              ngauss, et, ef, demet, wg, 0, isk, gcscf_beta )
-              !
-              CALL gcscf_calc_nelec( )
               !
            ELSE
               !

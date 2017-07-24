@@ -371,7 +371,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
-  USE gcscf_module,         ONLY : lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_set_nelec
+  USE gcscf_module,         ONLY : lgcscf, gcscf_ignore_mun, gcscf_mu, &
+                                   gcscf_calc_nelec, gcscf_set_nelec
   USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
@@ -541,6 +542,10 @@ SUBROUTINE electrons_scf ( printout, exxen )
         !
         IF ( lrism ) THEN
            hwf_energy = hwf_energy + esol - 0.5_DP * vsol * tot_charge
+        END IF
+        !
+        IF ( lgcscf ) THEN
+           CALL gcscf_calc_nelec()
         END IF
         !
         IF ( lda_plus_u )  THEN
