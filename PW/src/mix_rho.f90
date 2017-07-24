@@ -133,7 +133,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   !
   IF ( lgcscf ) THEN
      !
-     dr2 = rho_ddot( rhout_m, rhout_m, ngms, gcscf_g0, gcscf_mu )  !!!! this used to be ngm NOT ngms
+     dr2 = rho_ddot( rhout_m, rhout_m, ngms, gcscf_g0 )  !!!! this used to be ngm NOT ngms
      !
   ELSE
      !
