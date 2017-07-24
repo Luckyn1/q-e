@@ -48,7 +48,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   USE control_flags,  ONLY : imix, ngm0, tr2, io_level
   ! ... for PAW:
   USE uspp_param,     ONLY : nhm
-  USE gcscf_module,   ONLY : lgcscf, gcscf_gh, gcscf_mu, gcscf_ignore_mun
+  USE gcscf_module,   ONLY : lgcscf, gcscf_gh, gcscf_mu
   USE scf,            ONLY : scf_type, create_scf_type, destroy_scf_type, &
                              mix_type, create_mix_type, destroy_mix_type, &
                              assign_scf_to_mix_type, assign_mix_to_scf_type, &
@@ -131,9 +131,9 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
 
   call mix_type_AXPY ( -1.d0, rhoin_m, rhout_m )
   !
-  IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
+  IF ( lgcscf ) THEN
      !
-     dr2 = rho_ddot( rhout_m, rhout_m, ngms, mu = gcscf_mu )
+     dr2 = rho_ddot( rhout_m, rhout_m, ngms, gcscf_gh )
      !
   ELSE
      !
