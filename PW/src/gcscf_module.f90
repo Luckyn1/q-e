@@ -33,7 +33,7 @@ MODULE gcscf_module
   SAVE
   PRIVATE
   !
-  ! ... variables for FCP method
+  ! ... variables for GC-SCF method
   LOGICAL  :: lgcscf           = .FALSE.  ! to calculate GC-SCF method, or not
   LOGICAL  :: gcscf_ignore_mun = .FALSE.  ! ignore -mu * N, or not
   REAL(DP) :: gcscf_mu         = 0.0_DP   ! target Fermi energy (in Ry)
