@@ -427,7 +427,7 @@ CONTAINS
  end subroutine davcio_mix_type
  !
  !----------------------------------------------------------------------------
- FUNCTION rho_ddot( rho1, rho2, gf, g0 )
+ FUNCTION rho_ddot( rho1, rho2, gf, g0, mu )
   !----------------------------------------------------------------------------
   !
   ! ... calculates 4pi/G^2*rho1(-G)*rho2(G) = V1_Hartree(-G)*rho2(G)
@@ -448,10 +448,12 @@ CONTAINS
   type(mix_type),     INTENT(IN) :: rho1, rho2
   INTEGER,            INTENT(IN) :: gf
   REAL(DP), OPTIONAL, INTENT(IN) :: g0
+  REAL(DP), OPTIONAL, INTENT(IN) :: mu
   REAL(DP)                       :: rho_ddot
   !
   REAL(DP) :: fac
   REAL(DP) :: gg0
+  REAL(DP) :: rho0
   INTEGER  :: ig
   !
   fac = e2 * fpi / tpiba2
@@ -630,6 +632,27 @@ CONTAINS
   END IF
   !
   rho_ddot = rho_ddot * omega * 0.5D0
+  !
+  ! ... add the potentiostat contribution
+  !
+  IF ( PRESENT(mu) .AND. gstart == 2 ) THEN
+     !
+     IF ( nspin == 2 ) THEN
+        !
+        rho0 = REAL( CONJG( rho1%of_g(ig,1)+rho1%of_g(ig,2) ) * &
+                          ( rho2%of_g(ig,1)+rho2%of_g(ig,2) ), DP )
+        !
+     ELSE
+        !
+        rho0 = REAL( CONJG( rho1%of_g(1,1) )*rho2%of_g(1,1), DP )
+        !
+     END IF
+     !
+     rho0 = rho0 / SQRT( ABS( rho0 ) )
+     !
+     rho_ddot = rho_ddot + ABS( mu ) * rho0 * omega
+     !
+  END IF
   !
   CALL mp_sum(  rho_ddot , intra_bgrp_comm )
   !
