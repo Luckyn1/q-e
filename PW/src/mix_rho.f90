@@ -48,7 +48,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   USE control_flags,  ONLY : imix, ngm0, tr2, io_level
   ! ... for PAW:
   USE uspp_param,     ONLY : nhm
-  USE gcscf_module,   ONLY : lgcscf, gcscf_g0
+  USE gcscf_module,   ONLY : lgcscf, gcscf_mu, gcscf_g0
   USE scf,            ONLY : scf_type, create_scf_type, destroy_scf_type, &
                              mix_type, create_mix_type, destroy_mix_type, &
                              assign_scf_to_mix_type, assign_mix_to_scf_type, &
@@ -133,7 +133,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   !
   IF ( lgcscf ) THEN
      !
-     dr2 = rho_ddot( rhout_m, rhout_m, ngms, gcscf_g0 )  !!!! this used to be ngm NOT ngms
+     dr2 = rho_ddot( rhout_m, rhout_m, ngms, gcscf_g0, gcscf_mu )  !!!! this used to be ngm NOT ngms
      !
   ELSE
      !
@@ -206,7 +206,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
 #if defined(__NORMALIZE_BETAMIX)
      ! NORMALIZE
      IF ( lgcscf ) THEN
-        norm2 = rho_ddot( df(ipos), df(ipos), ngm0, gcscf_g0 )
+        norm2 = rho_ddot( df(ipos), df(ipos), ngm0, gcscf_g0, gcscf_mu )
      ELSE
         norm2 = rho_ddot( df(ipos), df(ipos), ngm0 )
      END IF
@@ -248,7 +248,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
             !
             IF ( lgcscf ) THEN
                !
-               betamix(i,j) = rho_ddot( df(j), df(i), ngm0, gcscf_g0 )
+               betamix(i,j) = rho_ddot( df(j), df(i), ngm0, gcscf_g0, gcscf_mu )
                !
             ELSE
                !
@@ -283,7 +283,7 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
         !
         IF ( lgcscf ) THEN
            !
-           work(i) = rho_ddot( df(i), rhout_m, ngm0, gcscf_g0 )
+           work(i) = rho_ddot( df(i), rhout_m, ngm0, gcscf_g0, gcscf_mu )
            !
         ELSE
            !
