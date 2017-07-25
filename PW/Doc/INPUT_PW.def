@@ -1561,13 +1561,6 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             }
         }
 
-        var gcscf_beta -type REAL {
-            status { 0.2 }
-            info {
-                mixing factor of the Fermi energy
-            }
-        }
-
          var vdw_corr -type CHARACTER {
              default { 'none' }
              see {
