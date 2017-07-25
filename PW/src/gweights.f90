@@ -32,10 +32,10 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
 
   ef_now = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
 
-  if (abs(ef - ef_now) < 0.01_DP) then
-     ! NOP
-  else if (beta > 0.0_DP) then
-     ef = beta * ef + (1.0_DP - beta) * ef_now
+  if (beta > 0.0_DP) then
+     if (abs(ef - ef_now) > 0.01_DP) then
+        ef = beta * ef + (1.0_DP - beta) * ef_now
+     end if
   else
      ef = ef_now
   end if
