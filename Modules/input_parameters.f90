@@ -572,7 +572,7 @@ MODULE input_parameters
         REAL(DP) :: gcscf_gh = 1.0_DP
           ! wavelength shift for Hartree metric (in 1/bohr)
 
-        REAL(DP) :: gcscf_beta = 0.5_DP
+        REAL(DP) :: gcscf_beta = 0.2_DP
           ! mixing rate of Fermi energy
 
         INTEGER :: space_group = 0
