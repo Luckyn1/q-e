@@ -462,7 +462,7 @@ CONTAINS
   !
   IF ( PRESENT(g0) ) THEN
      !
-     gg0 = g0 * g0
+     gg0 = g0 * g0 / tpiba2
      !
   ELSE
      !
@@ -849,7 +849,7 @@ END FUNCTION ns_ddot
   !
   IF ( PRESENT(g0) ) THEN
      !
-     gg0 = g0 * g0
+     gg0 = g0 * g0 / tpiba2
      !
   ELSE
      !

@@ -378,7 +378,7 @@ SUBROUTINE approx_screening( drho )
   !
   IF ( lgcscf ) THEN
      !
-     bgg0 = gcscf_gk * gcscf_gk
+     bgg0 = gcscf_gk * gcscf_gk / tpiba2
      !
   END IF
   !
@@ -550,7 +550,7 @@ SUBROUTINE approx_screening2( drho, rhobest )
   !
   IF ( lgcscf ) THEN
      !
-     bgg0 = gcscf_gk * gcscf_gk
+     bgg0 = gcscf_gk * gcscf_gk / tpiba2
      !
   END IF
   !
