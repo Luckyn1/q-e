@@ -61,10 +61,10 @@ SUBROUTINE iosys_gcscf()
   !
   IF (lrism3d .AND. conv_level < 0) THEN
      !
-     conv_level = 1 ! rism3d_conv_level -> "medium"
+     conv_level = 2 ! rism3d_conv_level -> "high"
      !
      CALL infomsg('iosys', &
-     & 'convergence of 3D-RISM is set: rism3d_conv_level=2(medium)')
+     & 'convergence of 3D-RISM is set: rism3d_conv_level=2(high)')
      !
   END IF
   !
