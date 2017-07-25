@@ -566,13 +566,13 @@ MODULE input_parameters
         REAL(DP) :: gcscf_mu = 0.0_DP
           ! target Fermi energy of GC-SCF (in eV)
 
-        REAL(DP) :: gcscf_gk = 0.5_DP
+        REAL(DP) :: gcscf_gk = 0.2_DP
           ! wavelength shift for Kerker operator (in 1/bohr)
 
-        REAL(DP) :: gcscf_gh = 2.0_DP
+        REAL(DP) :: gcscf_gh = 1.0_DP
           ! wavelength shift for Hartree metric (in 1/bohr)
 
-        REAL(DP) :: gcscf_beta = 0.1_DP
+        REAL(DP) :: gcscf_beta = 0.5_DP
           ! mixing rate of Fermi energy
 
         INTEGER :: space_group = 0

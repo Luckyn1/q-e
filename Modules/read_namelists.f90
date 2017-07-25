@@ -290,9 +290,9 @@ MODULE read_namelists_module
        lgcscf = .FALSE.
        gcscf_ignore_mun = .FALSE.
        gcscf_mu = gcscf_not_set
-       gcscf_gk = 0.5_DP
-       gcscf_gh = 2.0_DP
-       gcscf_beta = 0.1_DP
+       gcscf_gk = 0.2_DP
+       gcscf_gh = 1.0_DP
+       gcscf_beta = 0.5_DP
        !
        space_group=0
        uniqueb = .FALSE.
