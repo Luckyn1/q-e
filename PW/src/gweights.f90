@@ -25,19 +25,20 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
   real(DP), intent(out) :: demet
   real(DP), intent(in) :: beta
   !
-  real(DP) :: ef_now
+  real(DP) :: ef_by_n, ef_new
   real(DP), external :: efermig
   
   ! Calculate the Fermi energy ef
 
-  ef_now = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
+  ef_by_n = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
 
   if (beta > 0.0_DP) then
-     if (abs(ef - ef_now) > 0.05_DP) then
-        ef = beta * ef + (1.0_DP - beta) * ef_now
+     ef_new = beta * ef + (1.0_DP - beta) * ef_by_n
+     if (abs(ef - ef_new) > 0.05_DP) then
+        ef = ef_new
      end if
   else
-     ef = ef_now
+     ef = ef_by_n
   end if
 
   ! Calculate weights
