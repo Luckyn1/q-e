@@ -292,7 +292,7 @@ MODULE read_namelists_module
        gcscf_mu = gcscf_not_set
        gcscf_gk = 0.5_DP
        gcscf_gh = 2.0_DP
-       gcscf_beta = 0.05_DP
+       gcscf_beta = 0.1_DP
        !
        space_group=0
        uniqueb = .FALSE.
