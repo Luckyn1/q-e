@@ -37,8 +37,8 @@ MODULE gcscf_module
   LOGICAL  :: lgcscf           = .FALSE.  ! to calculate GC-SCF method, or not
   LOGICAL  :: gcscf_ignore_mun = .FALSE.  ! ignore -mu * N, or not
   REAL(DP) :: gcscf_mu         = 0.0_DP   ! target Fermi energy (in Ry)
-  REAL(DP) :: gcscf_gk         = 0.0_DP   ! wavelength shift for Kerker operator (in 1/bohr)
-  REAL(DP) :: gcscf_gh         = 0.0_DP   ! wavelength shift for Hartree metric (in 1/bohr)
+  REAL(DP) :: gcscf_gk         = 0.0_DP   ! wavenumber shift for Kerker operator (in 1/bohr)
+  REAL(DP) :: gcscf_gh         = 0.0_DP   ! wavenumber shift for Hartree metric (in 1/bohr)
   REAL(DP) :: gcscf_beta       = 0.0_DP   ! mixing rate of Fermi energy
   !
   ! ... public components
@@ -153,9 +153,12 @@ CONTAINS
     IF (.NOT. lgcscf) RETURN
     !
     WRITE(stdout, '(/,5X,">>>> Grand-Canonical SCF is activated <<<<")' )
-    WRITE(stdout, '(5X,"Initial Total Charge = ",F12.6," e"   )') tot_charge
-    WRITE(stdout, '(5X,"Target Fermi Energy  = ",F12.6," Ry"  )') gcscf_mu
-    WRITE(stdout, '(5X,"                     = ",F12.6," eV"  )') gcscf_mu * RYTOEV
+    WRITE(stdout, '(5X,"Initial Total Charge  = ",F12.6," e"      )') tot_charge
+    WRITE(stdout, '(5X,"Target Fermi Energy   = ",F12.6," Ry"     )') gcscf_mu
+    WRITE(stdout, '(5X,"                      = ",F12.6," eV"     )') gcscf_mu * RYTOEV
+    WRITE(stdout, '(5X,"Wave-shift of Kerker  = ",F12.6," bohr^-1")') gcscf_gk
+    WRITE(stdout, '(5X,"Wave-shift of Hartree = ",F12.6," bohr^-1")') gcscf_gh
+    WRITE(stdout, '(5X,"Mixing rate of Fermi  = ",F12.6           )') gcscf_beta
     !
     FLUSH(stdout)
     !
