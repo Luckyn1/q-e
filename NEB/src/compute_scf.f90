@@ -284,7 +284,6 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       !
       USE input_parameters, ONLY : diago_thr_init
       USE control_flags,    ONLY : ethr
-      USE gcscf_module,     ONLY : lgcscf, gcscf_ignore_mun
       !
       IMPLICIT NONE
       !
@@ -335,12 +334,6 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       CALL output_tau( .FALSE., .FALSE. )
       !
       ! ... initialization of the scf calculation
-      !
-      IF ( lgcscf )  THEN
-         !
-         gcscf_ignore_mun = .TRUE.
-         !
-      END IF
       !
       CALL start_clock('PWSCF')
       CALL setup ()
