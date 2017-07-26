@@ -386,17 +386,18 @@ CONTAINS
     CALL start_clock('3DRISM_run')
     !
     ! ... check epsv_curr
-    IF (conv_level >= 2) THEN
-      ! high level
-      epsv_ = epsv
-    ELSE IF (PRESENT(epsv_curr)) THEN
-      IF (conv_level == 1 .AND. epsv_curr > 0.0_DP) THEN
+    IF (PRESENT(epsv_curr)) THEN
+      IF (conv_level >= 2) THEN
+        ! high level
+        epsv_ = epsv
+      IF (conv_level == 1) THEN
         ! medium level
-        epsv_ = MAX(epsv, epsv_curr * SQRT(epsv_curr))
+        epsv_ = MAX(epsv, SQRT(MAX(epsv * epsv_curr, 0.0_DP)))
       ELSE
         ! low level
         epsv_ = MAX(epsv, epsv_curr)
       END IF
+      !
     ELSE
       epsv_ = epsv
     END IF
