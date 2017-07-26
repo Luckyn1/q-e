@@ -1093,11 +1093,17 @@ SUBROUTINE iosys()
   !
   IF ( mixing_beta == beta_not_set ) THEN
      !
-     IF ( lgcscf ) THEN
+     IF ( lgcscf .AND. trism ) THEN
+        ! GC-SCF with ESM-RISM
         mixing_beta = 0.1_DP
+     ELSE IF ( lgcscf ) THEN
+        ! GC-SCF with ESM-BC2 or ESM-BC3
+        mixing_beta = 0.2_DP
      ELSE IF ( trism ) THEN
+        ! 3D-RISM or ESM-RISM
         mixing_beta = 0.2_DP
      ELSE
+        ! default
         mixing_beta = 0.7_DP
      END IF
      !
