@@ -168,7 +168,8 @@ CONTAINS
   SUBROUTINE gcscf_set_nelec(charge)
     !----------------------------------------------------------------------------
     !
-    ! ... set number of electrons from weights
+    ! ... set number of electrons,
+    ! ... also total charge is evaluated.
     !
     IMPLICIT NONE
     !
@@ -186,7 +187,8 @@ CONTAINS
   SUBROUTINE gcscf_calc_nelec()
     !----------------------------------------------------------------------------
     !
-    ! ... calculate number of electrons from weights
+    ! ... calculate number of electrons from weights,
+    ! ... also total charge is evaluated.
     !
     IMPLICIT NONE
     !
