@@ -152,7 +152,7 @@ CONTAINS
     !
     IF (.NOT. lgcscf) RETURN
     !
-    WRITE(stdout, '(/,5X,">>>> Grand-Canonical SCF is activated <<<<")' )
+    WRITE(stdout, '(/,5X,">>>>> Grand-Canonical SCF is activated <<<<<")' )
     WRITE(stdout, '(5X,"Initial Total Charge  = ",F12.6," e"      )') tot_charge
     WRITE(stdout, '(5X,"Target Fermi Energy   = ",F12.6," Ry"     )') gcscf_mu
     WRITE(stdout, '(5X,"                      = ",F12.6," eV"     )') gcscf_mu * RYTOEV
