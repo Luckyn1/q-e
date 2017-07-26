@@ -133,6 +133,12 @@ CONTAINS
        CALL errore('fcp_check', 'calculation has to be relax or md, for FCP', 1)
     END IF
     !
+    ! ... cannot use FCP of PWscf, if NEB
+    !
+    IF (lneb_ .AND. lfcp) THEN
+       CALL errore('fcp_check', 'cannot use FCP of PWscf, if NEB', 1)
+    END IF
+    !
   END SUBROUTINE fcp_check
   !
   !----------------------------------------------------------------------------
