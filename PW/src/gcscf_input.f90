@@ -14,8 +14,7 @@ SUBROUTINE iosys_gcscf()
   !
   USE constants,     ONLY : RYTOEV
   USE control_flags, ONLY : imix
-  USE gcscf_module,  ONLY : lgcscf_           => lgcscf,           &
-                          & gcscf_ignore_mun_ => gcscf_ignore_mun, &
+  USE gcscf_module,  ONLY : gcscf_ignore_mun_ => gcscf_ignore_mun, &
                           & gcscf_mu_         => gcscf_mu,         &
                           & gcscf_gk_         => gcscf_gk,         &
                           & gcscf_gh_         => gcscf_gh,         &
@@ -26,7 +25,7 @@ SUBROUTINE iosys_gcscf()
   !
   ! ... SYSTEM namelist
   !
-  USE input_parameters, ONLY : lgcscf, gcscf_ignore_mun, &
+  USE input_parameters, ONLY : gcscf_ignore_mun, &
                              & gcscf_mu, gcscf_gk, gcscf_gh, gcscf_beta
   !
   ! ... ELECTRONS namelist
@@ -34,16 +33,6 @@ SUBROUTINE iosys_gcscf()
   USE input_parameters, ONLY : mixing_mode
   !
   IMPLICIT NONE
-  !
-  ! ... GC-SCF is used, or not ?
-  !
-  lgcscf_ = lgcscf
-  !
-  IF (.NOT. lgcscf_) THEN
-     !
-     RETURN
-     !
-  END IF
   !
   ! ... modify imix
   !

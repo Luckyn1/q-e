@@ -29,11 +29,13 @@ MODULE read_namelists_module
   !
   REAL(DP), PARAMETER :: sm_not_set = -20.0_DP
   !
+  REAL(DP), PARAMETER :: beta_not_set = -100.0_DP
+  !
   REAL(DP), PARAMETER :: fcp_not_set = 1.0E+99_DP
   !
   REAL(DP), PARAMETER :: gcscf_not_set = 1.0E+99_DP
   !
-  PUBLIC :: read_namelists, sm_not_set, fcp_not_set, gcscf_not_set
+  PUBLIC :: read_namelists, sm_not_set, beta_not_set, fcp_not_set, gcscf_not_set
   !
   ! ... modules needed by read_xml.f90
   !
@@ -362,7 +364,7 @@ MODULE read_namelists_module
        diis_chguess = .FALSE.
        mixing_mode = 'plain'
        mixing_fixed_ns = 0
-       mixing_beta = 0.7_DP
+       mixing_beta = beta_not_set
        mixing_ndim = 8
        diagonalization = 'david'
        diago_thr_init = 0.0_DP

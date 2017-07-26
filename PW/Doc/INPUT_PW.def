@@ -1874,7 +1874,11 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
         }
 
         var mixing_beta -type REAL { 
-            default { 0.7D0 }
+            default { 
+                0.1D0 if GC-SCF,
+                0.2D0 if RISM,
+                0.7D0 otherwise
+            }
             info {
                 mixing factor for self-consistency
             }

@@ -253,7 +253,7 @@ SUBROUTINE iosys()
                                xdm, xdm_a1, xdm_a2, lforcet,                  &
                                one_atom_occupations,                          &
                                esm_bc, esm_efield, esm_w, esm_nfit, esm_a,    &
-                               space_group, uniqueb, origin_choice,           &
+                               lgcscf, space_group, uniqueb, origin_choice,   &
                                rhombohedral, zmon, relaxz, block, block_1,    &
                                block_2, block_height
   !
@@ -299,7 +299,7 @@ SUBROUTINE iosys()
   USE input_parameters, ONLY : nconstr_inp, trd_ht, rd_ht, cell_units
   !
   USE constraints_module,    ONLY : init_constraint
-  USE read_namelists_module, ONLY : read_namelists, sm_not_set
+  USE read_namelists_module, ONLY : read_namelists, sm_not_set, beta_not_set
   USE london_module,         ONLY : init_london, lon_rcut, scal6, in_c6, in_rvdw
   USE xdm_module,            ONLY : init_xdm, a1i, a2i
   USE tsvdw_module,          ONLY : vdw_isolated, vdw_econv_thr
@@ -1091,6 +1091,18 @@ SUBROUTINE iosys()
      CALL errore( 'iosys', 'unknown mixing ' // trim( mixing_mode ), 1 )
   END SELECT
   !
+  IF ( mixing_beta == beta_not_set ) THEN
+     !
+     IF ( lgcscf ) THEN
+        mixing_beta = 0.1_DP
+     ELSE IF ( trism ) THEN
+        mixing_beta = 0.2_DP
+     ELSE
+        mixing_beta = 0.7_DP
+     END IF
+     !
+  END IF
+  !
   starting_scf_threshold = tr2
   nmix = mixing_ndim
   niter_with_fixed_ns = mixing_fixed_ns
@@ -1594,9 +1606,9 @@ SUBROUTINE iosys()
   !
   CALL fcp_iosys(lfcp)
   !
-  ! ... set variables for FCP (this must be after RISM and FCP, to check condition)
+  ! ... set variables for GC-SCF (this must be after RISM and FCP, to check condition)
   !
-  CALL gcscf_iosys()
+  CALL gcscf_iosys(lgcscf)
   !
   ! ... End of reading input parameters
   !

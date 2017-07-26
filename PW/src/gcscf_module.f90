@@ -123,14 +123,22 @@ CONTAINS
   END SUBROUTINE gcscf_check
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE gcscf_iosys()
+  SUBROUTINE gcscf_iosys(tgcscf)
     !----------------------------------------------------------------------------
     !
     ! ... set variables from input file
     !
     IMPLICIT NONE
     !
-    CALL iosys_gcscf()
+    LOGICAL, INTENT(IN) :: tgcscf
+    !
+    lgcscf = tgcscf
+    !
+    IF (lgcscf) THEN
+       !
+       CALL iosys_gcscf()
+       !
+    END IF
     !
   END SUBROUTINE gcscf_iosys
   !
