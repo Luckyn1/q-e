@@ -41,7 +41,7 @@ SUBROUTINE compute_scf( fii, lii, stat  )
   USE mp,               ONLY : mp_bcast, mp_barrier, mp_sum, mp_min
   USE path_io_routines, ONLY : new_image_init, get_new_image, &
                                stop_other_images
-  USE fcp_variables,    ONLY : lfcp, fcp_nelec, fcp_ef, fcp_dos
+  USE fcp_variables,    ONLY : lfcp, fcp_mu, fcp_nelec, fcp_ef, fcp_dos
   USE klist,            ONLY : nelec, tot_charge
   USE extrapolation,    ONLY : update_neb
   USE funct,            ONLY : stop_exx, dft_is_hybrid
@@ -359,7 +359,15 @@ SUBROUTINE compute_scf( fii, lii, stat  )
       !
       ! ... energy is converted from rydberg to hartree
       !
-      pes(image) = etot / e2
+      IF ( lfcp ) THEN
+         !
+         pes(image) = etot / e2 + fcp_mu * tot_charge
+         !
+      ELSE
+         !
+         pes(image) = etot / e2
+         !
+      END IF
       !
       ! ... gradients are converted from rydberg/bohr to hartree/bohr
       !
