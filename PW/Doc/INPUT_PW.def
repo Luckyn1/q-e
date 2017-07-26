@@ -1549,7 +1549,9 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                   in @ref SYSTEM namelist.
                 - ESM-RISM is also supported (@ref assume_isolated = 'esm' and @ref esm_bc = 'bc1'
                   and @ref trism = .TRUE.).
-                - @ref mixing_mode has to be 'TF' or 'local-TF'
+                - @ref mixing_mode has to be 'TF' or 'local-TF', also its default is 'TF.'
+                - The default of @ref mixing_beta is 0.1 with ESM-RISM, 0.2 without ESM-RISM.
+                - @ref diago_full_acc is always .TRUE. .
             }
         }
 
@@ -2975,10 +2977,30 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
         }
 
         var rism3d_conv_level -type INTEGER {
-            default { -1 }
-            info {
-                Convergence level of 3D-RISM.
-                One can set -1(auto), 0(low), 1(medium) or 2(high).
+            default { 
+                0 if @ref lgcscf == .FALSE.;
+                2 if @ref lgcscf == .TRUE.
+            }
+            options {
+                info {
+                    Convergence level of 3D-RISM.
+                }
+                opt -val 0 {
+                    Convergence level is 'low'.
+                    Convergence threshold of 3D-RISM is greater than
+                    @ref rism3d_conv_thr, when estimated energy error >> @ref conv_thr .
+                    The threshold becomes @ref rism3d_conv_thr, when
+                    estimated energy error is enough small.
+                }
+                opt -val 1 {
+                    Convergence level is 'medium'.
+                    Convergence threshold of 3D-RISM is intermediate value
+                    between 'low' and 'high'.
+                }
+                opt -val 2 {
+                    Convergence level is 'high'.
+                    Convergence threshold of 3D-RISM is always @ref rism3d_conv_thr .
+                }
             }
         }
 
