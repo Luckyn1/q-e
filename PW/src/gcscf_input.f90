@@ -13,7 +13,7 @@ SUBROUTINE iosys_gcscf()
   ! ...  stored in modules input_parameters into internal modules of GC-SCF
   !
   USE constants,     ONLY : RYTOEV
-  USE control_flags, ONLY : imix
+  USE control_flags, ONLY : imix, diago_full_acc
   USE gcscf_module,  ONLY : gcscf_ignore_mun_ => gcscf_ignore_mun, &
                           & gcscf_mu_         => gcscf_mu,         &
                           & gcscf_gk_         => gcscf_gk,         &
@@ -43,6 +43,17 @@ SUBROUTINE iosys_gcscf()
      !
      CALL infomsg('iosys', &
      & 'mixing_mode=' // TRIM(mixing_mode) // " is ignored, 'TF' is adopted")
+     !
+  END IF
+  !
+  ! ... modify diago_full_acc
+  !
+  IF (.NOT. diago_full_acc) THEN
+     !
+     diago_full_acc = .TRUE.
+     !
+     CALL infomsg('iosys', &
+     & 'accurate eigenvalues are required for all states: diago_full_acc=.TRUE.')
      !
   END IF
   !
