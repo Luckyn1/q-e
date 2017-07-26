@@ -390,7 +390,7 @@ CONTAINS
       IF (conv_level >= 2) THEN
         ! high level
         epsv_ = epsv
-      IF (conv_level == 1) THEN
+      ELSE IF (conv_level == 1) THEN
         ! medium level
         epsv_ = MAX(epsv, SQRT(MAX(epsv * epsv_curr, 0.0_DP)))
       ELSE
