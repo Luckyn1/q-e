@@ -299,7 +299,7 @@ SUBROUTINE iosys()
   USE input_parameters, ONLY : nconstr_inp, trd_ht, rd_ht, cell_units
   !
   USE constraints_module,    ONLY : init_constraint
-  USE read_namelists_module, ONLY : read_namelists, sm_not_set, beta_not_set
+  USE read_namelists_module, ONLY : read_namelists, sm_not_set
   USE london_module,         ONLY : init_london, lon_rcut, scal6, in_c6, in_rvdw
   USE xdm_module,            ONLY : init_xdm, a1i, a2i
   USE tsvdw_module,          ONLY : vdw_isolated, vdw_econv_thr
@@ -1091,7 +1091,7 @@ SUBROUTINE iosys()
      CALL errore( 'iosys', 'unknown mixing ' // trim( mixing_mode ), 1 )
   END SELECT
   !
-  IF ( mixing_beta == beta_not_set ) THEN
+  IF ( mixing_beta < 0.0_DP ) THEN
      !
      IF ( lgcscf .AND. trism ) THEN
         ! GC-SCF with ESM-RISM
