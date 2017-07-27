@@ -2976,28 +2976,28 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             }
         }
 
-        var rism3d_conv_level -type INTEGER {
+        var rism3d_conv_level -type REAL {
             default { 
-                0 if @ref lgcscf == .FALSE.;
-                2 if @ref lgcscf == .TRUE.
+                0.0 if @ref lgcscf == .FALSE.;
+                0.8 if @ref lgcscf == .TRUE.
             }
             options {
                 info {
                     Convergence level of 3D-RISM.
                 }
-                opt -val 0 {
+                opt -val 0.0 {
                     Convergence level is 'low'.
                     Convergence threshold of 3D-RISM is greater than
                     @ref rism3d_conv_thr, when estimated energy error >> @ref conv_thr .
                     The threshold becomes @ref rism3d_conv_thr, when
                     estimated energy error is enough small.
                 }
-                opt -val 1 {
+                opt -val 0.0<x<0.1 {
                     Convergence level is 'medium'.
                     Convergence threshold of 3D-RISM is intermediate value
-                    between 'low' and 'high'.
+                    between 'low' and 'high', where @ref rism3d_conv_level is mixing rate.
                 }
-                opt -val 2 {
+                opt -val 1.0 {
                     Convergence level is 'high'.
                     Convergence threshold of 3D-RISM is always @ref rism3d_conv_thr .
                 }

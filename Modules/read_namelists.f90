@@ -788,7 +788,7 @@ MODULE read_namelists_module
        rism1d_bond_width     = 0.0_DP
        rism1d_nproc          = 128
        rism1d_nproc_switch   = 16
-       rism3d_conv_level     = -1 ! -1:auto, 0:low, 1:medium, 2:high
+       rism3d_conv_level     = -1.0_DP
        rism3d_planar_average = .FALSE.
        laue_nfit             = 4
        laue_expand_right     = -1.0_DP

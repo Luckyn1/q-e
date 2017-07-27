@@ -1555,12 +1555,8 @@ MODULE input_parameters
         INTEGER :: rism1d_nproc_switch = 16
           ! number of processes to calculate 1D-RISM
 
-        INTEGER :: rism3d_conv_level = -1
+        REAL(DP) :: rism3d_conv_level = -1.0_DP
           ! convergence level of 3D-RISM
-          ! -1 : auto
-          !  0 : low
-          !  1 : medium
-          !  2 : high (always)
 
         LOGICAL :: rism3d_planar_average = .FALSE.
           ! calculate planar average of solvents after 3D-RISM calculation, or not

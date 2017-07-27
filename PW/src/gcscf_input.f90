@@ -59,12 +59,12 @@ SUBROUTINE iosys_gcscf()
   !
   ! ... modify conv_level
   !
-  IF (lrism3d .AND. conv_level < 0) THEN
+  IF (lrism3d .AND. conv_level < 0.0_DP) THEN
      !
-     conv_level = 2 ! rism3d_conv_level -> "high"
+     conv_level = 0.8_DP
      !
      CALL infomsg('iosys', &
-     & 'convergence of 3D-RISM is set: rism3d_conv_level=2(high)')
+     & 'convergence of 3D-RISM is set: rism3d_conv_level=0.8')
      !
   END IF
   !
