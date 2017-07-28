@@ -35,7 +35,7 @@ MODULE rism_module
   USE funct,            ONLY : exx_is_active
   USE gvect,            ONLY : ngm, gstart, nl, nlm
   USE io_global,        ONLY : stdout, ionode, ionode_id
-  USE ions_base,        ONLY : nat, tau
+  USE ions_base,        ONLY : nat, ityp, zv, tau
   USE kinds,            ONLY : DP
   USE klist,            ONLY : nkstot, xk, nelec
   USE lsda_mod,         ONLY : lsda, nspin
@@ -387,7 +387,6 @@ CONTAINS
     REAL(DP)                 :: epsv_new
     REAL(DP)                 :: tr2_
     REAL(DP),    ALLOCATABLE :: vpot(:)
-    COMPLEX(DP), ALLOCATABLE :: vpog(:)
     COMPLEX(DP), ALLOCATABLE :: chgg(:)
     LOGICAL                  :: conv_rism3d
     !
@@ -409,7 +408,6 @@ CONTAINS
     CALL rism_check()
     !
     ALLOCATE(vpot(dfftp%nnr))
-    ALLOCATE(vpog(ngm))
     IF (llaue) THEN
       ALLOCATE(chgg(ngm))
     ELSE
@@ -457,8 +455,8 @@ CONTAINS
     END IF
     !
     ! ... make solvation potential and energy
-    CALL solvation_pot(vpot, vpog)
-    CALL solvation_erg(esol, vsol, vpog, rhog)
+    CALL solvation_pot(vpot)
+    CALL solvation_erg(esol, vsol, rhog)
     !
     DO is = 1, nspin_lsda
       vr(:, is) = vr(:, is) + vpot(:)
@@ -466,7 +464,6 @@ CONTAINS
     !
  10 CONTINUE
     DEALLOCATE(vpot)
-    DEALLOCATE(vpog)
     DEALLOCATE(chgg)
     !
   END SUBROUTINE rism_calc3d
@@ -484,7 +481,6 @@ CONTAINS
     !
     INTEGER                  :: is
     REAL(DP),    ALLOCATABLE :: vpot(:)
-    COMPLEX(DP), ALLOCATABLE :: vpog(:)
     COMPLEX(DP), ALLOCATABLE :: chgg(:)
     !
     ! ... if 3D-RISM's data are kept,
@@ -494,7 +490,6 @@ CONTAINS
     END IF
     !
     ALLOCATE(vpot(dfftp%nnr))
-    ALLOCATE(vpog(ngm))
     IF (llaue) THEN
       ALLOCATE(chgg(ngm))
     ELSE
@@ -508,14 +503,13 @@ CONTAINS
     !
     CALL rism3d_potential(vpot, chgg)
     !
-    CALL solvation_pot(vpot, vpog)
+    CALL solvation_pot(vpot)
     !
     DO is = 1, nspin_lsda
       vr(:, is) = vr(:, is) + vpot(:)
     END DO
     !
     DEALLOCATE(vpot)
-    DEALLOCATE(vpog)
     DEALLOCATE(chgg)
     !
   END SUBROUTINE rism_pot3d
@@ -573,13 +567,12 @@ CONTAINS
   END SUBROUTINE solute_chg
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE solvation_pot(vpot, vpog)
+  SUBROUTINE solvation_pot(vpot)
     !----------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL(DP),    INTENT(OUT) :: vpot(dfftp%nnr)
-    COMPLEX(DP), INTENT(OUT) :: vpog(ngm)
+    REAL(DP), INTENT(OUT) :: vpot(dfftp%nnr)
     !
     INTEGER                  :: ig
     INTEGER                  :: ir
@@ -613,12 +606,6 @@ CONTAINS
 !$omp end parallel do
     END IF
     !
-!$omp parallel do default(shared) private(ig)
-    DO ig = 1, ngm
-      vpog(ig) = -aux(nl(ig))    ! electron has negative charge
-    END DO
-!$omp end parallel do
-    !
     CALL invfft('Dense', aux, dfftp)
     !
 !$omp parallel do default(shared) private(ir)
@@ -634,75 +621,43 @@ CONTAINS
   END SUBROUTINE solvation_pot
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE solvation_erg(esol, vsol, vpog, rhog)
+  SUBROUTINE solvation_erg(esol, vsol, rhog)
     !----------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     REAL(DP),    INTENT(OUT) :: esol
     REAL(DP),    INTENT(OUT) :: vsol
-    COMPLEX(DP), INTENT(IN)  :: vpog(ngm)
     COMPLEX(DP), INTENT(IN)  :: rhog(ngm, nspin)
     !
     INTEGER  :: is
-    INTEGER  :: ig
-    REAL(DP) :: fac
-    REAL(DP) :: vr, vi
-    REAL(DP) :: rr, ri
+    REAL(DP) :: rho0
+    REAL(DP) :: ionic_charge
     !
-#if defined (__RISM_ESOL)
-    CALL start_clock('3DRISM_esol')
-    !
-#endif
     ! ... solvation energy
     esol = rism3t%esol
     !
     IF (llaue) THEN
-       ! ... potential shifting (for Laue-RISM)
-       vsol = rism3t%vsol
+       ! ... potential shifting energy (for Laue-RISM)
+       rho0 = 0.0_DP
        !
-    ELSE
-#if defined (__RISM_ESOL)
-       ! ... the integral V_sol * rho (for 3D-RISM)
-       vsol = 0.0_DP
-       !
-       IF (gamma_only) THEN
-         fac = 2.0_DP
-       ELSE
-         fac = 1.0_DP
+       IF (gstart > 1) THEN
+         DO is = 1, nspin_lsda
+           rho0 = rho0 + rhog(1, is)
+         END DO
        END IF
        !
-       DO is = 1, nspin_lsda
-         !
-         IF (gstart > 1) THEN
-           vr = DBLE( vpog(1))
-           rr = DBLE( rhog(1, is))
-           vsol = vsol + omega * (vr * rr)
-         END IF
-         !
-         DO ig = gstart, ngm
-           vr = DBLE( vpog(ig))
-           vi = AIMAG(vpog(ig))
-           rr = DBLE( rhog(ig, is))
-           ri = AIMAG(rhog(ig, is))
-           vsol = vsol + fac * omega * (vr * rr + vi * ri)
-         END DO
-         !
-       END DO
+       CALL mp_sum(rho0, rism3t%mp_site%intra_sitg_comm)
        !
-       CALL mp_sum(vsol, rism3t%mp_site%intra_sitg_comm)
+       ionic_charge = SUM(zv(ityp(1:nat)))
        !
-#else
+       vsol = -0.5_DP * rism3t%vsol * (ionic_charge - rho0 * omega)
+       !
+    ELSE
        ! ... zero (for 3D-RISM)
        vsol = 0.0_DP
-       !
-#endif
     END IF
     !
-#if defined (__RISM_ESOL)
-    CALL stop_clock('3DRISM_esol')
-    !
-#endif
   END SUBROUTINE solvation_erg
   !
   !----------------------------------------------------------------------------
@@ -895,9 +850,6 @@ CONTAINS
     !
     IF (lrism) THEN
       CALL print_clock('3DRISM_vsol')
-#if defined (__RISM_ESOL)
-      CALL print_clock('3DRISM_esol')
-#endif
     END IF
     !
   END SUBROUTINE rism_print_clock

@@ -541,7 +541,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
         END IF
         !
         IF ( lrism ) THEN
-           hwf_energy = hwf_energy + esol - 0.5_DP * vsol * tot_charge
+           hwf_energy = hwf_energy + esol + vsol
         END IF
         !
         IF ( lgcscf ) THEN
@@ -818,8 +818,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
      END IF
      !
      IF ( lrism ) THEN
-        etot = etot + esol - 0.5_DP * vsol * tot_charge
-        !hwf_energy = hwf_energy + esol - 0.5_DP * vsol * tot_charge
+        etot = etot + esol + vsol
+        !hwf_energy = hwf_energy + esol + vsol
      END IF
      !
      ! ... adds possible external contribution from plugins to the energy
@@ -1195,7 +1195,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
           ENDIF
           IF ( lrism ) THEN
              IF ( ABS( vsol ) > eps8 ) THEN
-                WRITE( stdout, 9078 ) esol, -0.5_DP * vsol * tot_charge
+                WRITE( stdout, 9078 ) esol, vsol
              ELSE
                 WRITE( stdout, 9079 ) esol
              END IF
