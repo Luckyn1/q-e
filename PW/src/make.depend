@@ -1990,6 +1990,7 @@ setup.o : atomic_wfc_mod.o
 setup.o : bp_mod.o
 setup.o : exx.o
 setup.o : fcp_module.o
+setup.o : gcscf_module.o
 setup.o : ldaU.o
 setup.o : pw_restart.o
 setup.o : pw_restart_new.o
