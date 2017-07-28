@@ -14,6 +14,7 @@ MODULE gcscf_module
   !
   USE constants,       ONLY : RYTOEV
   USE control_flags,   ONLY : imix, lscf
+  USE ener,            ONLY : egrand
   USE esm,             ONLY : do_comp_esm, esm_bc
   USE exx,             ONLY : x_gamma_extrapolation
   USE fcp_module,      ONLY : lfcp
@@ -188,7 +189,7 @@ CONTAINS
     !----------------------------------------------------------------------------
     !
     ! ... calculate number of electrons from weights,
-    ! ... also total charge is evaluated.
+    ! ... also total charge and -mu*N are evaluated.
     !
     IMPLICIT NONE
     !
@@ -203,7 +204,7 @@ CONTAINS
        !
        DO ibnd = 1, nbnd
           !
-          nelec = nelec + wg(ibnd, ik)
+          nelec = nelec  + wg(ibnd, ik)
           !
        END DO
        !
@@ -212,6 +213,8 @@ CONTAINS
     CALL mp_sum(nelec, inter_pool_comm)
     !
     tot_charge = SUM(zv(ityp(1:nat))) - nelec
+    !
+    egrand = gcscf_mu * tot_charge
     !
   END SUBROUTINE gcscf_calc_nelec
   !

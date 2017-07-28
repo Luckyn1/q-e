@@ -243,6 +243,7 @@ MODULE ener
        epaw,           &! sum of one-center paw contributions
        esol,           &! the solvation energy, from 3D-RISM
        vsol,           &! another solvation energy, from 3D-RISM
+       egrand,         &! potentiostat contribution (-mu*N), for GC-SCF
        ef, ef_up, ef_dw ! the fermi energy (up and dw if two_fermi_energies=.T.)
   !
 END MODULE ener

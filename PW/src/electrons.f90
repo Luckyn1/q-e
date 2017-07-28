@@ -26,7 +26,7 @@ SUBROUTINE electrons()
   USE lsda_mod,             ONLY : nspin, magtot, absmag
   USE ener,                 ONLY : etot, hwf_energy, eband, deband, ehart, &
                                    vtxc, etxc, etxcc, ewld, demet, epaw, &
-                                   elondon, vsol, esol, ef_up, ef_dw
+                                   elondon, vsol, esol, egrand, ef_up, ef_dw
   USE scf,                  ONLY : rho, rho_core, rhog_core, v, vltot, vrs, &
                                    kedtau, vnew
   USE control_flags,        ONLY : tr2, niter, conv_elec, restart, lmd, &
@@ -371,8 +371,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
-  USE gcscf_module,         ONLY : lgcscf, gcscf_ignore_mun, gcscf_mu, &
-                                   gcscf_calc_nelec, gcscf_set_nelec
+  USE gcscf_module,         ONLY : lgcscf, gcscf_ignore_mun, gcscf_set_nelec
   USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
@@ -535,18 +534,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
         hwf_energy = eband + deband_hwf + (etxc - etxcc) + ewld + ehart + demet
         If ( okpaw ) hwf_energy = hwf_energy + epaw
         IF ( lda_plus_u ) hwf_energy = hwf_energy + eth
-        !
-        IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
-           hwf_energy = hwf_energy + gcscf_mu * tot_charge
-        END IF
-        !
-        IF ( lrism ) THEN
-           hwf_energy = hwf_energy + esol + vsol
-        END IF
-        !
-        IF ( lgcscf ) THEN
-           CALL gcscf_calc_nelec()
-        END IF
+        IF ( lrism ) hwf_energy = hwf_energy + esol + vsol
         !
         IF ( lda_plus_u )  THEN
            !
@@ -808,8 +796,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
      END IF
      !
      IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
-        etot = etot + gcscf_mu * tot_charge
-        !hwf_energy = hwf_energy + gcscf_mu * tot_charge
+        etot = etot + egrand
+        hwf_energy = hwf_energy + egrand
      END IF
      !
      IF ( lfcp ) THEN
@@ -1211,7 +1199,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
           ! ... the potentiostat contribution.
           !
           IF ( lgcscf .AND. (.NOT. gcscf_ignore_mun) ) THEN
-             WRITE( stdout, 9072 ) gcscf_mu*tot_charge
+             WRITE( stdout, 9072 ) egrand
           END IF
           !
           IF ( lfcp ) WRITE( stdout, 9072 ) fcp_mu*tot_charge
