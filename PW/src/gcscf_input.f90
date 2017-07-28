@@ -26,8 +26,8 @@ SUBROUTINE iosys_gcscf()
   !
   ! ... SYSTEM namelist
   !
-  USE input_parameters, ONLY : gcscf_ignore_mun, &
-                             & gcscf_mu, gcscf_gk, gcscf_gh, gcscf_beta
+  USE input_parameters, ONLY : gcscf_ignore_mun, gcscf_mu, &
+                             & gcscf_gk, gcscf_gh, gcscf_beta, gcscf_eps
   !
   ! ... ELECTRONS namelist
   !
