@@ -26,7 +26,7 @@ SUBROUTINE electrons()
   USE lsda_mod,             ONLY : nspin, magtot, absmag
   USE ener,                 ONLY : etot, hwf_energy, eband, deband, ehart, &
                                    vtxc, etxc, etxcc, ewld, demet, epaw, &
-                                   elondon, vsol, esol, egrand, ef_up, ef_dw
+                                   elondon, vsol, esol, ef_up, ef_dw
   USE scf,                  ONLY : rho, rho_core, rhog_core, v, vltot, vrs, &
                                    kedtau, vnew
   USE control_flags,        ONLY : tr2, niter, conv_elec, restart, lmd, &
@@ -335,7 +335,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE gvecw,                ONLY : ecutwfc
   USE ener,                 ONLY : etot, hwf_energy, eband, deband, ehart, &
                                    vtxc, etxc, etxcc, ewld, demet, epaw, &
-                                   elondon, vsol, esol, ef_up, ef_dw, exdm, ef
+                                   elondon, vsol, esol, egrand, &
+                                   ef_up, ef_dw, exdm, ef
   USE scf,                  ONLY : scf_type, scf_type_COPY, bcast_scf_type,&
                                    create_scf_type, destroy_scf_type, &
                                    open_mix_file, close_mix_file, &
