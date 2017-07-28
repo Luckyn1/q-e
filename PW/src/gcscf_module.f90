@@ -41,6 +41,7 @@ MODULE gcscf_module
   REAL(DP) :: gcscf_gk         = 0.0_DP   ! wavenumber shift for Kerker operator (in 1/bohr)
   REAL(DP) :: gcscf_gh         = 0.0_DP   ! wavenumber shift for Hartree metric (in 1/bohr)
   REAL(DP) :: gcscf_beta       = 0.0_DP   ! mixing rate of Fermi energy
+  REAL(DP) :: gcscf_eps        = 0.0_DP   ! mixing threshold of Fermi energy (in Ry)
   !
   ! ... public components
   PUBLIC :: lgcscf
@@ -49,6 +50,7 @@ MODULE gcscf_module
   PUBLIC :: gcscf_gk
   PUBLIC :: gcscf_gh
   PUBLIC :: gcscf_beta
+  PUBLIC :: gcscf_eps
   !
   PUBLIC :: gcscf_check
   PUBLIC :: gcscf_iosys

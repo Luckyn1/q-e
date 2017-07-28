@@ -23,7 +23,7 @@ SUBROUTINE weights()
                                    opt_tetra_weights
   USE lsda_mod,             ONLY : nspin, current_spin, isk
   USE wvfct,                ONLY : nbnd, wg, et
-  USE gcscf_module,         ONLY : lgcscf, gcscf_mu, gcscf_beta
+  USE gcscf_module,         ONLY : lgcscf, gcscf_mu, gcscf_beta, gcscf_eps
   USE mp_images,            ONLY : intra_image_comm
   USE mp_pools,             ONLY : inter_pool_comm
   USE mp,                   ONLY : mp_bcast, mp_sum
@@ -120,9 +120,9 @@ SUBROUTINE weights()
         IF ( two_fermi_energies ) THEN
            !
            CALL gweights( nks, wk, nbnd, nelup, degauss, &
-                          ngauss, et, ef_up, demet_up, wg, 1, isk, 0.0_DP )
+                          ngauss, et, ef_up, demet_up, wg, 1, isk, 0.0_DP, 0.0_DP )
            CALL gweights( nks, wk, nbnd, neldw, degauss, &
-                          ngauss, et, ef_dw, demet_dw, wg, 2, isk, 0.0_DP )
+                          ngauss, et, ef_dw, demet_dw, wg, 2, isk, 0.0_DP, 0.0_DP )
            !
            demet = demet_up + demet_dw
            !
@@ -133,12 +133,12 @@ SUBROUTINE weights()
               ef = gcscf_mu
               !
               CALL gweights( nks, wk, nbnd, nelec, degauss, &
-                             ngauss, et, ef, demet, wg, 0, isk, gcscf_beta )
+                             ngauss, et, ef, demet, wg, 0, isk, gcscf_beta, gcscf_eps )
               !
            ELSE
               !
               CALL gweights( nks, wk, nbnd, nelec, degauss, &
-                             ngauss, et, ef, demet, wg, 0, isk, 0.0_DP )
+                             ngauss, et, ef, demet, wg, 0, isk, 0.0_DP, 0.0_DP )
               !
            END IF
            !
