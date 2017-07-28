@@ -37,7 +37,6 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
      ef_new = beta * ef + (1.0_DP - beta) * ef_by_n
      if (eps > 0.0_DP .and. abs(ef - ef_new) < eps) then
         alpha = (eps - abs(ef - ef_new)) / eps
-        alpha = (alpha ** 3) * (10.0_DP - 15.0_DP * alpha + 6.0_DP * alpha ** 2)
         ef = alpha * ef + (1.0_DP - alpha) * ef_new
      else
         ef = ef_new
