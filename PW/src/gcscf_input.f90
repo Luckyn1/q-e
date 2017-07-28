@@ -19,6 +19,7 @@ SUBROUTINE iosys_gcscf()
                           & gcscf_gk_         => gcscf_gk,         &
                           & gcscf_gh_         => gcscf_gh,         &
                           & gcscf_beta_       => gcscf_beta,       &
+                          & gcscf_eps_        => gcscf_eps,        &
                           & gcscf_check
   USE kinds,         ONLY : DP
   USE rism3d_facade, ONLY : lrism3d, conv_level
@@ -75,6 +76,7 @@ SUBROUTINE iosys_gcscf()
   gcscf_gk_         = gcscf_gk
   gcscf_gh_         = gcscf_gh
   gcscf_beta_       = gcscf_beta
+  gcscf_eps_        = gcscf_eps
   !
   ! ... check condition
   !
