@@ -76,7 +76,7 @@ SUBROUTINE iosys_gcscf()
   gcscf_gk_         = gcscf_gk
   gcscf_gh_         = gcscf_gh
   gcscf_beta_       = gcscf_beta
-  gcscf_eps_        = gcscf_eps
+  gcscf_eps_        = gcscf_eps / RYTOEV
   !
   ! ... check condition
   !

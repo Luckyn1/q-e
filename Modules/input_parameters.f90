@@ -575,8 +575,8 @@ MODULE input_parameters
         REAL(DP) :: gcscf_beta = 0.05_DP
           ! mixing rate of Fermi energy
 
-        REAL(DP) :: gcscf_eps = 0.01_DP
-          ! mixing threshold of Fermi energy (in Ry)
+        REAL(DP) :: gcscf_eps = 0.2_DP
+          ! mixing threshold of Fermi energy (in eV)
 
         INTEGER :: space_group = 0
           ! space group number for coordinates given in crystallographic form
