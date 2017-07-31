@@ -25,7 +25,6 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
   real(DP), intent(out) :: demet
   real(DP), intent(in) :: beta, eps
   !
-  real(DP) :: alpha
   real(DP) :: ef_by_n, ef_new
   real(DP), external :: efermig
   
@@ -35,10 +34,7 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
 
   if (beta > 0.0_DP) then
      ef_new = beta * ef + (1.0_DP - beta) * ef_by_n
-     if (eps > 0.0_DP .and. abs(ef - ef_new) < eps) then
-        alpha = (eps - abs(ef - ef_new)) / eps
-        ef = alpha * ef + (1.0_DP - alpha) * ef_new
-     else
+     if (abs(ef - ef_new) > eps) then
         ef = ef_new
      end if
   else
