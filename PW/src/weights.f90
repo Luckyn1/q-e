@@ -120,9 +120,9 @@ SUBROUTINE weights()
         IF ( two_fermi_energies ) THEN
            !
            CALL gweights( nks, wk, nbnd, nelup, degauss, &
-                          ngauss, et, ef_up, demet_up, wg, 1, isk, 0.0_DP, 0.0_DP )
+                          ngauss, et, ef_up, demet_up, wg, 1, isk )
            CALL gweights( nks, wk, nbnd, neldw, degauss, &
-                          ngauss, et, ef_dw, demet_dw, wg, 2, isk, 0.0_DP, 0.0_DP )
+                          ngauss, et, ef_dw, demet_dw, wg, 2, isk )
            !
            demet = demet_up + demet_dw
            !
@@ -132,13 +132,13 @@ SUBROUTINE weights()
               !
               ef = gcscf_mu
               !
-              CALL gweights( nks, wk, nbnd, nelec, degauss, &
-                             ngauss, et, ef, demet, wg, 0, isk, gcscf_beta, gcscf_delta )
+              CALL gweights_mix( nks, wk, nbnd, nelec, degauss, &
+                   ngauss, et, ef, demet, wg, 0, isk, gcscf_beta, gcscf_delta )
               !
            ELSE
               !
               CALL gweights( nks, wk, nbnd, nelec, degauss, &
-                             ngauss, et, ef, demet, wg, 0, isk, 0.0_DP, 0.0_DP )
+                             ngauss, et, ef, demet, wg, 0, isk )
               !
            END IF
            !

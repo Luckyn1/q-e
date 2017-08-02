@@ -8,7 +8,7 @@
 !
 !--------------------------------------------------------------------
 subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
-     et, ef, demet, wg, is, isk, beta, eps)
+     et, ef, demet, wg, is, isk)
   !--------------------------------------------------------------------
   !     calculates Ef and weights with the gaussian spreading technique
   ! ... Wrapper routine: computes first Ef, then the weights
@@ -21,25 +21,13 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
   ! wg must be (inout) and not (out) because if is/=0 only terms for
   ! spin=is are initialized; the remaining terms should be kept, not lost
   real(DP), intent(inout) :: wg (nbnd, nks)
-  real(DP), intent(inout) :: ef
-  real(DP), intent(out) :: demet
-  real(DP), intent(in) :: beta, eps
+  real(DP), intent(out) :: ef, demet
   !
-  real(DP) :: ef_by_n, ef_new
   real(DP), external :: efermig
-  
+
   ! Calculate the Fermi energy ef
 
-  ef_by_n = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
-
-  if (beta > 0.0_DP) then
-     ef_new = beta * ef + (1.0_DP - beta) * ef_by_n
-     if (abs(ef - ef_new) > eps) then
-        ef = ef_new
-     end if
-  else
-     ef = ef_by_n
-  end if
+  ef = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
 
   ! Calculate weights
 
@@ -48,6 +36,76 @@ subroutine gweights (nks, wk, nbnd, nelec, degauss, ngauss, &
 
   return
 end subroutine gweights
+!
+!--------------------------------------------------------------------
+subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
+     et, ef, demet, wg, is, isk, beta, delta)
+  !--------------------------------------------------------------------
+  !     calculates Ef and weights with the gaussian spreading technique,
+  !     where IN and OUT Ef's are mixed.
+  !
+  USE kinds
+  implicit none
+  !
+  integer, intent(in) :: nks, nbnd, ngauss, is, isk(nks)
+  real(DP), intent(in) :: wk (nks), et (nbnd, nks), nelec, degauss
+  ! wg must be (inout) and not (out) because if is/=0 only terms for
+  ! spin=is are initialized; the remaining terms should be kept, not lost
+  real(DP), intent(inout) :: wg (nbnd, nks)
+  real(DP), intent(inout) :: ef
+  real(DP), intent(out) :: demet
+  real(DP), intent(in) :: beta, delta
+  !
+  integer :: kpoint, ibnd
+  real(DP) :: ef_by_n, occ
+  real(DP), allocatable :: et_shift(:,:)
+  real(DP), external :: efermig
+
+  allocate(et_shift(nbnd, nks))
+
+  ! Calculate the Fermi energy, with the given #electrons
+
+  ef_by_n = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
+
+  ! Calculate weights, which reproduces the given #electrons
+
+  CALL gweights_only (nks, wk, is, isk, nbnd, nelec, degauss, &
+     ngauss, et, ef_by_n, demet, wg)
+
+  ! Shift the energy eigenvalues of unoccupied bands
+
+  do kpoint = 1, nks
+     if (is /= 0) then
+        if (isk(kpoint).ne.is) cycle
+     end if
+     if (wk(kpoint) <= 0.0_DP) cycle
+     do ibnd = 1, nbnd
+        occ = wg(ibnd, kpoint) / wk(kpoint)
+        et_shift(ibnd, kpoint) = et(ibnd, kpoint) + delta * SQRT(1.0_DP - occ)
+     enddo
+  enddo
+
+  ! Calculate the Fermi energy, with the given #electrons (using shifted eigenvalue)
+
+  ef_by_n = efermig (et_shift, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
+
+  ! Mix the Fermi energy
+
+  if (beta > 0.0_DP) then
+     ef = beta * ef + (1.0_DP - beta) * ef_by_n
+  else
+     ef = ef_by_n
+  end if
+
+  ! Calculate weights, with the new Fermi energy (using shifted eigenvalue)
+
+  CALL gweights_only (nks, wk, is, isk, nbnd, nelec, degauss, &
+     ngauss, et_shift, ef, demet, wg)
+
+  deallocate(et_shift)
+
+  return
+end subroutine gweights_mix
 !
 !--------------------------------------------------------------------
 subroutine gweights_only (nks, wk, is, isk, nbnd, nelec, degauss, &
