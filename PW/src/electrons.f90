@@ -372,7 +372,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
-  USE gcscf_module,         ONLY : lgcscf, gcscf_ignore_mun, gcscf_set_nelec
+  USE gcscf_module,         ONLY : lgcscf, gcscf_mu, gcscf_ignore_mun, gcscf_set_nelec
   USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
@@ -1230,9 +1230,11 @@ SUBROUTINE electrons_scf ( printout, exxen )
           IF ( lgcscf ) THEN
              !
              IF ( dr2 > eps8 ) THEN
-                WRITE( stdout, 9180 ) etot, hwf_energy, dr2, tot_charge, ef * RYTOEV
+                WRITE( stdout, 9180 ) etot, hwf_energy, dr2, tot_charge, &
+                                      ef * RYTOEV, ABS( ef - gcscf_mu ) * RYTOEV
              ELSE
-                WRITE( stdout, 9182 ) etot, hwf_energy, dr2, tot_charge, ef * RYTOEV
+                WRITE( stdout, 9182 ) etot, hwf_energy, dr2, tot_charge, &
+                                      ef * RYTOEV, ABS( ef - gcscf_mu ) * RYTOEV
              END IF
              !
           ELSE
@@ -1311,7 +1313,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',0PF17.8,' Ry' &
            //'     total charge of GC-SCF    =',0PF17.8,' e'  &
-            /'     the Fermi energy          =',0PF17.8,' eV')
+            /'     the Fermi energy          =',0PF17.8,' eV' &
+            /'     error of the Fermi energy =',0PF17.8,' eV')
 9181 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',0PF17.8,' Ry' &
@@ -1320,7 +1323,8 @@ SUBROUTINE electrons_scf ( printout, exxen )
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',1PE17.1,' Ry' &
            //'     total charge of GC-SCF    =',0PF17.8,' e'  &
-            /'     the Fermi energy          =',0PF17.8,' eV')
+            /'     the Fermi energy          =',0PF17.8,' eV' &
+            /'     error of the Fermi energy =',0PF17.8,' eV')
 9183 FORMAT(/'!    total energy              =',0PF17.8,' Ry' &
             /'     Harris-Foulkes estimate   =',0PF17.8,' Ry' &
             /'     estimated scf accuracy    <',1PE17.1,' Ry' &
