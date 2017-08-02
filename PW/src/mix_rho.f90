@@ -48,7 +48,8 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   USE control_flags,  ONLY : imix, ngm0, tr2, io_level
   ! ... for PAW:
   USE uspp_param,     ONLY : nhm
-  USE gcscf_module,   ONLY : lgcscf, gcscf_gh, gcscf_mu
+  USE ener,           ONLY : ef
+  USE gcscf_module,   ONLY : lgcscf, gcscf_gh, gcscf_mu, gcscf_eps
   USE scf,            ONLY : scf_type, create_scf_type, destroy_scf_type, &
                              mix_type, create_mix_type, destroy_mix_type, &
                              assign_scf_to_mix_type, assign_mix_to_scf_type, &
@@ -144,6 +145,12 @@ SUBROUTINE mix_rho( input_rhout, rhoin, alphamix, dr2, tr2_min, iter, n_iter,&
   IF (dr2 < 0.0_DP) CALL errore('mix_rho','negative dr2',1)
   !
   conv = ( dr2 < tr2 )
+  !
+  IF ( lgcscf ) THEN
+     !
+     conv = conv .AND. ( ABS( ef - gcscf_mu ) < gcscf_eps )
+     !
+  END IF
   !
   IF ( conv .OR. dr2 < tr2_min ) THEN
      !

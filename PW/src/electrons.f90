@@ -372,8 +372,7 @@ SUBROUTINE electrons_scf ( printout, exxen )
   USE paw_symmetry,         ONLY : PAW_symmetrize_ddd
   USE dfunct,               ONLY : newd
   USE esm,                  ONLY : do_comp_esm, esm_printpot, esm_ewald
-  USE gcscf_module,         ONLY : lgcscf, gcscf_mu, gcscf_eps, &
-                                   gcscf_ignore_mun, gcscf_set_nelec
+  USE gcscf_module,         ONLY : lgcscf, gcscf_ignore_mun, gcscf_set_nelec
   USE fcp_module,           ONLY : lfcp, fcp_mu
   USE iso_c_binding,        ONLY : c_int
   USE rism_module,          ONLY : lrism, rism_calc3d, rism_printpot
@@ -594,14 +593,6 @@ SUBROUTINE electrons_scf ( printout, exxen )
         CALL mp_bcast ( conv_elec, root_pool, inter_pool_comm )
         !
         if (.not. scf_must_converge .and. idum == niter) conv_elec = .true.
-        !
-        IF ( lgcscf ) THEN
-           !
-           IF ( ABS( ef - gcscf_mu ) >= gcscf_eps ) conv_elec = .FALSE.
-           !
-           CALL mp_bcast ( conv_elec, root_pool, inter_pool_comm )
-           !
-        END IF
         !
         ! ... if convergence is achieved or if the self-consistency error
         ! ... (dr2) is smaller than the estimated error due to diagonalization
