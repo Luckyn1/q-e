@@ -566,6 +566,9 @@ MODULE input_parameters
         REAL(DP) :: gcscf_mu = 0.0_DP
           ! target Fermi energy of GC-SCF (in eV)
 
+        REAL(DP) :: gcscf_conv_thr = 0.0_DP
+          ! convergence threshold of GC-SCF (in eV)
+
         REAL(DP) :: gcscf_gk = 0.4_DP
           ! wavenumber shift for Kerker operator (in 1/bohr)
 
@@ -575,7 +578,7 @@ MODULE input_parameters
         REAL(DP) :: gcscf_beta = 0.05_DP
           ! mixing rate of Fermi energy
 
-        REAL(DP) :: gcscf_eps = 0.0_DP
+        REAL(DP) :: gcscf_delta = 0.0_DP
           ! mixing threshold of Fermi energy (in eV)
 
         INTEGER :: space_group = 0
@@ -620,8 +623,8 @@ MODULE input_parameters
              xdm, xdm_a1, xdm_a2,                                             &
              step_pen, A_pen, sigma_pen, alpha_pen, no_t_rev,                 &
              esm_bc, esm_efield, esm_w, esm_nfit, esm_debug, esm_debug_gpmax, &
-             esm_a, esm_zb, lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_gk,     &
-             gcscf_gh, gcscf_beta, gcscf_eps,                                 &
+             esm_a, esm_zb, lgcscf, gcscf_ignore_mun, gcscf_mu,               &
+             gcscf_conv_thr, gcscf_gk, gcscf_gh, gcscf_beta, gcscf_delta,     &
              space_group, uniqueb, origin_choice, rhombohedral, zmon,         &
              relaxz, block, block_1, block_2, block_height
 

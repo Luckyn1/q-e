@@ -38,19 +38,21 @@ MODULE gcscf_module
   LOGICAL  :: lgcscf           = .FALSE.  ! to calculate GC-SCF method, or not
   LOGICAL  :: gcscf_ignore_mun = .FALSE.  ! ignore -mu * N, or not
   REAL(DP) :: gcscf_mu         = 0.0_DP   ! target Fermi energy (in Ry)
+  REAL(DP) :: gcscf_eps        = 0.0_DP   ! convergence threshold (in Ry)
   REAL(DP) :: gcscf_gk         = 0.0_DP   ! wavenumber shift for Kerker operator (in 1/bohr)
   REAL(DP) :: gcscf_gh         = 0.0_DP   ! wavenumber shift for Hartree metric (in 1/bohr)
   REAL(DP) :: gcscf_beta       = 0.0_DP   ! mixing rate of Fermi energy
-  REAL(DP) :: gcscf_eps        = 0.0_DP   ! mixing threshold of Fermi energy (in Ry)
+  REAL(DP) :: gcscf_delta      = 0.0_DP   ! mixing threshold of Fermi energy (in Ry)
   !
   ! ... public components
   PUBLIC :: lgcscf
   PUBLIC :: gcscf_ignore_mun
   PUBLIC :: gcscf_mu
+  PUBLIC :: gcscf_eps
   PUBLIC :: gcscf_gk
   PUBLIC :: gcscf_gh
   PUBLIC :: gcscf_beta
-  PUBLIC :: gcscf_eps
+  PUBLIC :: gcscf_delta
   !
   PUBLIC :: gcscf_check
   PUBLIC :: gcscf_iosys
@@ -157,11 +159,12 @@ CONTAINS
     !
     WRITE(stdout, '(/,5X,">>>>> Grand-Canonical SCF is activated <<<<<")' )
     WRITE(stdout, '(5X,"Initial Total Charge  = ",F12.6," e"      )') tot_charge
-    WRITE(stdout, '(5X,"Target Fermi Energy   = ",F12.6," eV"     )') gcscf_mu * RYTOEV
+    WRITE(stdout, '(5X,"Target Fermi Energy   = ",F12.6," eV"     )') gcscf_mu  * RYTOEV
+    WRITE(stdout, '(5X,"Thr. of Fermi Energy  = ",F12.6," eV"     )') gcscf_eps * RYTOEV
     WRITE(stdout, '(5X,"Wave-shift of Kerker  = ",F12.6," bohr^-1")') gcscf_gk
     WRITE(stdout, '(5X,"Wave-shift of Hartree = ",F12.6," bohr^-1")') gcscf_gh
-    WRITE(stdout, '(5X,"Mixing rate of Fermi  = ",F12.6           )') gcscf_beta
-    WRITE(stdout, '(5X,"Mixing thr. of Fermi  = ",F12.6," eV"     )') gcscf_eps * RYTOEV
+    WRITE(stdout, '(5X,"Mixing Rate of Fermi  = ",F12.6           )') gcscf_beta
+    WRITE(stdout, '(5X,"Mixing Thr. of Fermi  = ",F12.6," eV"     )') gcscf_eps * RYTOEV
     !
     FLUSH(stdout)
     !
@@ -206,7 +209,7 @@ CONTAINS
        !
        DO ibnd = 1, nbnd
           !
-          nelec = nelec  + wg(ibnd, ik)
+          nelec = nelec + wg(ibnd, ik)
           !
        END DO
        !
