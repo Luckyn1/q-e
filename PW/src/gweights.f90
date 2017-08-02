@@ -59,25 +59,33 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
   integer :: kpoint, ibnd
   real(DP) :: ef_by_n, occ
   real(DP), allocatable :: et_shift(:,:)
-  real(DP), external :: efermig, wgauss
+  real(DP), external :: efermig
 
   allocate(et_shift(nbnd, nks))
 
-  ! Shift the energy eigenvalues of unoccupied bands
+  ! Calculate the Fermi energy, with the given #electrons
 
   ef_by_n = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
+
+  ! Calculate weights, which reproduces the given #electrons
+
+  CALL gweights_only (nks, wk, is, isk, nbnd, nelec, degauss, &
+     ngauss, et, ef_by_n, demet, wg)
+
+  ! Shift the energy eigenvalues of unoccupied bands
 
   do kpoint = 1, nks
      if (is /= 0) then
         if (isk(kpoint).ne.is) cycle
      end if
+     if (wk(kpoint) <= 0.0_DP) cycle
      do ibnd = 1, nbnd
-        occ = wgauss ( (ef_by_n - et(ibnd,kpoint)) / degauss, ngauss)
-        et_shift(ibnd, kpoint) = et(ibnd, kpoint) + delta * (1.0_DP - occ)
+        occ = wg(ibnd, kpoint) / wk(kpoint)
+        et_shift(ibnd, kpoint) = et(ibnd, kpoint) + delta * SQRT(1.0_DP - occ)
      enddo
   enddo
 
-  ! Calculate the Fermi energy, with the given #electrons
+  ! Calculate the Fermi energy, with the given #electrons (using shifted eigenvalue)
 
   ef_by_n = efermig (et_shift, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
 
@@ -89,7 +97,7 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
      ef = ef_by_n
   end if
 
-  ! Calculate weights, with the new Fermi energy
+  ! Calculate weights, with the new Fermi energy (using shifted eigenvalue)
 
   CALL gweights_only (nks, wk, is, isk, nbnd, nelec, degauss, &
      ngauss, et_shift, ef, demet, wg)
