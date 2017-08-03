@@ -370,6 +370,10 @@ SUBROUTINE setup()
      !
      IF ( ethr == 0.D0 ) ethr = 0.1D0 * MIN( 1.D-2, tr2 / nelec )
      !
+  ELSE IF ( lgcscf ) THEN
+     !
+     IF ( ethr == 0.D0 ) ethr = 1.D-6
+     !
   ELSE
      !
      IF ( ethr == 0.D0 ) THEN
