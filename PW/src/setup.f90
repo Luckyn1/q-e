@@ -397,7 +397,7 @@ SUBROUTINE setup()
            !
            IF ( lgcscf ) THEN
               !
-              ethr = 1.0D-6
+              ethr = 1.0D-5
               !
            ELSE
               !
