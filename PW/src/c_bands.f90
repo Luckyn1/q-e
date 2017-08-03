@@ -616,6 +616,8 @@ CONTAINS
     !
     IF ( lscf .AND. lgcscf ) THEN
        !
+       ! ... tight condition for GC-SCF
+       !
        test_exit_cond = .NOT. ( ( ntry <= 8 ) .AND. ( notconv > 0 ) )
        !
     ELSE
