@@ -370,10 +370,6 @@ SUBROUTINE setup()
      !
      IF ( ethr == 0.D0 ) ethr = 0.1D0 * MIN( 1.D-2, tr2 / nelec )
      !
-  ELSE IF ( lgcscf ) THEN
-     !
-     IF ( ethr == 0.D0 ) ethr = 1.D-6
-     !
   ELSE
      !
      IF ( ethr == 0.D0 ) THEN
@@ -384,14 +380,30 @@ SUBROUTINE setup()
            ! ... do not spoil it with a lousy first diagonalization :
            ! ... set a strict ethr in the input file (diago_thr_init)
            !
-           ethr = 1.D-5
+           IF ( lgcscf ) THEN
+              !
+              ethr = 1.D-8
+              !
+           ELSE
+              !
+              ethr = 1.D-5
+              !
+           END IF
            !
         ELSE
            !
            ! ... starting atomic potential is probably far from scf
            ! ... do not waste iterations in the first diagonalizations
            !
-           ethr = 1.0D-2
+           IF ( lgcscf ) THEN
+              !
+              ethr = 1.0D-6
+              !
+           ELSE
+              !
+              ethr = 1.0D-2
+              !
+           END IF
            !
         END IF
         !
