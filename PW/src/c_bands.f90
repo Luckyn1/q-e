@@ -614,7 +614,7 @@ CONTAINS
     !
     LOGICAL :: test_exit_cond
     !
-    IF ( lgcscf ) THEN
+    IF ( lscf .AND. lgcscf ) THEN
        !
        test_exit_cond = .NOT. ( ( ntry <= 5 ) .AND. ( notconv > 0 ) )
        !
