@@ -212,6 +212,7 @@ c_bands.o : atomic_wfc_mod.o
 c_bands.o : bp_mod.o
 c_bands.o : buffers.o
 c_bands.o : g_psi_mod.o
+c_bands.o : gcscf_module.o
 c_bands.o : ldaU.o
 c_bands.o : pwcom.o
 c_bands.o : scf_mod.o

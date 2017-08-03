@@ -171,6 +171,7 @@ SUBROUTINE diag_bands( iter, ik, avg_iter )
   USE becmod,               ONLY : bec_type, becp, calbec, &
                                    allocate_bec_type, deallocate_bec_type
   USE klist,                ONLY : nks, ngk
+  USE gcscf_module,         ONLY : lgcscf
   USE mp_bands,             ONLY : nproc_bgrp, intra_bgrp_comm, inter_bgrp_comm, &
                                    set_bgrp_indices, my_bgrp_id, nbgrp
   USE mp,                   ONLY : mp_sum, mp_bcast
@@ -613,10 +614,18 @@ CONTAINS
     !
     LOGICAL :: test_exit_cond
     !
+    IF ( lgcscf ) THEN
+       !
+       test_exit_cond = .NOT. ( ( ntry <= 5 ) .AND. ( notconv > 0 ) )
+       !
+    ELSE
+       !
+       test_exit_cond = .NOT. ( ( ntry <= 5 ) .AND. &
+            ( ( .NOT. lscf .AND. ( notconv > 0 ) ) .OR. &
+            (       lscf .AND. ( notconv > 5 ) ) ) )
+       !
+    END IF
     !
-    test_exit_cond = .NOT. ( ( ntry <= 5 ) .AND. &
-         ( ( .NOT. lscf .AND. ( notconv > 0 ) ) .OR. &
-         (       lscf .AND. ( notconv > 5 ) ) ) )
     !
   END FUNCTION test_exit_cond
   !
