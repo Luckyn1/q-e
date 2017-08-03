@@ -164,7 +164,7 @@ CONTAINS
     WRITE(stdout, '(5X,"Wave-shift of Kerker  = ",F12.6," bohr^-1")') gcscf_gk
     WRITE(stdout, '(5X,"Wave-shift of Hartree = ",F12.6," bohr^-1")') gcscf_gh
     WRITE(stdout, '(5X,"Mixing Rate of Fermi  = ",F12.6           )') gcscf_beta
-    WRITE(stdout, '(5X,"Mixing Thr. of Fermi  = ",F12.6," eV"     )') gcscf_eps * RYTOEV
+    WRITE(stdout, '(5X,"Mixing Thr. of Fermi  = ",F12.6," eV"     )') gcscf_delta * RYTOEV
     !
     FLUSH(stdout)
     !
