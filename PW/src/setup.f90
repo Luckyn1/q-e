@@ -183,7 +183,7 @@ SUBROUTINE setup()
   END IF
 #else 
   IF ( (lfcp .OR. lgcscf) .AND. restart ) THEN
-     CALL pw_readfile( 'ef', ierr )
+     CALL pw_readfile( 'const-mu', ierr )
      tot_charge = ionic_charge - nelec
   END IF
 #endif

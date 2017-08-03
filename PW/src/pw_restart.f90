@@ -876,7 +876,8 @@ MODULE pw_restart
       LOGICAL            :: lcell, lpw, lions, lspin, linit_mag, &
                             lxc, locc, lbz, lbs, lwfc, lheader,          &
                             lsymm, lrho, lefield, ldim, &
-                            lef, lexx, lesm, lrism, lrism_corr
+                            lef, lexx, lesm, lconstmu, &
+                            lrism, lrism_corr
       !
       INTEGER            :: tmp
       !
@@ -910,6 +911,7 @@ MODULE pw_restart
       lef     = .FALSE.
       lexx    = .FALSE.
       lesm    = .FALSE.
+      lconstmu= .FALSE.
       lrism   = .FALSE.
       lrism_corr = .FALSE.
       !
@@ -1011,6 +1013,10 @@ MODULE pw_restart
       CASE( 'esm' )
          !
          lesm       = .TRUE.
+         !
+      CASE( 'const-mu' )
+         !
+         lconstmu   = .TRUE.
          !
       CASE( 'solvent' )
          !
@@ -1184,7 +1190,7 @@ MODULE pw_restart
 
       IF ( lef ) THEN
          !
-         CALL read_ef( ierr )
+         CALL read_ef( .FALSE., ierr )
          IF ( ierr > 0 ) THEN
             errmsg='error reading Fermi energy and number of electrons in xml data file'
             GOTO 100
@@ -1205,6 +1211,15 @@ MODULE pw_restart
          CALL read_esm( ierr )
          IF ( ierr > 0 ) THEN
             errmsg='error reading ESM restart data in xml data file'
+            GOTO 100
+         END IF
+         !
+      END IF
+      IF ( lconstmu ) THEN
+         !
+         CALL read_ef( .TRUE., ierr )
+         IF ( ierr > 0 ) THEN
+            errmsg='error reading const-mu restart data in xml data file'
             GOTO 100
          END IF
          !
@@ -2716,23 +2731,35 @@ MODULE pw_restart
     END SUBROUTINE read_wavefunctions
     !
     !------------------------------------------------------------------------
-    SUBROUTINE read_ef( ierr )
+    SUBROUTINE read_ef( with_nbnd, ierr )
       !------------------------------------------------------------------------
       !
       ! ... this routine reads the Fermi energy and the number of electrons
       !
       USE ener,  ONLY : ef, ef_up, ef_dw
       USE klist, ONLY : two_fermi_energies, nelec
+      USE wvfct, ONLY : nbnd
       !
       IMPLICIT NONE
+      LOGICAL, INTENT(IN)  :: with_nbnd
       INTEGER, INTENT(OUT) :: ierr
       !
       ! ... then selected tags are read from the other sections
       !
       IF ( ionode ) THEN
          !
-         CALL qexml_read_bands_info( EF = ef, EF_UP=ef_up, EF_DW=ef_dw, &
-            TWO_FERMI_ENERGIES=two_fermi_energies, NELEC=nelec, IERR=ierr )
+         IF ( with_nbnd ) THEN
+            !
+            CALL qexml_read_bands_info( NBND = nbnd, &
+               EF = ef, EF_UP=ef_up, EF_DW=ef_dw, &
+               TWO_FERMI_ENERGIES=two_fermi_energies, NELEC=nelec, IERR=ierr )
+            !
+         ELSE
+            !
+            CALL qexml_read_bands_info( EF = ef, EF_UP=ef_up, EF_DW=ef_dw, &
+               TWO_FERMI_ENERGIES=two_fermi_energies, NELEC=nelec, IERR=ierr )
+            !
+         END IF
          !
       END IF
       !
@@ -2753,6 +2780,7 @@ MODULE pw_restart
          !
       END IF
       !
+      IF ( with_nbnd ) CALL mp_bcast( nbnd, ionode_id, intra_image_comm )
       CALL mp_bcast( two_fermi_energies, ionode_id, intra_image_comm )
       CALL mp_bcast( ef, ionode_id, intra_image_comm )
       CALL mp_bcast( ef_up, ionode_id, intra_image_comm )
