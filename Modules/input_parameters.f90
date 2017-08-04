@@ -581,7 +581,7 @@ MODULE input_parameters
         REAL(DP) :: gcscf_delta = 0.0_DP
           ! mixing threshold of Fermi energy (in eV)
 
-        REAL(DP) :: gcscf_anion_scale = 2.0_DP
+        REAL(DP) :: gcscf_anion_scale = 5.0_DP
           ! scaling step of Fermi energy in case of anion,
           ! to avoid incorrectness of GGA for virtual orbitals.
 

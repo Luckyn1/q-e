@@ -295,7 +295,7 @@ MODULE read_namelists_module
        gcscf_gh = 1.5_DP
        gcscf_beta = 0.05_DP
        gcscf_delta = 0.0_DP
-       gcscf_anion_scale = 2.0_DP
+       gcscf_anion_scale = 5.0_DP
        !
        space_group=0
        uniqueb = .FALSE.
