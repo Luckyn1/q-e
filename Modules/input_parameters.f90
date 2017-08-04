@@ -581,6 +581,10 @@ MODULE input_parameters
         REAL(DP) :: gcscf_delta = 0.0_DP
           ! mixing threshold of Fermi energy (in eV)
 
+        REAL(DP) :: gcscf_anion_scale = 2.0_DP
+          ! scaling step of Fermi energy in case of anion,
+          ! to avoid incorrectness of GGA for virtual orbitals.
+
         INTEGER :: space_group = 0
           ! space group number for coordinates given in crystallographic form
           !
@@ -623,8 +627,9 @@ MODULE input_parameters
              xdm, xdm_a1, xdm_a2,                                             &
              step_pen, A_pen, sigma_pen, alpha_pen, no_t_rev,                 &
              esm_bc, esm_efield, esm_w, esm_nfit, esm_debug, esm_debug_gpmax, &
-             esm_a, esm_zb, lgcscf, gcscf_ignore_mun, gcscf_mu,               &
-             gcscf_conv_thr, gcscf_gk, gcscf_gh, gcscf_beta, gcscf_delta,     &
+             esm_a, esm_zb,                                                   &
+             lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_conv_thr,              &
+             gcscf_gk, gcscf_gh, gcscf_beta, gcscf_delta, gcscf_anion_scale,  &
              space_group, uniqueb, origin_choice, rhombohedral, zmon,         &
              relaxz, block, block_1, block_2, block_height
 

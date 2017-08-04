@@ -43,6 +43,7 @@ MODULE gcscf_module
   REAL(DP) :: gcscf_gh         = 0.0_DP   ! wavenumber shift for Hartree metric (in 1/bohr)
   REAL(DP) :: gcscf_beta       = 0.0_DP   ! mixing rate of Fermi energy
   REAL(DP) :: gcscf_delta      = 0.0_DP   ! mixing threshold of Fermi energy (in Ry)
+  REAL(DP) :: gcscf_anion      = 1.0_DP   ! scaling step of Fermi energy in case of anion
   !
   ! ... public components
   PUBLIC :: lgcscf
@@ -53,6 +54,7 @@ MODULE gcscf_module
   PUBLIC :: gcscf_gh
   PUBLIC :: gcscf_beta
   PUBLIC :: gcscf_delta
+  PUBLIC :: gcscf_anion
   !
   PUBLIC :: gcscf_check
   PUBLIC :: gcscf_iosys
@@ -165,6 +167,7 @@ CONTAINS
     WRITE(stdout, '(5X,"Wave-shift of Hartree = ",F12.6," bohr^-1")') gcscf_gh
     WRITE(stdout, '(5X,"Mixing Rate of Fermi  = ",F12.6           )') gcscf_beta
     WRITE(stdout, '(5X,"Mixing Thr. of Fermi  = ",F12.6," eV"     )') gcscf_delta * RYTOEV
+    WRITE(stdout, '(5X,"Scaling Anionic Fermi = ",F12.6           )') gcscf_anion
     !
     FLUSH(stdout)
     !

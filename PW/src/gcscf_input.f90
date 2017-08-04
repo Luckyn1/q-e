@@ -20,14 +20,15 @@ SUBROUTINE iosys_gcscf()
                           & gcscf_gh_         => gcscf_gh,         &
                           & gcscf_beta_       => gcscf_beta,       &
                           & gcscf_delta_      => gcscf_delta,      &
-                          & gcscf_eps, gcscf_check
+                          & gcscf_eps, gcscf_anion, gcscf_check
   USE kinds,         ONLY : DP
   USE rism3d_facade, ONLY : lrism3d, conv_level
   !
   ! ... SYSTEM namelist
   !
   USE input_parameters, ONLY : gcscf_ignore_mun, gcscf_mu, gcscf_conv_thr, &
-                             & gcscf_gk, gcscf_gh, gcscf_beta, gcscf_delta
+                             & gcscf_gk, gcscf_gh, gcscf_beta, gcscf_delta, &
+                             & gcscf_anion_scale
   !
   ! ... ELECTRONS namelist
   !
@@ -78,6 +79,7 @@ SUBROUTINE iosys_gcscf()
   gcscf_gh_         = gcscf_gh
   gcscf_beta_       = gcscf_beta
   gcscf_delta_      = gcscf_delta / RYTOEV
+  gcscf_anion       = gcscf_anion_scale
   !
   ! ... check condition
   !
