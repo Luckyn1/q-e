@@ -34,6 +34,10 @@ SUBROUTINE iosys_3drism(laue, linit)
   !
   USE input_parameters, ONLY : restart_mode
   !
+  ! ... SYSTEM namelist
+  !
+  USE input_parameters, ONLY : lgcscf
+  !
   ! ... RISM namelist
   !
   USE input_parameters, ONLY : closure, starting3d, tempv, permittivity, ecutsolv, smear3d, &
@@ -55,11 +59,13 @@ SUBROUTINE iosys_3drism(laue, linit)
   INTEGER :: is
   INTEGER :: nsite
   !
-  INTEGER,  PARAMETER :: MDIIS_SWITCH    = 4
-  REAL(DP), PARAMETER :: MDIIS_STEP_DEF1 = 0.8_DP
-  REAL(DP), PARAMETER :: MDIIS_STEP_DEF2 = 0.4_DP
-  REAL(DP), PARAMETER :: BUFFER_DEF      = 8.0_DP
-  REAL(DP), PARAMETER :: WALL_THR        = 1.0E-10_DP
+  INTEGER,  PARAMETER :: MDIIS_SWITCH      = 4
+  REAL(DP), PARAMETER :: MDIIS_STEP_DEF1   = 0.8_DP
+  REAL(DP), PARAMETER :: MDIIS_STEP_DEF2   = 0.4_DP
+  REAL(DP), PARAMETER :: CONV_LEVEL_NORMAL = 0.1_DP
+  REAL(DP), PARAMETER :: CONV_LEVEL_GCSCF  = 0.3_DP
+  REAL(DP), PARAMETER :: BUFFER_DEF        = 8.0_DP
+  REAL(DP), PARAMETER :: WALL_THR          = 1.0E-10_DP
   !
   ! ... check starting condition.
   IF (TRIM(restart_mode) == 'restart') THEN
@@ -84,6 +90,15 @@ SUBROUTINE iosys_3drism(laue, linit)
       mdiis3d_step = MDIIS_STEP_DEF1
     ELSE
       mdiis3d_step = MDIIS_STEP_DEF2
+    END IF
+  END IF
+  !
+  ! ... modify rism3d_conv_level
+  IF (rism3d_conv_level < 0.0_DP) THEN
+    IF (lgcscf) THEN
+      rism3d_conv_level = CONV_LEVEL_GCSCF
+    ELSE
+      rism3d_conv_level = CONV_LEVEL_NORMAL
     END IF
   END IF
   !

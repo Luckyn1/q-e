@@ -21,7 +21,8 @@ SUBROUTINE summary_3drism()
   USE io_global,     ONLY : stdout
   USE kinds,         ONLY : DP
   USE rism,          ONLY : ITYPE_LAUERISM, CLOSURE_HNC, CLOSURE_KH
-  USE rism3d_facade, ONLY : rism3t, niter, epsv, mdiis_size, mdiis_step, ecutsolv, laue_nfit, &
+  USE rism3d_facade, ONLY : rism3t, niter, epsv, conv_level, &
+                          & mdiis_size, mdiis_step, ecutsolv, laue_nfit, &
                           & ireference, IREFERENCE_AVERAGE, IREFERENCE_RIGHT, IREFERENCE_LEFT
   USE solute,        ONLY : iwall, wall_tau, IWALL_RIGHT, IWALL_LEFT
   USE solvmol,       ONLY : solVs, get_nuniq_in_solVs, iuniq_to_isite, &
@@ -121,6 +122,7 @@ SUBROUTINE summary_3drism()
   END IF
   WRITE(stdout, '(5X,"number of iterations    = ",I12)')               niter
   WRITE(stdout, '(5X,"convergence threshold   = ",1PE12.1)')           epsv
+  WRITE(stdout, '(5X,"convergence level       = ",0PF12.4)')           conv_level
   WRITE(stdout, '(5X,"size of MDIIS           = ",I12)')               mdiis_size
   WRITE(stdout, '(5X,"step of MDIIS           = ",0PF12.4)')           mdiis_step
   WRITE(stdout, '(5X,"solvent cutoff          = ",F12.4,"  Ry")')      ecutsolv

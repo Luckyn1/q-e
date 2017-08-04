@@ -22,7 +22,6 @@ SUBROUTINE iosys_gcscf()
                           & gcscf_delta_      => gcscf_delta,      &
                           & gcscf_eps, gcscf_anion, gcscf_check
   USE kinds,         ONLY : DP
-  USE rism3d_facade, ONLY : lrism3d, conv_level
   !
   ! ... SYSTEM namelist
   !
@@ -56,17 +55,6 @@ SUBROUTINE iosys_gcscf()
      !
      CALL infomsg('iosys', &
      & 'accurate eigenvalues are required for all states: diago_full_acc=.TRUE.')
-     !
-  END IF
-  !
-  ! ... modify conv_level
-  !
-  IF (lrism3d .AND. conv_level < 0.0_DP) THEN
-     !
-     conv_level = 0.3_DP
-     !
-     CALL infomsg('iosys', &
-     & 'convergence of 3D-RISM is set: rism3d_conv_level=0.3')
      !
   END IF
   !

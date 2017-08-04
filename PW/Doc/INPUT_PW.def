@@ -2995,7 +2995,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
 
         var rism3d_conv_level -type REAL {
             default { 
-                0.0 if @ref lgcscf == .FALSE.;
+                0.1 if @ref lgcscf == .FALSE.;
                 0.3 if @ref lgcscf == .TRUE.
             }
             options {
