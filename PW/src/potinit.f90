@@ -56,8 +56,6 @@ SUBROUTINE potinit()
   USE paw_init,             ONLY : PAW_atomic_becsum
   USE paw_onecenter,        ONLY : PAW_potential
   !
-  USE gcscf_module,         ONLY : lgcscf
-  !
   USE rism_module,          ONLY : lrism, rism_init3d, rism_calc3d
   !
   IMPLICIT NONE
@@ -177,7 +175,7 @@ SUBROUTINE potinit()
   !
   CALL mp_sum(  charge , intra_bgrp_comm )
   !
-  IF ( lscf .AND. (.NOT. lgcscf) .AND. ABS( charge - nelec ) > ( 1.D-7 * charge ) ) THEN
+  IF ( lscf .AND. ABS( charge - nelec ) > ( 1.D-7 * charge ) ) THEN
      !
      IF ( charge > 1.D-8 .AND. nat > 0 ) THEN
         WRITE( stdout, '(/,5X,"starting charge ",F10.5, &
