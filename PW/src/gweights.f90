@@ -39,7 +39,7 @@ end subroutine gweights
 !
 !--------------------------------------------------------------------
 subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
-     et, ef, demet, wg, is, isk, beta, delta, ascale)
+     et, ef, demet, wg, is, isk, beta, delta, ascale, alimit)
   !--------------------------------------------------------------------
   !     calculates Ef and weights with the gaussian spreading technique
   ! ... Wrapper routine: computes first Ef, then the weights
@@ -55,7 +55,8 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
   real(DP), intent(inout) :: wg (nbnd, nks)
   real(DP), intent(inout) :: ef
   real(DP), intent(out) :: demet
-  real(DP), intent(in) :: beta, delta, ascale
+  real(DP), intent(in) :: beta, delta
+  real(DP), intent(in) :: ascale, alimit
   !
   real(DP) :: ef_by_n, ef_sca, ef_new
   real(DP), external :: efermig
@@ -67,9 +68,9 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
   if (beta > 0.0_DP) then
      if (ef > ef_by_n) then
         ! if anionic, scale ef
-        ef_sca = ef_by_n + MAX( ascale * (ef - ef_by_n), 0.01_DP )
+        ef_sca = ef_by_n + MAX( ascale * (ef - ef_by_n), alimit )
      else
-        ! if cationic
+        ! if cationic, NOP
         ef_sca = ef
      end if
 
