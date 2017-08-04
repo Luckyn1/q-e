@@ -135,8 +135,7 @@ SUBROUTINE weights()
               !
               CALL gweights_mix( nks, wk, nbnd, nelec, degauss, &
                                  ngauss, et, ef, demet, wg, 0, isk, &
-                                 gcscf_beta, gcscf_delta, &
-                                 gcscf_anion, gcscf_anion * gcscf_eps )
+                                 gcscf_beta, gcscf_delta, gcscf_anion, gcscf_eps )
               !
            ELSE
               !

@@ -68,7 +68,7 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
   if (beta > 0.0_DP) then
      if (ef > ef_by_n) then
         ! if anionic, scale ef
-        ef_sca = ef_by_n + MAX( ascale * (ef - ef_by_n), alimit )
+        ef_sca = ef_by_n + ascale * MAX( (ef - ef_by_n), alimit )
      else
         ! if cationic, NOP
         ef_sca = ef
