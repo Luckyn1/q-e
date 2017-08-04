@@ -1575,6 +1575,8 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             default { 0.05D0 }
             info {
                 Mixing factor for GC-SCF.
+                Larger values are recommended,
+                if systems with small DOS on Fermi surface as graphite.
             }
         }
 
