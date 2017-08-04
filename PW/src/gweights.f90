@@ -65,7 +65,7 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
 
   ef_by_n = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
 
-  if (ef > ef_by_n) then
+  if (ef > ef_by_n + 0.01_DP) then
      ! if anionic, scale ef
      ef_sca = ef_by_n + MAX( ascale * (ef - ef_by_n), alimit )
   else
