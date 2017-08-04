@@ -65,23 +65,18 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
 
   ef_by_n = efermig (et, nbnd, nks, nelec, wk, degauss, ngauss, is, isk)
 
-  if (beta > 0.0_DP) then
-     if (ef > ef_by_n) then
-        ! if anionic, scale ef
-        ef_sca = ef_by_n + MAX( ascale * (ef - ef_by_n), alimit )
-     else
-        ! if cationic, NOP
-        ef_sca = ef
-     end if
-
-     ef_new = beta * ef_sca + (1.0_DP - beta) * ef_by_n
-
-     if (abs(ef - ef_new) > delta) then
-        ef = ef_new
-     end if
-
+  if (ef > ef_by_n) then
+     ! if anionic, scale ef
+     ef_sca = ef_by_n + MAX( ascale * (ef - ef_by_n), alimit )
   else
-     ef = ef_by_n
+     ! if cationic, NOP
+     ef_sca = ef
+  end if
+
+  ef_new = beta * ef_sca + (1.0_DP - beta) * ef_by_n
+
+  if (abs(ef - ef_new) > delta) then
+     ef = ef_new
   end if
 
   ! Calculate weights
