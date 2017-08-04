@@ -39,7 +39,7 @@ end subroutine gweights
 !
 !--------------------------------------------------------------------
 subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
-     et, ef, demet, wg, is, isk, beta, eps)
+     et, ef, demet, wg, is, isk, beta, delta)
   !--------------------------------------------------------------------
   !     calculates Ef and weights with the gaussian spreading technique
   ! ... Wrapper routine: computes first Ef, then the weights
@@ -55,7 +55,7 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
   real(DP), intent(inout) :: wg (nbnd, nks)
   real(DP), intent(inout) :: ef
   real(DP), intent(out) :: demet
-  real(DP), intent(in) :: beta, eps
+  real(DP), intent(in) :: beta, delta
   !
   real(DP) :: ef_by_n, ef_new
   real(DP), external :: efermig
@@ -66,7 +66,7 @@ subroutine gweights_mix (nks, wk, nbnd, nelec, degauss, ngauss, &
 
   if (beta > 0.0_DP) then
      ef_new = beta * ef + (1.0_DP - beta) * ef_by_n
-     if (abs(ef - ef_new) > eps) then
+     if (abs(ef - ef_new) > delta) then
         ef = ef_new
      end if
   else
