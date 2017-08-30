@@ -472,7 +472,16 @@ SUBROUTINE electrons_scf ( printout, exxen )
      !
      IF ( iter > 1 ) THEN
         !
-        IF ( iter == 2 ) ethr = 1.D-2
+        IF ( iter == 2 ) THEN
+           !
+           IF ( lgcscf ) THEN
+              ethr = 1.D-5
+           ELSE
+              ethr = 1.D-2
+           END IF
+           !
+        END IF
+        !
         ethr = MIN( ethr, 0.1D0*dr2 / MAX( 1.D0, nelec ) )
         ! ... do not allow convergence threshold to become too small:
         ! ... iterative diagonalization may become unstable
