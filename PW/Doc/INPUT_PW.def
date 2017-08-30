@@ -1553,6 +1553,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 - The default of @ref mixing_beta is 0.1 with ESM-RISM, 0.2 without ESM-RISM.
                 - The default of @ref diago_thr_init is 1.D-5.
                 - @ref diago_full_acc is always .TRUE. .
+                - @ref diago_rmm_conv is always .TRUE. .
             }
         }
 
