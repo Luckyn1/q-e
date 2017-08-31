@@ -95,6 +95,7 @@ MODULE rism
     COMPLEX(DP), POINTER :: hgz (:,:)    ! total correlations in G-space or Laue-rep. (complex)
     COMPLEX(DP), POINTER :: hsgz(:,:)    ! short-range total correlations in Laue-rep. (complex)
     COMPLEX(DP), POINTER :: hlgz(:,:)    ! long-range total correlations in Laue-rep. (complex)
+    REAL(DP),    POINTER :: hdz (:,:,:)  ! dipole-parts of total correlations in Laue-rep. (integrated intermediate)
     REAL(DP),    POINTER :: gr  (:,:)    ! distribution functions in R-space
     REAL(DP),    POINTER :: wg  (:,:)    ! intra-molecular correlations in G-space
     REAL(DP),    POINTER :: xgs (:,:,:)  ! inter-site susceptibility in G-shell or Laue-rep.
@@ -541,6 +542,9 @@ CONTAINS
         ALLOCATE(rismt%hsgz(nrzl * ngxy, nsite))
         ALLOCATE(rismt%hlgz(nrzl * ngxy, nsite))
       END IF
+      IF ((nrzl * nsite * nsite_t) > 0) THEN
+        ALLOCATE(rismt%hdz(nrzl, nsite, nsite_t))
+      END IF
     END IF
     !
     ! ..... susceptibility, x12(g)
@@ -811,6 +815,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%hgz ))      DEALLOCATE(rismt%hgz)
     IF (ASSOCIATED(rismt%hsgz))      DEALLOCATE(rismt%hsgz)
     IF (ASSOCIATED(rismt%hlgz))      DEALLOCATE(rismt%hlgz)
+    IF (ASSOCIATED(rismt%hdz))       DEALLOCATE(rismt%hdz)
     IF (ASSOCIATED(rismt%gr ))       DEALLOCATE(rismt%gr)
     IF (ASSOCIATED(rismt%wg ))       DEALLOCATE(rismt%wg)
     IF (ASSOCIATED(rismt%xgs))       DEALLOCATE(rismt%xgs)
