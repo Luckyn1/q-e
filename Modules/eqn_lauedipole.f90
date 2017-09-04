@@ -1,5 +1,5 @@
 !
-! Copyright (C) 2016 National Institute of Advanced Industrial Science and Technology (AIST)
+! Copyright (C) 2017 National Institute of Advanced Industrial Science and Technology (AIST)
 ! [ This code is written by Satomichi Nishihara. ]
 !
 ! This file is distributed under the terms of the
@@ -8,32 +8,58 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------------------
-SUBROUTINE eqn_lauedipole(rismt, expand, ierr)
+SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   !---------------------------------------------------------------------------
   !
-  ! ... solve Laue-RISM equation from void-region, which is defined as
+  ! ... solve dipole part of Laue-RISM equation, which is defined as
   ! ...
-  ! ...                  /
-  ! ...   h1(gxy=0,z1) = | dz2 c2(gxy=0,z2) * x21(gxy=0,z2-z1)
-  ! ...                  /void-region
+  ! ...             /
+  ! ...   hd1(z1) = | dz2 cd2(z2) * x21(gxy=0,z2-z1) .
+  ! ...             /
   ! ...
-  ! ... void-region is in right-hand or left-hand side,
-  ! ... where solvents does not exist and c2 is linear function.
-  ! ... calculated total correlations are added to `hgz' or `hsgz'.
+  ! ... if the right-hand side solvent, cd2 is
+  ! ...
+  ! ...              D2             pi   z2
+  ! ...   cd2(z2) = ---- * (1 - sin(-- * --)) .
+  ! ...              2              2    z0
+  ! ...
+  ! ... if the left-hand side solvent, cd2 is
+  ! ...
+  ! ...              D2             pi   z2
+  ! ...   cd2(z2) = ---- * (1 + sin(-- * --)) .
+  ! ...              2              2    z0
+  ! ...
+  ! ... when prepare = .true., only intermediate integrations are performed as
+  ! ...
+  ! ...    1    /               pi   z2
+  ! ...   --- * | dz2 (1 -+ sin(-- * --)) * x21(gxy=0,z2-z1)
+  ! ...    2    /               2    z0
+  ! ...
+  ! ... , which are stored to `hdz'.
+  ! ...
+  ! ... when prepare = .false., integrations are concluded as
+  ! ...
+  ! ...              D2    /               pi   z2
+  ! ...   hd1(z1) = ---- * | dz2 (1 -+ sin(-- * --)) * x21(gxy=0,z2-z1)
+  ! ...              2     /               2    z0
+  ! ...
+  ! ... , which are added to `hgz' or `hsgz'.
   ! ...
   !
-  USE cell_base, ONLY : alat
-  USE constants, ONLY : K_BOLTZMANN_RY
+  USE cell_base, ONLY : alat, at
+  USE constants, ONLY : pi, K_BOLTZMANN_RY
   USE err_rism,  ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
   USE kinds,     ONLY : DP
   USE mp,        ONLY : mp_sum
   USE rism,      ONLY : rism_type, ITYPE_LAUERISM
-  USE solvmol,   ONLY : get_nuniq_in_solVs, iuniq_to_isite, isite_to_isolV, isite_to_iatom, solVs
+  USE solvmol,   ONLY : solVs, get_nuniq_in_solVs, &
+                      & iuniq_to_isite, isite_to_isolV, isite_to_iatom
   !
   IMPLICIT NONE
   !
   TYPE(rism_type), INTENT(INOUT) :: rismt
   LOGICAL,         INTENT(IN)    :: expand
+  LOGICAL,         INTENT(IN)    :: prepare
   INTEGER,         INTENT(OUT)   :: ierr
   !
   INTEGER               :: nq
@@ -42,28 +68,32 @@ SUBROUTINE eqn_lauedipole(rismt, expand, ierr)
   INTEGER               :: iv2
   INTEGER               :: isolV2
   INTEGER               :: iatom2
-  INTEGER               :: nzint
-  INTEGER               :: izint
+  INTEGER               :: iz1, iz2
+  INTEGER               :: iiz1, iiz2
   INTEGER               :: izdelt
-  INTEGER               :: iz
-  INTEGER               :: iiz
-  INTEGER               :: izsta
-  INTEGER               :: izend
+  INTEGER               :: izsta1, izsta2
+  INTEGER               :: izend1, izend2
+  INTEGER               :: nzint1, nzint2
+  INTEGER               :: izint1, izint2
   INTEGER               :: izsolv
-  INTEGER               :: izvoid
   REAL(DP)              :: beta
   REAL(DP)              :: qv2
   REAL(DP)              :: z
+  REAL(DP)              :: z0
   REAL(DP)              :: zstep
   REAL(DP)              :: zoffs
   REAL(DP)              :: zedge
-  REAL(DP)              :: voppo
-  REAL(DP)              :: vsign
-  REAL(DP)              :: cz
-  REAL(DP)              :: dz
+  REAL(DP)              :: dsign
+  REAL(DP)              :: vline0
+  REAL(DP)              :: vline1
+  REAL(DP)              :: dedge
+  REAL(DP)              :: cedge
+  REAL(DP), ALLOCATABLE :: dipz(:)
+  REAL(DP), ALLOCATABLE :: x21(:,:)
   REAL(DP), ALLOCATABLE :: c2(:)
-  REAL(DP), ALLOCATABLE :: d2(:)
   REAL(DP), ALLOCATABLE :: h1(:)
+  !
+  EXTERNAL :: dgemv
   !
   ! ... number of sites in solvents
   nq = get_nuniq_in_solVs()
@@ -89,7 +119,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, ierr)
     RETURN
   END IF
   !
-  ! ... has void-region ?
+  ! ... is one-hand ?
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
     ierr = IERR_RISM_NULL
     RETURN
@@ -98,155 +128,237 @@ SUBROUTINE eqn_lauedipole(rismt, expand, ierr)
   ! ... beta = 1 / (kB * T)
   beta = 1.0_DP / K_BOLTZMANN_RY / rismt%temp
   !
-  ! ... set integral regions as index of long Z-stick (i.e. expanded cell)
+  ! ... set domain of z1 as index of long Z-stick (i.e. expanded cell)
   IF (rismt%lfft%xright) THEN
-    IF (expand) THEN
-      izsta = rismt%lfft%izright_start
-      izend = rismt%lfft%nrz
+    IF (expand .OR. prepare) THEN
+      izsta1 = rismt%lfft%izright_start
+      izend1 = rismt%lfft%nrz
     ELSE
-      izsta = rismt%lfft%izright_start
-      izend = rismt%lfft%izcell_end
+      izsta1 = rismt%lfft%izright_start
+      izend1 = rismt%lfft%izcell_end
     END IF
     !
-    izsolv = izsta
-    izvoid = izsta - 1
+    izsolv = izsta1
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      voppo = DBLE(rismt%vleft(1)) / alat
-      vsign = -1.0_DP
-    ELSE
-      voppo = 0.0_DP
-      vsign = 0.0_DP
+      dsign  = -1.0_DP
+      vline0 = AIMAG(rismt%vleft(1))
+      vline1 = DBLE( rismt%vleft(1)) / alat
     END IF
     !
   ELSE !IF (rismt%lfft%xleft) THEN
-    IF (expand) THEN
-      izsta = 1
-      izend = rismt%lfft%izleft_end
+    IF (expand .OR. prepare) THEN
+      izsta1 = 1
+      izend1 = rismt%lfft%izleft_end
     ELSE
-      izsta = rismt%lfft%izcell_start
-      izend = rismt%lfft%izleft_end
+      izsta1 = rismt%lfft%izcell_start
+      izend1 = rismt%lfft%izleft_end
     END IF
     !
-    izsolv = izend
-    izvoid = izend + 1
+    izsolv = izend1
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      voppo = DBLE(rismt%vright(1)) / alat
-      vsign = +1.0_DP
-    ELSE
-      voppo = 0.0_DP
-      vsign = 0.0_DP
+      dsign  = +1.0_DP
+      vline0 = AIMAG(rismt%vright(1))
+      vline1 = DBLE( rismt%vright(1)) / alat
     END IF
   END IF
   !
-  ! ... count integral points along Z
-  nzint = izend - izsta + 1
+  ! ... count integral points along z1
+  nzint1 = izend1 - izsta1 + 1
   !
   ! ... properties about length (in a.u.)
+  z0    = alat * 0.5_DP * at(3, 3)
   zstep = alat * rismt%lfft%zstep
   zoffs = alat * (rismt%lfft%zleft + rismt%lfft%zoffset)
   zedge = zoffs + zstep * DBLE(izsolv - 1)
   !
-  ! ... allocate working memory
-  IF (rismt%nsite > 0) THEN
-    ALLOCATE(c2(rismt%nsite))
-    ALLOCATE(d2(rismt%nsite))
-  END IF
-  IF (nzint > 0) THEN
-    ALLOCATE(h1(nzint))
-  END IF
-  !
-  ! ... calculate c2, d2
-  DO iq2 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
-    iiq2   = iq2 - rismt%mp_site%isite_start + 1
-    iv2    = iuniq_to_isite(1, iq2)
-    isolV2 = isite_to_isolV(iv2)
-    iatom2 = isite_to_iatom(iv2)
-    qv2    = solVs(isolV2)%charge(iatom2)
+  IF (prepare) THEN
+    ! ...
+    ! ... Prepare intermediate integrations
+    ! ..............................................................................
+    !
+    ! ... set domain of z2 as index of long Z-stick (i.e. expanded cell)
+    IF (rismt%lfft%xright) THEN
+      izsta2 = rismt%lfft%izright_start
+      izend2 = rismt%lfft%izright_end
+      !
+    ELSE !IF (rismt%lfft%xleft) THEN
+      izsta2 = rismt%lfft%izleft_start
+      izend2 = rismt%lfft%izleft_end
+    END IF
+    !
+    ! ... count integral points along z2
+    nzint2 = izend2 - izsta2 + 1
+    !
+    ! ... allocate working memory
+    IF (nzint2 > 0) THEN
+      ALLOCATE(dipz(nzint2))
+    END IF
+    IF (nzint2 * nzint1 > 0) THEN
+      ALLOCATE(x21(nzint2, nzint1))
+    END IF
+    !
+    ! ... kernel of dipole part
+    IF (nzint2 > 0) THEN
+      dipz = 0.0_DP
+    END IF
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      iiz = izsolv - rismt%lfft%izcell_start + 1
-      c2(iiq2) = DBLE(rismt%csgz(iiz, iiq2)) - beta * qv2 * DBLE(rismt%vlgz(izsolv))
-      d2(iiq2) = -beta * qv2 * voppo
-    ELSE
-      c2(iiq2) = 0.0_DP
-      d2(iiq2) = 0.0_DP
-    END IF
-  END DO
-  !
-  IF (rismt%nsite > 0) THEN
-    CALL mp_sum(c2, rismt%mp_site%intra_sitg_comm)
-    CALL mp_sum(d2, rismt%mp_site%intra_sitg_comm)
-  END IF
-  !
-  ! ... Laue-RISM equation of void-region
-  DO iq1 = 1, nq
-    IF (rismt%mp_site%isite_start <= iq1 .AND. iq1 <= rismt%mp_site%isite_end) THEN
-      iiq1 = iq1 - rismt%mp_site%isite_start + 1
-    ELSE
-      iiq1 = 0
-    END IF
-    !
-    IF (nzint > 0) THEN
-      h1 = 0.0_DP
-    END IF
-    !
-    DO iq2 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
-      iiq2 = iq2 - rismt%mp_site%isite_start + 1
-      !
-      ! ... h1(z1)
-      IF (rismt%lfft%gxystart > 1) THEN
-!$omp parallel do default(shared) private(iz, izint, izdelt, z, cz, dz)
-        DO iz = izsta, izend
-          izint  = iz - izsta + 1
-          izdelt = ABS(iz - izvoid) + 1
-          z  = zoffs + zstep * DBLE(iz - 1)
-          cz = c2(iiq2) + d2(iiq2) * (z - zedge)
-          dz = d2(iiq2) * vsign
-          h1(izint) = h1(izint) &
-          & + cz * rismt%xgs0(izdelt, iiq2, iq1) &
-          & + dz * rismt%xgs1(izdelt, iiq2, iq1)
-        END DO
+!$omp parallel do default(shared) private(iz2, izint2, z)
+      DO iz2 = izsta2, izend2
+        izint2 = iz2 - izsta2 + 1
+        z = zoffs + zstep * DBLE(iz2 - 1)
+        dipz(izint2) = 0.5_DP * (1.0_DP + dsign * SIN(0.5_DP * pi * z / z0))
+      END DO
 !$omp end parallel do
+    END IF
+    !
+    ! ... calculate hdz, for all solvent-pairs
+    IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
+      rismt%hdz = 0.0_DP
+    END IF
+    !
+    DO iq1 = 1, nq
+      DO iq2 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
+        iiq2 = iq2 - rismt%mp_site%isite_start + 1
+        !
+        IF (nzint2 * nzint1 > 0) THEN
+          x21 = 0.0_DP
+        END IF
+        !
+        IF (rismt%lfft%gxystart > 1) THEN
+          ! ... set solvent susceptibility x21
+!$omp parallel do default(shared) private(iz1, iz2, izint1, izint2, izdelt)
+          DO iz2 = izsta2, izend2
+            izint2 = iz2 - izsta2 + 1
+            DO iz1 = izsta1, izend1
+              izint1 = iz1 - izsta1 + 1
+              izdelt = ABS(iz1 - iz2) + 1
+              x21(izint2, izint1) = rismt%xgs(izdelt, iiq2, iq1)
+            END DO
+          END DO
+!$omp end parallel do
+          !
+          ! ... convolute dipz and x21 -> hdz
+          IF (nzint2 * nzint1 > 0) THEN
+            CALL dgemv('T', nzint2, nzint1, zstep, &
+                     & x21, nzint2, dipz, 1, 0.0_DP, rismt%hdz(izsta1, iiq2, iq1), 1)
+          END IF
+        END IF
+        !
+      END DO
+    END DO
+    !
+    IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
+      CALL mp_sum(rismt%hdz, rismt%mp_site%intra_sitg_comm)
+    END IF
+    !
+    ! ... deallocate working memory
+    IF (nzint1 > 0) THEN
+      DEALLOCATE(dipz)
+    END IF
+    IF (nzint1 * nzint2 > 0) THEN
+      DEALLOCATE(x21)
+    END IF
+    !
+  ELSE
+    ! ...
+    ! ... Calculate dipole part of total correlations
+    ! ..............................................................................
+    !
+    ! ... allocate working memory
+    IF (rismt%nsite > 0) THEN
+      ALLOCATE(c2(rismt%nsite))
+    END IF
+    IF (nzint1 > 0) THEN
+      ALLOCATE(h1(nzint1))
+    END IF
+    !
+    ! ... calculate c2
+    DO iq2 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
+      iiq2   = iq2 - rismt%mp_site%isite_start + 1
+      iv2    = iuniq_to_isite(1, iq2)
+      isolV2 = isite_to_isolV(iv2)
+      iatom2 = isite_to_iatom(iv2)
+      qv2    = solVs(isolV2)%charge(iatom2)
+      !
+      IF (rismt%lfft%gxystart > 1) THEN
+        iiz2 = izsolv - rismt%lfft%izcell_start + 1
+        dedge = 0.5_DP * (1.0_DP + dsign * SIN(0.5_DP * pi * zedge / z0))
+        cedge = DBLE(rismt%csgz(iiz2, iiq2)) - beta * qv2 * DBLE(rismt%vlgz(izsolv))
+        cedge = cedge + beta * qv2 * (vline1 * zedge + vline0)
+        c2(iiq2) = cedge / (1.0_DP - dedge)
+      ELSE
+        c2(iiq2) = 0.0_DP
       END IF
     END DO
     !
-    IF (nzint > 0) THEN
-      CALL mp_sum(h1, rismt%mp_site%inter_sitg_comm)
+    IF (rismt%nsite > 0) THEN
+      CALL mp_sum(c2, rismt%mp_site%intra_sitg_comm)
     END IF
     !
-    IF (iiq1 > 0 .AND. rismt%lfft%gxystart > 1) THEN
-      IF (expand) THEN
-        ! ... add h1 -> hsgz
-!$omp parallel do default(shared) private(iz, izint)
-        DO iz = izsta, izend
-          izint = iz - izsta + 1
-          rismt%hsgz(iz, iiq1) = rismt%hsgz(iz, iiq1) + CMPLX(h1(izint), 0.0_DP, kind=DP)
-        END DO
-!$omp end parallel do
-        !
+    ! ... Laue-RISM equation of dipole part
+    DO iq1 = 1, nq
+      IF (rismt%mp_site%isite_start <= iq1 .AND. iq1 <= rismt%mp_site%isite_end) THEN
+        iiq1 = iq1 - rismt%mp_site%isite_start + 1
       ELSE
-        ! ... add h1 -> hgz
-!$omp parallel do default(shared) private(iz, iiz, izint)
-        DO iz = izsta, izend
-          iiz   = iz - rismt%lfft%izcell_start + 1
-          izint = iz - izsta + 1
-          rismt%hgz(iiz, iiq1) = rismt%hgz(iiz, iiq1) + CMPLX(h1(izint), 0.0_DP, kind=DP)
-        END DO
-!$omp end parallel do
+        iiq1 = 0
       END IF
-    END IF
+      !
+      IF (nzint1 > 0) THEN
+        h1 = 0.0_DP
+      END IF
+      !
+      DO iq2 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
+        iiq2 = iq2 - rismt%mp_site%isite_start + 1
+        !
+        ! ... calculate h1(z1)
+        IF (rismt%lfft%gxystart > 1) THEN
+!$omp parallel do default(shared) private(iz1, izint1)
+          DO iz1 = izsta1, izend1
+            izint1 = iz1 - izsta1 + 1
+            h1(izint1) = h1(izint1) + c2(iiq2) * rismt%hdz(iz1, iiq2, iq1)
+          END DO
+!$omp end parallel do
+        END IF
+        !
+      END DO
+      !
+      IF (nzint1 > 0) THEN
+        CALL mp_sum(h1, rismt%mp_site%inter_sitg_comm)
+      END IF
+      !
+      IF (iiq1 > 0 .AND. rismt%lfft%gxystart > 1) THEN
+        IF (expand) THEN
+          ! ... add h1 -> hsgz
+!$omp parallel do default(shared) private(iz1, izint1)
+          DO iz1 = izsta1, izend1
+            izint1 = iz1 - izsta1 + 1
+            rismt%hsgz(iz1, iiq1) = rismt%hsgz(iz1, iiq1) + CMPLX(h1(izint1), 0.0_DP, kind=DP)
+          END DO
+!$omp end parallel do
+        ELSE
+          ! ... add h1 -> hgz
+!$omp parallel do default(shared) private(iz1, iiz1, izint1)
+          DO iz1 = izsta1, izend1
+            iiz1 = iz1 - rismt%lfft%izcell_start + 1
+            izint1 = iz1 - izsta1 + 1
+            rismt%hgz(iiz1, iiq1) = rismt%hgz(iiz1, iiq1) + CMPLX(h1(izint1), 0.0_DP, kind=DP)
+          END DO
+!$omp end parallel do
+        END IF
+      END IF
+      !
+    END DO
     !
-  END DO
-  !
-  ! ... deallocate working memory
-  IF (rismt%nsite > 0) THEN
-    DEALLOCATE(c2)
-    DEALLOCATE(d2)
-  END IF
-  IF (nzint > 0) THEN
-    DEALLOCATE(h1)
+    ! ... deallocate working memory
+    IF (rismt%nsite > 0) THEN
+      DEALLOCATE(c2)
+    END IF
+    IF (nzint1 > 0) THEN
+      DEALLOCATE(h1)
+    END IF
   END IF
   !
   ! ... normally done
