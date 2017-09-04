@@ -337,6 +337,12 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
     END DO
   END DO
   !
+  ! ... add dipole part of Laue-RISM
+  CALL eqn_lauedipole(rismt, .FALSE., .FALSE., ierr)
+  IF (ierr /= IERR_RISM_NULL) THEN
+    GOTO 1
+  END IF
+  !
   ! ... add contribution from void-region
   CALL eqn_lauevoid(rismt, .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
