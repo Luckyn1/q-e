@@ -58,7 +58,7 @@ SUBROUTINE allocate_lauefft_rz(lauefft0, dzright, dzleft)
   lauefft0%nrz     = good_fft_order(    lauefft0%nrz)
   lauefft0%nrzx    = good_fft_dimension(lauefft0%nrz)
   lauefft0%zstep   = hz
-  lauefft0%zoffset = 0.5_DP * DBLE(MOD(lauefft0%dfft%nr3, 2)) * hz
+  lauefft0%zoffset = 0.5_DP * DBLE(MOD(lauefft0%dfft%nr3, 2)) * hz ! grid on z=0 must be
   !
   ! ... check and correct number of grids
   IF (nzright < 1 .AND. nzleft < 1) THEN
