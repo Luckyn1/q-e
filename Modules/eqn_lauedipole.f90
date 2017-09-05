@@ -83,15 +83,15 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   REAL(DP)              :: zstep
   REAL(DP)              :: zoffs
   REAL(DP)              :: zedge
-  REAL(DP)              :: dsign
+  REAL(DP)              :: ssign
   REAL(DP)              :: vline0
   REAL(DP)              :: vline1
-  REAL(DP)              :: dedge
+  REAL(DP)              :: sedge
   REAL(DP)              :: cedge
-  REAL(DP), ALLOCATABLE :: dipz(:)
   REAL(DP), ALLOCATABLE :: x21(:,:)
-  REAL(DP), ALLOCATABLE :: c2(:)
   REAL(DP), ALLOCATABLE :: h1(:)
+  !
+  REAL(DP),   PARAMETER :: STEP_FUNC_THR = 1.0E-6_DP
   !
   EXTERNAL :: dgemv
   !
@@ -141,7 +141,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     izsolv = izsta1
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      dsign  = -1.0_DP
+      ssign  = -1.0_DP
       vline0 = AIMAG(rismt%vleft(1))
       vline1 = DBLE( rismt%vleft(1)) / alat
     END IF
@@ -158,7 +158,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     izsolv = izend1
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      dsign  = +1.0_DP
+      ssign  = +1.0_DP
       vline0 = AIMAG(rismt%vright(1))
       vline1 = DBLE( rismt%vright(1)) / alat
     END IF
@@ -192,24 +192,21 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     nzint2 = izend2 - izsta2 + 1
     !
     ! ... allocate working memory
-    IF (nzint2 > 0) THEN
-      ALLOCATE(dipz(nzint2))
-    END IF
     IF (nzint2 * nzint1 > 0) THEN
       ALLOCATE(x21(nzint2, nzint1))
     END IF
     !
-    ! ... kernel of dipole part
-    IF (nzint2 > 0) THEN
-      dipz = 0.0_DP
+    ! ... calculate cdzs: step function of dipole part
+    IF (rismt%nrzs > 0) THEN
+      rismt%cdzs = 0.0_DP
     END IF
     !
     IF (rismt%lfft%gxystart > 1) THEN
-!$omp parallel do default(shared) private(iz2, izint2, z)
+!$omp parallel do default(shared) private(iz2, iiz2, z)
       DO iz2 = izsta2, izend2
-        izint2 = iz2 - izsta2 + 1
+        iiz2 = iz2 - rismt%lfft%izcell_start + 1
         z = zoffs + zstep * DBLE(iz2 - 1)
-        dipz(izint2) = 0.5_DP * (1.0_DP + dsign * SIN(0.5_DP * pi * z / z0))
+        rismt%cdzs(iiz2) = 0.5_DP * (1.0_DP + ssign * SIN(0.5_DP * pi * z / z0))
       END DO
 !$omp end parallel do
     END IF
@@ -240,24 +237,26 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
           END DO
 !$omp end parallel do
           !
-          ! ... convolute dipz and x21 -> hdz
+          ! ... convolute cdzs and x21 -> hdz
           IF (nzint2 * nzint1 > 0) THEN
-            CALL dgemv('T', nzint2, nzint1, zstep, &
-                     & x21, nzint2, dipz, 1, 0.0_DP, rismt%hdz(izsta1, iiq2, iq1), 1)
+            CALL dgemv('T', nzint2, nzint1, zstep, x21, nzint2, &
+                     & rismt%cdzs(izsta2 - rismt%lfft%izcell_start + 1), 1, 0.0_DP, &
+                     & rismt%hdz(izsta1, iiq2, iq1), 1)
           END IF
         END IF
         !
       END DO
     END DO
     !
+    IF (rismt%nrzs > 0) THEN
+      CALL mp_sum(rismt%cdzs, rismt%mp_site%intra_sitg_comm)
+    END IF
+    !
     IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
       CALL mp_sum(rismt%hdz, rismt%mp_site%intra_sitg_comm)
     END IF
     !
     ! ... deallocate working memory
-    IF (nzint1 > 0) THEN
-      DEALLOCATE(dipz)
-    END IF
     IF (nzint1 * nzint2 > 0) THEN
       DEALLOCATE(x21)
     END IF
@@ -268,14 +267,15 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     ! ..............................................................................
     !
     ! ... allocate working memory
-    IF (rismt%nsite > 0) THEN
-      ALLOCATE(c2(rismt%nsite))
-    END IF
     IF (nzint1 > 0) THEN
       ALLOCATE(h1(nzint1))
     END IF
     !
-    ! ... calculate c2
+    ! ... calculate cdza: amplitude of dipole part
+    IF (rismt%nsite > 0) THEN
+      rismt%cdza = 0.0_DP
+    END IF
+    !
     DO iq2 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
       iiq2   = iq2 - rismt%mp_site%isite_start + 1
       iv2    = iuniq_to_isite(1, iq2)
@@ -285,17 +285,19 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       !
       IF (rismt%lfft%gxystart > 1) THEN
         iiz2 = izsolv - rismt%lfft%izcell_start + 1
-        dedge = 0.5_DP * (1.0_DP + dsign * SIN(0.5_DP * pi * zedge / z0))
-        cedge = DBLE(rismt%csgz(iiz2, iiq2)) - beta * qv2 * DBLE(rismt%vlgz(izsolv))
-        cedge = cedge + beta * qv2 * (vline1 * zedge + vline0)
-        c2(iiq2) = cedge / (1.0_DP - dedge)
-      ELSE
-        c2(iiq2) = 0.0_DP
+        sedge = 0.5_DP * (1.0_DP + ssign * SIN(0.5_DP * pi * zedge / z0))
+        cedge = DBLE(rismt%csgz(iiz2, iiq2)) &
+            & - beta * qv2 * DBLE(rismt%vlgz(izsolv)) &
+            & + beta * qv2 * (vline1 * zedge + vline0)
+        !
+        IF ((1.0_DP - sedge) > STEP_FUNC_THR) THEN
+          rismt%cdza(iiq2) = cedge / (1.0_DP - sedge)
+        END IF
       END IF
     END DO
     !
     IF (rismt%nsite > 0) THEN
-      CALL mp_sum(c2, rismt%mp_site%intra_sitg_comm)
+      CALL mp_sum(rismt%cdza, rismt%mp_site%intra_sitg_comm)
     END IF
     !
     ! ... Laue-RISM equation of dipole part
@@ -318,7 +320,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izsta1, izend1
             izint1 = iz1 - izsta1 + 1
-            h1(izint1) = h1(izint1) + c2(iiq2) * rismt%hdz(iz1, iiq2, iq1)
+            h1(izint1) = h1(izint1) + rismt%cdza(iiq2) * rismt%hdz(iz1, iiq2, iq1)
           END DO
 !$omp end parallel do
         END IF
@@ -353,9 +355,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     END DO
     !
     ! ... deallocate working memory
-    IF (rismt%nsite > 0) THEN
-      DEALLOCATE(c2)
-    END IF
     IF (nzint1 > 0) THEN
       DEALLOCATE(h1)
     END IF

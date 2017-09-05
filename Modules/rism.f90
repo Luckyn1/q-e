@@ -547,8 +547,8 @@ CONTAINS
       IF (nsite > 0) THEN
         ALLOCATE(rismt%cdza(nsite))
       END IF
-      IF (nrzl > 0) THEN
-        ALLOCATE(rismt%cdzs(nrzl))
+      IF (nrzs > 0) THEN
+        ALLOCATE(rismt%cdzs(nrzs))
       END IF
       IF ((nrzl * nsite * nsite_t) > 0) THEN
         ALLOCATE(rismt%hdz(nrzl, nsite, nsite_t))
