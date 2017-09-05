@@ -29,7 +29,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   ! ...   cd2(z2) = ---- * (1 + sin(-- * --)) .
   ! ...              2              2    z0
   ! ...
-  ! ... when prepare = .true., only intermediate integrations are performed as
+  ! ... when prepare = .TRUE., only intermediate integrations are performed as
   ! ...
   ! ...    1    /               pi   z2
   ! ...   --- * | dz2 (1 -+ sin(-- * --)) * x21(gxy=0,z2-z1)
@@ -37,7 +37,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   ! ...
   ! ... , which are stored to `hdz'.
   ! ...
-  ! ... when prepare = .false., integrations are concluded as
+  ! ... when prepare = .FALSE., integrations are concluded as
   ! ...
   ! ...              D2    /               pi   z2
   ! ...   hd1(z1) = ---- * | dz2 (1 -+ sin(-- * --)) * x21(gxy=0,z2-z1)
