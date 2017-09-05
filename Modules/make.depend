@@ -148,6 +148,13 @@ eqn_3drism.o : kind.o
 eqn_3drism.o : mp.o
 eqn_3drism.o : rism.o
 eqn_3drism.o : solvmol.o
+eqn_lauedipole.o : cell_base.o
+eqn_lauedipole.o : constants.o
+eqn_lauedipole.o : err_rism.o
+eqn_lauedipole.o : kind.o
+eqn_lauedipole.o : mp.o
+eqn_lauedipole.o : rism.o
+eqn_lauedipole.o : solvmol.o
 eqn_lauelong.o : cell_base.o
 eqn_lauelong.o : constants.o
 eqn_lauelong.o : err_rism.o
