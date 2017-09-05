@@ -1362,6 +1362,59 @@ CONTAINS
       CALL mp_barrier(rismt%mp_site%inter_sitg_comm)
     END DO
     !
+    ! ... Cduv, single Z-stick.
+    DO iq = 1, nq
+      iv    = iuniq_to_isite(1, iq)
+      isolV = isite_to_isolV(iv)
+      iatom = isite_to_iatom(iv)
+      satom = ADJUSTL(solVs(isolV)%aname(iatom))
+      !
+      IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
+        owner_group_id = my_group_id
+        rhor = rismt%csdr(:, iq - rismt%mp_site%isite_start + 1) &
+           & - rismt%csr (:, iq - rismt%mp_site%isite_start + 1)
+      ELSE
+        owner_group_id = 0
+        rhor = 0.0_DP
+      END IF
+      !
+      CALL mp_sum(owner_group_id, rismt%mp_site%inter_sitg_comm)
+      CALL mp_get(rhor, rhor, my_group_id, io_group_id, &
+                & owner_group_id, iq, rismt%mp_site%inter_sitg_comm)
+      !
+      IF (my_group_id == io_group_id) THEN
+        CALL solvavg_put('Avg cd_'// TRIM(satom), .FALSE., rhor)
+      END IF
+      !
+      CALL mp_barrier(rismt%mp_site%inter_sitg_comm)
+    END DO
+    !
+    ! ... Csduv, R-space.
+    DO iq = 1, nq
+      iv    = iuniq_to_isite(1, iq)
+      isolV = isite_to_isolV(iv)
+      iatom = isite_to_iatom(iv)
+      satom = ADJUSTL(solVs(isolV)%aname(iatom))
+      !
+      IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
+        owner_group_id = my_group_id
+        rhor = rismt%csdr(:, iq - rismt%mp_site%isite_start + 1)
+      ELSE
+        owner_group_id = 0
+        rhor = 0.0_DP
+      END IF
+      !
+      CALL mp_sum(owner_group_id, rismt%mp_site%inter_sitg_comm)
+      CALL mp_get(rhor, rhor, my_group_id, io_group_id, &
+                & owner_group_id, iq, rismt%mp_site%inter_sitg_comm)
+      !
+      IF (my_group_id == io_group_id) THEN
+        CALL solvavg_put('Avg csd_'// TRIM(satom), .FALSE., rhor)
+      END IF
+      !
+      CALL mp_barrier(rismt%mp_site%inter_sitg_comm)
+    END DO
+    !
     ! ... Cuv, R-space + Laue-rep.
     DO iq = 1, nq
       iv    = iuniq_to_isite(1, iq)
@@ -1374,7 +1427,7 @@ CONTAINS
         owner_group_id = my_group_id
         iiq = iq - rismt%mp_site%isite_start + 1
         !
-        rhor = rismt%csr(:, iiq)
+        rhor = rismt%csdr(:, iiq)
         rhol = (-beta * qv) * rismt%vlgz(:)
         !
         IF (rismt%lfft%gxystart > 1) THEN
@@ -1398,7 +1451,9 @@ CONTAINS
           !
           IF (izsta <= izend) THEN
             iiz = izsol - rismt%lfft%izcell_start + 1
-            c2  = DBLE(rismt%csgz(iiz, iiq)) - beta * qv * DBLE(rismt%vlgz(izsol))
+            c2  = DBLE(rismt%csgz(iiz, iiq)) &
+              & + rismt%cdza(iiq) * rismt%cdzs(iiz) &
+              & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !
             zstep = rismt%lfft%zstep
@@ -1462,7 +1517,7 @@ CONTAINS
         owner_group_id = my_group_id
         iiq = iq - rismt%mp_site%isite_start + 1
         !
-        rhor = rismt%csr(:, iiq)
+        rhor = rismt%csdr(:, iiq)
         rhol = (-beta * qv) * rismt%vlgz(:)
         !
         IF (rismt%lfft%gxystart > 1) THEN
@@ -1486,7 +1541,9 @@ CONTAINS
           !
           IF (izsta <= izend) THEN
             iiz = izsol - rismt%lfft%izcell_start + 1
-            c2  = DBLE(rismt%csgz(iiz, iiq)) - beta * qv * DBLE(rismt%vlgz(izsol))
+            c2  = DBLE(rismt%csgz(iiz, iiq)) &
+              & + rismt%cdza(iiq) * rismt%cdzs(iiz) &
+              & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !
             zstep = rismt%lfft%zstep
@@ -1695,9 +1752,9 @@ CONTAINS
       !
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
-        vpot = -beta * rismt%usr(:, iq - rismt%mp_site%isite_start + 1) &
-                   & + rismt%hr (:, iq - rismt%mp_site%isite_start + 1) &
-                   & - rismt%csr(:, iq - rismt%mp_site%isite_start + 1)
+        vpot = -beta * rismt%usr (:, iq - rismt%mp_site%isite_start + 1) &
+                   & + rismt%hr  (:, iq - rismt%mp_site%isite_start + 1) &
+                   & - rismt%csdr(:, iq - rismt%mp_site%isite_start + 1)
       ELSE
         owner_group_id = 0
         vpot = 0.0_DP
