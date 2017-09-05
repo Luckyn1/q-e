@@ -1362,7 +1362,7 @@ CONTAINS
       CALL mp_barrier(rismt%mp_site%inter_sitg_comm)
     END DO
     !
-    ! ... Cduv, single Z-stick.
+    ! ... Cduv, R-space.
     DO iq = 1, nq
       iv    = iuniq_to_isite(1, iq)
       isolV = isite_to_isolV(iv)
