@@ -35,6 +35,11 @@ SUBROUTINE chempot(rismt, ierr)
   LOGICAL               :: lweight
   !
   ! ... check data type
+  IF (rismt%itype /= ITYPE_1DRISM .AND. rismt%itype /= ITYPE_3DRISM) THEN
+    ierr = IERR_RISM_INCORRECT_DATA_TYPE
+    RETURN
+  END IF
+  !
   IF (rismt%itype == ITYPE_1DRISM .AND. rismt%nr /= rismt%ng) THEN
     ierr = IERR_RISM_INCORRECT_DATA_TYPE
     RETURN
