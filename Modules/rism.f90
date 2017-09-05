@@ -77,6 +77,8 @@ MODULE rism
     REAL(DP),    POINTER :: csr (:,:)    ! short-range direct correlations in R-space
     REAL(DP),    POINTER :: csg (:,:)    ! short-range direct correlations in G-space
     COMPLEX(DP), POINTER :: csgz(:,:)    ! short-range direct correlations in G-space or Laue-rep. (complex)
+    REAL(DP),    POINTER :: cdza(:)      ! dipole-parts of direct correlations in Laue-rep. (amplitude)
+    REAL(DP),    POINTER :: cdzs(:)      ! dipole-parts of direct correlations in Laue-rep. (step function)
     REAL(DP),    POINTER :: uljr(:,:)    ! Lennard-Jones potential functions in R-space
     REAL(DP),    POINTER :: uwr (:,:)    ! repulsive-wall potential functions in R-space (Laue-RISM)
     REAL(DP),    POINTER :: usr (:,:)    ! short-range potential functions in R-space
@@ -542,6 +544,12 @@ CONTAINS
         ALLOCATE(rismt%hsgz(nrzl * ngxy, nsite))
         ALLOCATE(rismt%hlgz(nrzl * ngxy, nsite))
       END IF
+      IF (nsite > 0) THEN
+        ALLOCATE(rismt%cdza(nsite))
+      END IF
+      IF (nrzl > 0) THEN
+        ALLOCATE(rismt%cdzs(nrzl))
+      END IF
       IF ((nrzl * nsite * nsite_t) > 0) THEN
         ALLOCATE(rismt%hdz(nrzl, nsite, nsite_t))
       END IF
@@ -797,6 +805,8 @@ CONTAINS
     IF (ASSOCIATED(rismt%csr))       DEALLOCATE(rismt%csr)
     IF (ASSOCIATED(rismt%csg))       DEALLOCATE(rismt%csg)
     IF (ASSOCIATED(rismt%csgz))      DEALLOCATE(rismt%csgz)
+    IF (ASSOCIATED(rismt%cdza))      DEALLOCATE(rismt%cdza)
+    IF (ASSOCIATED(rismt%cdzs))      DEALLOCATE(rismt%cdzs)
     IF (ASSOCIATED(rismt%uljr))      DEALLOCATE(rismt%uljr)
     IF (ASSOCIATED(rismt%uwr))       DEALLOCATE(rismt%uwr)
     IF (ASSOCIATED(rismt%usr))       DEALLOCATE(rismt%usr)
@@ -851,6 +861,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%csr))      rismt%csr      = R_ZERO
     IF (ASSOCIATED(rismt%csg))      rismt%csg      = R_ZERO
     IF (ASSOCIATED(rismt%csgz))     rismt%csgz     = C_ZERO
+    IF (ASSOCIATED(rismt%cdza))     rismt%cdza     = R_ZERO
     IF (ASSOCIATED(rismt%hr ))      rismt%hr       = R_ZERO
     IF (ASSOCIATED(rismt%hg ))      rismt%hg       = R_ZERO
     IF (ASSOCIATED(rismt%hgz ))     rismt%hgz      = C_ZERO
