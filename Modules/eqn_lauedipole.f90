@@ -290,8 +290,10 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
             & - beta * qv2 * DBLE(rismt%vlgz(izsolv)) &
             & + beta * qv2 * (vline1 * zedge + vline0)
         !
-        IF ((1.0_DP - sedge) > STEP_FUNC_THR) THEN
+        IF (ABS(1.0_DP - sedge) > STEP_FUNC_THR) THEN
           rismt%cdza(iiq2) = cedge / (1.0_DP - sedge)
+        ELSE
+          rismt%cdza(iiq2) = cedge + rismt%cdza(iiq2) * sedge
         END IF
       END IF
     END DO
