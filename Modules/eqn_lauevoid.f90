@@ -167,7 +167,9 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
     !
     IF (rismt%lfft%gxystart > 1) THEN
       iiz = izsolv - rismt%lfft%izcell_start + 1
-      c2(iiq2) = DBLE(rismt%csgz(iiz, iiq2)) - beta * qv2 * DBLE(rismt%vlgz(izsolv))
+      c2(iiq2) = DBLE(rismt%csgz(iiz, iiq2)) &
+             & + rismt%cdza(iiq2) * rismt%cdzs(iiz) &
+             & - beta * qv2 * DBLE(rismt%vlgz(izsolv))
       d2(iiq2) = -beta * qv2 * voppo
     ELSE
       c2(iiq2) = 0.0_DP
