@@ -15,7 +15,8 @@ SUBROUTINE closure(rismt, ierr)
   USE constants, ONLY : K_BOLTZMANN_RY
   USE kinds,     ONLY : DP
   USE err_rism,  ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
-  USE rism,      ONLY : rism_type, ITYPE_1DRISM, CLOSURE_HNC, CLOSURE_KH
+  USE rism,      ONLY : rism_type, ITYPE_1DRISM, ITYPE_LAUERISM, &
+                      & CLOSURE_HNC, CLOSURE_KH
   !
   IMPLICIT NONE
   !
@@ -39,19 +40,30 @@ SUBROUTINE closure(rismt, ierr)
   !
   ! ... if no data, return as normally done.
   IF (mr < 1) THEN
-    GOTO 100
+    ierr = IERR_RISM_NULL
+    RETURN
   END IF
   !
   ! ... solve closure equation
   IF (iclosure == CLOSURE_HNC) THEN
     !
-    CALL closure_HNC_x(mr, beta, &
-       & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+    IF (rismt%itype /= ITYPE_LAUERISM) THEN
+      CALL closure_HNC_x(mr, beta, &
+         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+    ELSE
+      CALL closure_HNC_x(mr, beta, &
+         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csdr(1, 1), rismt%gr(1, 1))
+    END IF
     !
   ELSE IF (iclosure == CLOSURE_KH) THEN
     !
-    CALL closure_KH_x(mr, beta, &
-       & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+    IF (rismt%itype /= ITYPE_LAUERISM) THEN
+      CALL closure_KH_x(mr, beta, &
+         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+    ELSE
+      CALL closure_KH_x(mr, beta, &
+         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csdr(1, 1), rismt%gr(1, 1))
+    END IF
     !
   ELSE
     ierr = IERR_RISM_INCORRECT_DATA_TYPE
@@ -66,7 +78,6 @@ SUBROUTINE closure(rismt, ierr)
   END IF
   !
   ! ... normally done
-100 CONTINUE
   ierr = IERR_RISM_NULL
   !
 END SUBROUTINE closure
