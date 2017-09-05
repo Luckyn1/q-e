@@ -84,10 +84,10 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   REAL(DP)              :: zoffs
   REAL(DP)              :: zedge
   REAL(DP)              :: ssign
-  REAL(DP)              :: vline0
-  REAL(DP)              :: vline1
   REAL(DP)              :: sedge
   REAL(DP)              :: cedge
+  REAL(DP)              :: vline0
+  REAL(DP)              :: vline1
   REAL(DP), ALLOCATABLE :: x21(:,:)
   REAL(DP), ALLOCATABLE :: h1(:)
   !
@@ -213,7 +213,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       DO iz2 = izsta2, izend2
         iiz2 = iz2 - rismt%lfft%izcell_start + 1
         z = zoffs + zstep * DBLE(iz2 - 1)
-        rismt%cdzs(iiz2) = 0.5_DP * (1.0_DP + ssign * SIN(0.5_DP * pi * z / z0))
+        CALL step_function(z, rismt%cdzs(iiz2))
       END DO
 !$omp end parallel do
     END IF
@@ -292,7 +292,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       !
       IF (rismt%lfft%gxystart > 1) THEN
         iiz2 = izsolv - rismt%lfft%izcell_start + 1
-        sedge = 0.5_DP * (1.0_DP + ssign * SIN(0.5_DP * pi * zedge / z0))
+        CALL step_function(zedge, sedge)
         cedge = DBLE(rismt%csgz(iiz2, iiq2)) &
             & - beta * qv2 * DBLE(rismt%vlgz(izsolv)) &
             & + beta * qv2 * (vline1 * zedge + vline0)
@@ -371,5 +371,16 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   !
   ! ... normally done
   ierr = IERR_RISM_NULL
+  !
+CONTAINS
+  !
+  SUBROUTINE step_function(z, s)
+    IMPLICIT NONE
+    REAL(DP), INTENT(IN)  :: z
+    REAL(DP), INTENT(OUT) :: s
+    !
+    s = 0.5_DP * (1.0_DP + ssign * SIN(0.5_DP * pi * z / z0))
+    !
+  END SUBROUTINE step_function
   !
 END SUBROUTINE eqn_lauedipole
