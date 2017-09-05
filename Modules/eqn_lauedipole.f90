@@ -121,6 +121,13 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   !
   ! ... is one-hand ?
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
+    IF (prepare) THEN
+      rism%cdzs = 0.0_DP
+      rism%hdz  = 0.0_DP
+    ELSE
+      rism%cdza = 0.0_DP
+    END IF
+    !
     ierr = IERR_RISM_NULL
     RETURN
   END IF
