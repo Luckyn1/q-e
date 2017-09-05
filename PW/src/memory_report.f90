@@ -139,7 +139,7 @@ SUBROUTINE memory_report()
         ! 1D-RISM Susceptibility
         ram = ram + real_size * rism3t%nsite * rism3t%mp_site%nsite * (rism3t%nrzl * rism3t%ngs)
         ! R-space
-        ram = ram + real_size * (6 * rism3t%nsite + 2) * rism3t%nr
+        ram = ram + real_size * (7 * rism3t%nsite + 2) * rism3t%nr
         ! G-space
         ram = ram + complex_size * 2 * rism3t%ng
         ! Laue-rep. (short-range)
