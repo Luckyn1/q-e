@@ -91,7 +91,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   REAL(DP), ALLOCATABLE :: x21(:,:)
   REAL(DP), ALLOCATABLE :: h1(:)
   !
-  REAL(DP),   PARAMETER :: STEP_FUNC_THR = 1.0E-6_DP
+  REAL(DP),   PARAMETER :: STEP_FUNC_THR = 1.0E-3_DP
   !
   EXTERNAL :: dgemv
   !
@@ -300,7 +300,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
         IF (ABS(1.0_DP - sedge) > STEP_FUNC_THR) THEN
           rismt%cdza(iiq2) = cedge / (1.0_DP - sedge)
         ELSE
-          rismt%cdza(iiq2) = cedge + rismt%cdza(iiq2) * sedge
+          rismt%cdza(iiq2) = -cedge
         END IF
       END IF
     END DO
