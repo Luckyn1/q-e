@@ -8,15 +8,10 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------------------
-SUBROUTINE dipole_lauerism(rismt, dcdza, lextract, ierr)
+SUBROUTINE dipole_lauerism(rismt, ierr)
   !---------------------------------------------------------------------------
   !
   ! ... extract dipole part of direct correlations, in Laue-RISM calculation.
-  ! ...
-  ! ... Variables:
-  ! ...   dcdza:    residual of dipole amplitude
-  ! ...   lextract: if .TRUE. extract dipole part and calculate residual of dipole amplitude,
-  ! ...             if .FALSE. not extract dipole part but calculate residual of dipole amplitude.
   !
   USE cell_base, ONLY : alat
   USE constants, ONLY : K_BOLTZMANN_RY
@@ -29,8 +24,6 @@ SUBROUTINE dipole_lauerism(rismt, dcdza, lextract, ierr)
   IMPLICIT NONE
   !
   TYPE(rism_type), INTENT(INOUT) :: rismt
-  REAL(DP),        INTENT(OUT)   :: dcdza(:) ! residual of dipole amplitude
-  LOGICAL,         INTENT(IN)    :: lextract
   INTEGER,         INTENT(OUT)   :: ierr
   !
   INTEGER               :: iq
@@ -68,8 +61,12 @@ SUBROUTINE dipole_lauerism(rismt, dcdza, lextract, ierr)
   ! ... is one-hand ?
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
     !
-    rismt%cdza = 0.0_DP
-    rismt%csdr = rismt%csr
+    IF (rismt%nsite > 0) THEN
+      rismt%cdza = 0.0_DP
+    END IF
+    IF (rismt%nr * rismt%nsite > 0) THEN
+      rismt%csdr = rismt%csr
+    END IF
     !
     ierr = IERR_RISM_NULL
     RETURN
@@ -132,20 +129,17 @@ SUBROUTINE dipole_lauerism(rismt, dcdza, lextract, ierr)
     CALL mp_sum(cd0, rismt%mp_site%intra_sitg_comm)
   END IF
   !
-  IF (lextract) THEN
-    !
-    ! ... update amplitudes of dipole part of direct correlations
-    IF (rismt%nsite > 0) THEN
-      rismt%cdza = rismt%cdza + cd0
-    END IF
-    !
-    ! ... update short-range direct correlations
-    CALL update_short_range()
-    !
+  ! ... update amplitudes of dipole part of direct correlations
+  IF (rismt%nsite > 0) THEN
+    rismt%cdza = rismt%cdza + cd0
   END IF
   !
-  ! ... set residuals of dipole amplitudes
-  dcdza(1:rismt%nsite) = cd0(:)
+  ! ... update short-range direct correlations
+  IF (rismt%nr * rismt%nsite > 0) THEN
+    rismt%csdr = 0.0_DP
+  END IF
+  !
+  CALL update_short_range()
   !
   ! ... deallocate memoery
   IF (rismt%nsite > 0) THEN

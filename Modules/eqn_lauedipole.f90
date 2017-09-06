@@ -109,8 +109,12 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
     !
     IF (prepare) THEN
-      rismt%cdzs = 0.0_DP
-      rismt%hdz  = 0.0_DP
+      IF (rismt%nrzs > 0) THEN
+        rismt%cdzs = 0.0_DP
+      END IF
+      IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
+        rismt%hdz  = 0.0_DP
+      END IF
     END IF
     !
     ierr = IERR_RISM_NULL
