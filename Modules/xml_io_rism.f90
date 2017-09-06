@@ -1304,6 +1304,8 @@ CONTAINS
         !
         IF (sowner(isite) /= io_group_id) THEN
           !
+          CALL mp_barrier(inter_group_comm)
+          !
           CALL mp_get(zuv_site_, zuv_site, my_group_id, sowner(isite), &
                     & io_group_id, isite, inter_group_comm)
           !
