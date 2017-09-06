@@ -16,8 +16,10 @@ MODULE io_rism_xml
   USE kinds,       ONLY : DP
   USE rism,        ONLY : rism_type, ITYPE_1DRISM, ITYPE_3DRISM, ITYPE_LAUERISM
   USE xml_io_base, ONLY : create_directory
-  USE xml_io_rism, ONLY : write_1drism_xml, read_1drism_xml, write_3drism_xml, read_3drism_xml, &
-                        & write_lauerism_xml, read_lauerism_xml
+  USE xml_io_rism, ONLY : write_1drism_xml, read_1drism_xml, &
+                        & write_3drism_xml, read_3drism_xml, &
+                        & write_lauerism_xml, read_lauerism_xml, &
+                        & write_lauedipole_xml, read_lauedipole_xml
   !
   IMPLICIT NONE
   SAVE
@@ -203,6 +205,7 @@ CONTAINS
     CHARACTER(LEN=256) :: ext
     !
     REAL(DP)    :: rdummy(1, 1)
+    REAL(DP)    :: ddummy(1)
     COMPLEX(DP) :: cdummy(1, 1)
     !
     ! ... check data type
@@ -271,6 +274,16 @@ CONTAINS
     END IF
     !
     IF (rismt%itype == ITYPE_LAUERISM) THEN
+      !
+      ! ... write cd(dipole)
+      file_base = TRIM(dirname) // '/3d-rism_cduv' // TRIM(ext)
+      datname   = 'Cduv'
+      !
+      IF (rismt%nsite > 0) THEN
+        CALL write_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base, datname)
+      ELSE
+        CALL write_lauedipole_x(rismt, rismt%nsite, ddummy, file_base, datname)
+      END IF
       !
       ! ... write hs(laue)
       file_base = TRIM(dirname) // '/3d-rism_hsuv_l' // TRIM(ext)
@@ -346,6 +359,25 @@ CONTAINS
   END SUBROUTINE write_lauerism_x
   !
   !------------------------------------------------------------------------
+  SUBROUTINE write_lauedipole_x(rismt, nsite, zd, file_base, name)
+    !------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE(rism_type),  INTENT(IN) :: rismt
+    INTEGER,          INTENT(IN) :: nsite
+    REAL(DP),         INTENT(IN) :: zd(nsite)
+    CHARACTER(LEN=*), INTENT(IN) :: file_base
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    !
+    CALL write_lauedipole_xml(file_base, zd(1:nsite), name, &
+                            & rismt%mp_site%nsite, isite_start, isite_end, &
+                            & rismt%mp_site%nsite, rismt%mp_site%isite_start, rismt%mp_site%isite_end, &
+                            & ionode, rismt%mp_site%intra_sitg_comm, rismt%mp_site%inter_sitg_comm)
+    !
+  END SUBROUTINE write_lauedipole_x
+  !
+  !------------------------------------------------------------------------
   SUBROUTINE read_3drism(rismt, ecut, extension)
     !------------------------------------------------------------------------
     !
@@ -363,6 +395,7 @@ CONTAINS
     CHARACTER(LEN=256) :: ext
     !
     REAL(DP)    :: rdummy(1, 1)
+    REAL(DP)    :: ddummy(1)
     COMPLEX(DP) :: cdummy(1, 1)
     !
     ! ... check data type
@@ -415,6 +448,15 @@ CONTAINS
     END IF
     !
     IF (rismt%itype == ITYPE_LAUERISM) THEN
+      !
+      ! ... read cd(dipole)
+      file_base = TRIM(dirname) // '/3d-rism_cduv' // TRIM(ext)
+      !
+      IF (rismt%nsite > 0) THEN
+        CALL read_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base)
+      ELSE
+        CALL read_lauedipole_x(rismt, rismt%nsite, ddummy, file_base)
+      END IF
       !
       ! ... read hs(laue)
       file_base = TRIM(dirname) // '/3d-rism_hsuv_l' // TRIM(ext)
@@ -483,5 +525,22 @@ CONTAINS
                          & rismt%mp_site%intra_sitg_comm, rismt%mp_site%inter_sitg_comm)
     !
   END SUBROUTINE read_lauerism_x
+  !
+  !------------------------------------------------------------------------
+  SUBROUTINE read_lauedipole_x(rismt, nsite, zd, file_base)
+    !------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE(rism_type),  INTENT(IN)  :: rismt
+    INTEGER,          INTENT(IN)  :: nsite
+    REAL(DP),         INTENT(OUT) :: zd(nsite)
+    CHARACTER(LEN=*), INTENT(IN)  :: file_base
+    !
+    CALL read_lauedipole_xml(file_base, zd(1:nsite), &
+                           & rismt%mp_site%nsite, rismt%mp_site%isite_start, rismt%mp_site%isite_end, &
+                           & ionode, rismt%mp_site%intra_sitg_comm, rismt%mp_site%inter_sitg_comm)
+    !
+  END SUBROUTINE read_lauedipole_x
   !
 END MODULE io_rism_xml

@@ -2409,16 +2409,22 @@ CONTAINS
          !
          IF ( laue ) THEN
             !
+            filename = "./3d-rism_cduv.dat"
+            IF ( .NOT. lbinary ) filename = "./3d-rism_cduv.xml"
+            !
+            CALL iotk_link( ounit, "DIRECT_CORR_AS_LAUE_DIPOLE", TRIM( filename ), &
+                                    CREATE=.FALSE., BINARY=.FALSE. )
+            !
             filename = "./3d-rism_hsuv_l.dat"
             IF ( .NOT. lbinary ) filename = "./3d-rism_hsuv_l.xml"
             !
-            CALL iotk_link( ounit, "TOTAL_CORRELATION_AS_LAUE_SHORT", TRIM( filename ), &
+            CALL iotk_link( ounit, "TOTAL_CORR_AS_LAUE_SHORT", TRIM( filename ), &
                                     CREATE=.FALSE., BINARY=.TRUE. )
             !
             filename = "./3d-rism_hluv_l.dat"
             IF ( .NOT. lbinary ) filename = "./3d-rism_hluv_l.xml"
             !
-            CALL iotk_link( ounit, "TOTAL_CORRELATION_AS_LAUE_LONG", TRIM( filename ), &
+            CALL iotk_link( ounit, "TOTAL_CORR_AS_LAUE_LONG", TRIM( filename ), &
                                     CREATE=.FALSE., BINARY=.TRUE. )
             !
          END IF

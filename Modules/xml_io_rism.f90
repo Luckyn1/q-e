@@ -42,6 +42,8 @@ MODULE xml_io_rism
   PUBLIC :: write_3drism_xml
   PUBLIC :: read_lauerism_xml
   PUBLIC :: write_lauerism_xml
+  PUBLIC :: read_lauedipole_xml
+  PUBLIC :: write_lauedipole_xml
   !
 CONTAINS
   !
@@ -396,7 +398,7 @@ CONTAINS
       kowner((ipp(ip) + 1):(ipp(ip) + npp(ip))) = ip - 1
     END DO
     !
-    ! ... write zvv for each solvent's site
+    ! ... write zuv for each solvent's site
     DO isite = 1, nsite
       IF (ionode) THEN
         CALL iotk_write_begin(rism3d_unit, "site" // iotk_index(isite))
@@ -408,7 +410,7 @@ CONTAINS
         iisite = -1
       END IF
       !
-      ! ... write zvv for each "z" plane
+      ! ... write zuv for each "z" plane
       DO k = 1, nr3
         IF (sowner(isite) == my_group_id) THEN
           IF (kowner(k) == me_group) THEN
@@ -584,7 +586,7 @@ CONTAINS
       kowner((ipp(ip) + 1):(ipp(ip) + npp(ip))) = ip - 1
     END DO
     !
-    ! ... write zvv for each solvent's site
+    ! ... write zuv for each solvent's site
     DO isite = 1, nsite
       IF (ionode) THEN
         CALL iotk_scan_begin(rism3d_unit, "site" // iotk_index(isite))
@@ -596,7 +598,7 @@ CONTAINS
         iisite = -1
       END IF
       !
-      ! ... write zvv for each "z" plane
+      ! ... write zuv for each "z" plane
       DO k = 1, nr3
         IF (ionode) THEN
           CALL iotk_scan_dat(rism3d_unit, "z" // iotk_index(k), zuv_plane)
@@ -760,7 +762,7 @@ CONTAINS
     sowner(isite_start:isite_end) = my_group_id
     CALL mp_sum(sowner, inter_group_comm)
     !
-    ! ... write zvv for each solvent's site
+    ! ... write zuv for each solvent's site
     DO isite = 1, nsite
       IF (sowner(isite) == my_group_id) THEN
         iisite = isite - isite_start + 1
@@ -986,7 +988,7 @@ CONTAINS
     sowner(isite_start:isite_end) = my_group_id
     CALL mp_sum(sowner, inter_group_comm)
     !
-    ! ... write zvv for each solvent's site
+    ! ... write zuv for each solvent's site
     DO isite = 1, nsite
       IF (sowner(isite) == my_group_id) THEN
         iisite = isite - isite_start + 1
@@ -1045,5 +1047,276 @@ CONTAINS
     DEALLOCATE(zuv_site)
     !
   END SUBROUTINE read_lauerism_xml
+  !
+  !------------------------------------------------------------------------
+  SUBROUTINE write_lauedipole_xml(rismlaue_file_base, zuv, name, &
+                                & nsite, isite_start, isite_end, &
+                                & ionode, intra_group_comm, inter_group_comm)
+    !------------------------------------------------------------------------
+    !
+    ! ... Writs Laue-RISM's dipole function.
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=*), INTENT(IN) :: rismlaue_file_base
+    COMPLEX(DP),      INTENT(IN) :: zuv(:)
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER,          INTENT(IN) :: nsite
+    INTEGER,          INTENT(IN) :: isite_start
+    INTEGER,          INTENT(IN) :: isite_end
+    LOGICAL,          INTENT(IN) :: ionode
+    INTEGER,          INTENT(IN) :: inter_group_comm
+    INTEGER,          INTENT(IN) :: intra_group_comm
+    !
+    INTEGER                  :: ierr
+    INTEGER                  :: isite
+    INTEGER                  :: iisite
+    INTEGER                  :: rismlaue_unit
+    CHARACTER(LEN=256)       :: rismlaue_file
+    CHARACTER(LEN=10)        :: rismlaue_extension
+    CHARACTER(iotk_attlenx)  :: attr
+    INTEGER                  :: io_group
+    INTEGER                  :: io_group_id
+    INTEGER                  :: me_group
+    INTEGER                  :: my_group_id
+    INTEGER, ALLOCATABLE     :: sowner(:)
+    REAL(DP)                 :: zuv_site
+    !
+    INTEGER, EXTERNAL        :: find_free_unit
+    !
+    ! ... allocate memory
+    ALLOCATE(sowner(nsite))
+    !
+    ! ... get process info.
+    me_group    = mp_rank(intra_group_comm)
+    my_group_id = mp_rank(inter_group_comm)
+    !
+    ! ... decide file name and unit
+    !rismlaue_extension = '.dat'
+    !IF (.NOT. l3drism_binary) THEN
+    !  rismlaue_extension = '.xml'
+    !END IF
+    rismlaue_extension = '.xml'
+    !
+    rismlaue_file = TRIM(rismlaue_file_base) // TRIM(rismlaue_extension)
+    rismlaue_unit = find_free_unit()
+    !
+    ! ... open file
+    IF (ionode) THEN
+      !CALL iotk_open_write(rismlaue_unit, FILE=rismlaue_file,  BINARY=l3drism_binary, IERR=ierr)
+      CALL iotk_open_write(rismlaue_unit, FILE=rismlaue_file,  BINARY=.FALSE., IERR=ierr)
+      CALL errore('write_lauedipole_xml', &
+      & 'cannot open ' // TRIM(rismlaue_file) // ' file for writing', ierr)
+    END IF
+    !
+    ! ... write header
+    IF (ionode) THEN
+      CALL iotk_write_begin(rismlaue_unit, "LAUE-RISM")
+      !
+      CALL iotk_write_attr(attr, "name", TRIM(name), FIRST=.TRUE.)
+      CALL iotk_write_attr(attr, "nsite", nsite)
+      CALL iotk_write_empty(rismlaue_unit, "INFO", attr)
+    END IF
+    !
+    ! ... find the index of the group that will write zuv
+    io_group_id = 0
+    IF (ionode) THEN
+      io_group_id = my_group_id
+    END IF
+    CALL mp_sum(io_group_id, intra_group_comm)
+    CALL mp_sum(io_group_id, inter_group_comm)
+    !
+    ! ... find the index of the ionode within its own group
+    io_group = 0
+    IF (ionode) THEN
+      io_group = me_group
+    END IF
+    CALL mp_sum(io_group, intra_group_comm)
+    CALL mp_sum(io_group, inter_group_comm)
+    !
+    ! ... find out the owner of each solvent's site
+    sowner = 0
+    sowner(isite_start:isite_end) = my_group_id
+    CALL mp_sum(sowner, inter_group_comm)
+    !
+    ! ... write zuv for each solvent's site
+    DO isite = 1, nsite
+      IF (sowner(isite) == my_group_id) THEN
+        iisite = isite - isite_start + 1
+      ELSE
+        iisite = -1
+      END IF
+      !
+      IF (sowner(isite) == my_group_id) THEN
+        !
+        CALL mp_barrier(intra_group_comm)
+        !
+        zuv_site = zuv(iisite)
+        !
+      END IF
+      !
+      IF (sowner(isite) /= io_group_id) THEN
+        IF (me_group == io_group) THEN
+          !
+          CALL mp_barrier(inter_group_comm)
+          !
+          CALL mp_get(zuv_site, zuv_site, my_group_id, io_group_id, &
+                    & sowner(isite), isite, inter_group_comm)
+        END IF
+      END IF
+      !
+      IF (ionode) THEN
+        CALL iotk_write_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
+      END IF
+    END DO
+    !
+    IF (ionode) THEN
+      CALL iotk_write_end(rismlaue_unit, "LAUE-RISM")
+      !
+      CALL iotk_close_write(rismlaue_unit)
+    END IF
+    !
+    ! ... deallocate memory
+    DEALLOCATE(sowner)
+    !
+  END SUBROUTINE write_lauedipole_xml
+  !
+  !------------------------------------------------------------------------
+  SUBROUTINE read_lauedipole_xml(rismlaue_file_base, zuv, &
+                               & nsite, isite_start, isite_end, &
+                               & ionode, intra_group_comm, inter_group_comm)
+    !------------------------------------------------------------------------
+    !
+    ! ... Reads Laue-RISM's dipole function.
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=*), INTENT(IN)  :: rismlaue_file_base
+    COMPLEX(DP),      INTENT(OUT) :: zuv(:,:)
+    INTEGER,          INTENT(IN)  :: nsite
+    INTEGER,          INTENT(IN)  :: isite_start
+    INTEGER,          INTENT(IN)  :: isite_end
+    LOGICAL,          INTENT(IN)  :: ionode
+    INTEGER,          INTENT(IN)  :: inter_group_comm
+    INTEGER,          INTENT(IN)  :: intra_group_comm
+    !
+    INTEGER                 :: ierr
+    INTEGER                 :: isite
+    INTEGER                 :: iisite
+    INTEGER                 :: rismlaue_unit
+    CHARACTER(LEN=256)      :: rismlaue_file
+    CHARACTER(iotk_attlenx) :: attr
+    INTEGER                 :: nsite_
+    INTEGER                 :: io_group
+    INTEGER                 :: io_group_id
+    INTEGER                 :: me_group
+    INTEGER                 :: my_group_id
+    LOGICAL                 :: exst
+    INTEGER, ALLOCATABLE    :: sowner(:)
+    REAL(DP),               :: zuv_site(:)
+    !
+    INTEGER, EXTERNAL       :: find_free_unit
+    !
+    ! ... allocate memory
+    ALLOCATE(sowner(nsite))
+    !
+    ! ... get process info.
+    me_group    = mp_rank(intra_group_comm)
+    my_group_id = mp_rank(inter_group_comm)
+    !
+    ! ... search file
+    rismlaue_unit = find_free_unit()
+    rismlaue_file = TRIM(rismlaue_file_base) // ".dat"
+    exst = check_file_exst(TRIM(rismlaue_file))
+    !
+    IF (.NOT. exst) THEN
+      rismlaue_file = TRIM(rismlaue_file_base) // ".xml"
+      exst = check_file_exst(TRIM(rismlaue_file))
+    END IF
+    !
+    IF (.NOT. exst) THEN
+      CALL errore('read_lauedipole_xml', 'searching for ' // TRIM(rismlaue_file), 10)
+    END IF
+    !
+    ! ... open file
+    IF (ionode) THEN
+      CALL iotk_open_read(rismlaue_unit, FILE=rismlaue_file, IERR=ierr)
+      CALL errore('read_lauedipole_xml', &
+      & 'cannot open ' // TRIM(rismlaue_file) // ' file for reading', ierr)
+    END IF
+    !
+    ! ... read header
+    IF (ionode) THEN
+      CALL iotk_scan_begin(rismlaue_unit, "LAUE-RISM")
+      !
+      CALL iotk_scan_empty(rismlaue_unit, "INFO", attr)
+      CALL iotk_scan_attr(attr, "nsite", nsite_)
+      !
+      IF (nsite /= nsite_) THEN
+        CALL errore('read_lauedipole_xml', 'number of sites do not match', 1)
+      END IF
+    END IF
+    !
+    ! ... find the index of the group that will write zuv
+    io_group_id = 0
+    IF (ionode) THEN
+      io_group_id = my_group_id
+    END IF
+    CALL mp_sum(io_group_id, intra_group_comm)
+    CALL mp_sum(io_group_id, inter_group_comm)
+    !
+    ! ... find the index of the ionode within its own group
+    io_group = 0
+    IF (ionode) THEN
+      io_group = me_group
+    END IF
+    CALL mp_sum(io_group, intra_group_comm)
+    CALL mp_sum(io_group, inter_group_comm)
+    !
+    ! ... find out the owner of each solvent's site
+    sowner = 0
+    sowner(isite_start:isite_end) = my_group_id
+    CALL mp_sum(sowner, inter_group_comm)
+    !
+    ! ... write zuv for each solvent's site
+    DO isite = 1, nsite
+      IF (sowner(isite) == my_group_id) THEN
+        iisite = isite - isite_start + 1
+      ELSE
+        iisite = -1
+      END IF
+      !
+      IF (ionode) THEN
+        CALL iotk_scan_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
+      END IF
+      !
+      IF (my_group_id == io_group_id) THEN
+        CALL mp_bcast(zuv_site, io_group, intra_group_comm)
+      END IF
+      !
+      IF (sowner(isite) /= io_group_id) THEN
+        CALL mp_get(zuv_site, zuv_site, my_group_id, sowner(isite), &
+                  & io_group_id, isite, inter_group_comm)
+      END IF
+      !
+      IF (sowner(isite) == my_group_id) THEN
+        !
+        zuv(iisite) = zuv_site
+        !
+      END IF
+    END DO
+    !
+    ! ... close file
+    IF (ionode) THEN
+      CALL iotk_scan_end(rismlaue_unit, "LAUE-RISM")
+      !
+      CALL iotk_close_read(rismlaue_unit)
+    END IF
+    !
+    ! ... deallocate memory
+    DEALLOCATE(sowner)
+    DEALLOCATE(zuv_site)
+    !
+  END SUBROUTINE read_lauedipole_xml
   !
 END MODULE xml_io_rism
