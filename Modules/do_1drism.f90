@@ -299,7 +299,7 @@ SUBROUTINE do_1drism(rismt, maxiter, rmsconv, nbox, eta, gbond, lhand, cool, tit
     rismt%temp  = temporg
     !
   ELSE
-    ! ... write convergence message
+    ! ... write NOT convergence message
     WRITE(stdout, '()')
     IF (stopped_by_user) THEN
       WRITE(stdout, '(5X,"convergence NOT achieved: stopped by user")')

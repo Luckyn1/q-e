@@ -248,7 +248,7 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     rismt%avail = .TRUE.
     !
   ELSE
-    ! ... write convergence message
+    ! ... write NOT convergence message
     WRITE(stdout, '()')
     IF (stopped_by_user) THEN
       WRITE(stdout, '(5X,"convergence NOT achieved: stopped by user")')

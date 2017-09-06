@@ -156,7 +156,8 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       GOTO 100
     END IF
     !
-    ! ... correct or normalize H(gxy,z) to guarantee total charge of solvent system
+    ! ... correct or normalize H(gxy,z)
+    ! ... to guarantee total charge and stoichiometry of solvent system
     CALL eqn_laueshort(rismt, lboth, .TRUE., ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
@@ -306,7 +307,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     rismt%avail = .TRUE.
     !
   ELSE
-    ! ... write convergence message
+    ! ... write NOT convergence message
     WRITE(stdout, '()')
     IF (stopped_by_user) THEN
       WRITE(stdout, '(5X,"convergence NOT achieved: stopped by user")')
