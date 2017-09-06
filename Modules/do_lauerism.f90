@@ -147,6 +147,12 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       EXIT
     END IF
     !
+    ! ... extract dipole part: Cs(r) -> Cs(r), Cd(r)
+    CALL dipole_lauerism(rismt, ierr)
+    IF (ierr /= IERR_RISM_NULL) THEN
+      GOTO 100
+    END IF
+    !
     ! ... FFT: Cs(r) -> Cs(gxy,z)
     CALL fft_csr_to_cslaue()
     !
@@ -170,9 +176,6 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     !
     ! ... FFT: H(gxy,z) -> H(r)
     CALL fft_hlaue_to_hr()
-    !
-    ! ... Cs(r) + Cd(r) -> Csd(r)
-    CALL make_csdr()
     !
     ! ... Closure: H(r) -> G(r)
     CALL closure(rismt, ierr)
@@ -548,70 +551,6 @@ CONTAINS
 !$omp end parallel do
     !
   END SUBROUTINE barrier_gr
-  !
-  SUBROUTINE make_csdr()
-    IMPLICIT NONE
-    !
-    INTEGER  :: ir
-    INTEGER  :: idx
-    INTEGER  :: idx0
-    INTEGER  :: i3min
-    INTEGER  :: i3max
-    INTEGER  :: i1, i2, i3
-    INTEGER  :: iz, iiz
-    !
-    IF (rismt%nsite < 1) THEN
-      RETURN
-    END IF
-    !
-    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
-       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
-    !
-    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
-    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
-    !
-!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz, iiz)
-    DO ir = 1, rismt%cfft%dfftt%nnr
-      !
-      idx = idx0 + ir - 1
-      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
-      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
-        CYCLE
-      END IF
-      !
-      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
-      i2  = idx / rismt%cfft%dfftt%nr1x
-      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
-        CYCLE
-      END IF
-      !
-      idx = idx - rismt%cfft%dfftt%nr1x * i2
-      i1  = idx
-      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
-        CYCLE
-      END IF
-      !
-      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
-        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
-      ELSE
-        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
-      END IF
-      iiz = iz + 1
-      iz  = iz + rismt%lfft%izcell_start
-      !
-      IF (iz > rismt%lfft%izright_end .OR. iz < rismt%lfft%izleft_start) THEN
-        CYCLE
-      END IF
-      IF (iz < rismt%lfft%izright_start .AND. iz > rismt%lfft%izleft_end) THEN
-        CYCLE
-      END IF
-      !
-      rismt%csdr(ir, :) = rismt%csr(ir, :) + rismt%cdza(:) * rismt%cdzs(iiz)
-      !
-    END DO
-!$omp end parallel do
-    !
-  END SUBROUTINE make_csdr
   !
   SUBROUTINE make_dcsr()
     IMPLICIT NONE

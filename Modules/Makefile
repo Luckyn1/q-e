@@ -172,6 +172,7 @@ closure.o \
 correctat0_vv.o \
 cryst_to_car_2d.o \
 data_structure_3drism.o \
+dipole_lauerism.o \
 do_1drism.o \
 do_3drism.o \
 do_lauerism.o \

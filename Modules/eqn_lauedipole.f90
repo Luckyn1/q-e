@@ -47,13 +47,12 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   ! ...
   !
   USE cell_base, ONLY : alat, at
-  USE constants, ONLY : pi, K_BOLTZMANN_RY
+  USE constants, ONLY : pi
   USE err_rism,  ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
   USE kinds,     ONLY : DP
   USE mp,        ONLY : mp_sum
   USE rism,      ONLY : rism_type, ITYPE_LAUERISM
-  USE solvmol,   ONLY : solVs, get_nuniq_in_solVs, &
-                      & iuniq_to_isite, isite_to_isolV, isite_to_iatom
+  USE solvmol,   ONLY : get_nuniq_in_solVs
   !
   IMPLICIT NONE
   !
@@ -65,9 +64,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   INTEGER               :: nq
   INTEGER               :: iq1, iq2
   INTEGER               :: iiq1, iiq2
-  INTEGER               :: iv2
-  INTEGER               :: isolV2
-  INTEGER               :: iatom2
   INTEGER               :: iz1, iz2
   INTEGER               :: iiz1, iiz2
   INTEGER               :: izdelt
@@ -75,23 +71,13 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   INTEGER               :: izend1, izend2
   INTEGER               :: nzint1, nzint2
   INTEGER               :: izint1, izint2
-  INTEGER               :: izsolv
-  REAL(DP)              :: beta
-  REAL(DP)              :: qv2
   REAL(DP)              :: z
   REAL(DP)              :: z0
   REAL(DP)              :: zstep
   REAL(DP)              :: zoffs
-  REAL(DP)              :: zedge
   REAL(DP)              :: ssign
-  REAL(DP)              :: sedge
-  REAL(DP)              :: cedge
-  REAL(DP)              :: vline0
-  REAL(DP)              :: vline1
   REAL(DP), ALLOCATABLE :: x21(:,:)
   REAL(DP), ALLOCATABLE :: h1(:)
-  !
-  REAL(DP),   PARAMETER :: STEP_FUNC_THR = 1.0E-3_DP
   !
   EXTERNAL :: dgemv
   !
@@ -132,9 +118,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     RETURN
   END IF
   !
-  ! ... beta = 1 / (kB * T)
-  beta = 1.0_DP / K_BOLTZMANN_RY / rismt%temp
-  !
   ! ... set domain of z1 as index of long Z-stick (i.e. expanded cell)
   IF (rismt%lfft%xright) THEN
     IF (expand .OR. prepare) THEN
@@ -145,13 +128,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       izend1 = rismt%lfft%izcell_end
     END IF
     !
-    izsolv = izsta1
-    !
-    IF (rismt%lfft%gxystart > 1) THEN
-      ssign  = -1.0_DP
-      vline0 = AIMAG(rismt%vleft(1))
-      vline1 = DBLE( rismt%vleft(1)) / alat
-    END IF
+    ssign = -1.0_DP
     !
   ELSE !IF (rismt%lfft%xleft) THEN
     IF (expand .OR. prepare) THEN
@@ -162,13 +139,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       izend1 = rismt%lfft%izleft_end
     END IF
     !
-    izsolv = izend1
-    !
-    IF (rismt%lfft%gxystart > 1) THEN
-      ssign  = +1.0_DP
-      vline0 = AIMAG(rismt%vright(1))
-      vline1 = DBLE( rismt%vright(1)) / alat
-    END IF
+    ssign = +1.0_DP
   END IF
   !
   ! ... count integral points along z1
@@ -178,7 +149,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   z0    = alat * 0.5_DP * at(3, 3)
   zstep = alat * rismt%lfft%zstep
   zoffs = alat * (rismt%lfft%zleft + rismt%lfft%zoffset)
-  zedge = zoffs + zstep * DBLE(izsolv - 1)
   !
   IF (prepare) THEN
     ! ...
@@ -276,37 +246,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     ! ... allocate working memory
     IF (nzint1 > 0) THEN
       ALLOCATE(h1(nzint1))
-    END IF
-    !
-    ! ... calculate cdza: amplitude of dipole part
-    IF (rismt%nsite > 0) THEN
-      rismt%cdza = 0.0_DP
-    END IF
-    !
-    DO iq2 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
-      iiq2   = iq2 - rismt%mp_site%isite_start + 1
-      iv2    = iuniq_to_isite(1, iq2)
-      isolV2 = isite_to_isolV(iv2)
-      iatom2 = isite_to_iatom(iv2)
-      qv2    = solVs(isolV2)%charge(iatom2)
-      !
-      IF (rismt%lfft%gxystart > 1) THEN
-        iiz2 = izsolv - rismt%lfft%izcell_start + 1
-        CALL step_function(zedge, sedge)
-        cedge = DBLE(rismt%csgz(iiz2, iiq2)) &
-            & - beta * qv2 * DBLE(rismt%vlgz(izsolv)) &
-            & + beta * qv2 * (vline1 * zedge + vline0)
-        !
-        IF (ABS(1.0_DP - sedge) > STEP_FUNC_THR) THEN
-          rismt%cdza(iiq2) = cedge / (1.0_DP - sedge)
-        ELSE
-          rismt%cdza(iiq2) = -cedge
-        END IF
-      END IF
-    END DO
-    !
-    IF (rismt%nsite > 0) THEN
-      CALL mp_sum(rismt%cdza, rismt%mp_site%intra_sitg_comm)
     END IF
     !
     ! ... Laue-RISM equation of dipole part
