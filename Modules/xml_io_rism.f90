@@ -444,6 +444,7 @@ CONTAINS
       END IF
     END DO
     !
+    ! ... close file
     IF (ionode) THEN
       CALL iotk_write_end(rism3d_unit, "_3D-RISM")
       !
@@ -560,7 +561,7 @@ CONTAINS
       END IF
     END IF
     !
-    ! ... find the index of the group that will write zuv
+    ! ... find the index of the group that will read zuv
     io_group_id = 0
     IF (ionode) THEN
       io_group_id = my_group_id
@@ -586,7 +587,7 @@ CONTAINS
       kowner((ipp(ip) + 1):(ipp(ip) + npp(ip))) = ip - 1
     END DO
     !
-    ! ... write zuv for each solvent's site
+    ! ... read zuv for each solvent's site
     DO isite = 1, nsite
       IF (ionode) THEN
         CALL iotk_scan_begin(rism3d_unit, "site" // iotk_index(isite))
@@ -598,7 +599,7 @@ CONTAINS
         iisite = -1
       END IF
       !
-      ! ... write zuv for each "z" plane
+      ! ... read zuv for each "z" plane
       DO k = 1, nr3
         IF (ionode) THEN
           CALL iotk_scan_dat(rism3d_unit, "z" // iotk_index(k), zuv_plane)
@@ -850,6 +851,7 @@ CONTAINS
       END IF
     END DO
     !
+    ! ... close file
     IF (ionode) THEN
       CALL iotk_write_end(rismlaue_unit, "LAUE-RISM")
       !
@@ -967,7 +969,7 @@ CONTAINS
       END IF
     END IF
     !
-    ! ... find the index of the group that will write zuv
+    ! ... find the index of the group that will read zuv
     io_group_id = 0
     IF (ionode) THEN
       io_group_id = my_group_id
@@ -988,7 +990,7 @@ CONTAINS
     sowner(isite_start:isite_end) = my_group_id
     CALL mp_sum(sowner, inter_group_comm)
     !
-    ! ... write zuv for each solvent's site
+    ! ... read zuv for each solvent's site
     DO isite = 1, nsite
       IF (sowner(isite) == my_group_id) THEN
         iisite = isite - isite_start + 1
@@ -1141,23 +1143,22 @@ CONTAINS
     CALL mp_sum(sowner, inter_group_comm)
     !
     ! ... write zuv for each solvent's site
-    DO isite = 1, nsite
-      IF (sowner(isite) == my_group_id) THEN
-        iisite = isite - isite_start + 1
-      ELSE
-        iisite = -1
-      END IF
+    IF (me_group == io_group) THEN
       !
-      IF (sowner(isite) == my_group_id) THEN
+      DO isite = 1, nsite
+        IF (sowner(isite) == my_group_id) THEN
+          iisite = isite - isite_start + 1
+        ELSE
+          iisite = -1
+        END IF
         !
-        CALL mp_barrier(intra_group_comm)
+        IF (sowner(isite) == my_group_id) THEN
+          !
+          zuv_site = zuv(iisite)
+          !
+        END IF
         !
-        zuv_site = zuv(iisite)
-        !
-      END IF
-      !
-      IF (sowner(isite) /= io_group_id) THEN
-        IF (me_group == io_group) THEN
+        IF (sowner(isite) /= io_group_id) THEN
           !
           CALL mp_barrier(inter_group_comm)
           !
@@ -1167,13 +1168,17 @@ CONTAINS
           zuv_site = zuv_site_
           !
         END IF
-      END IF
+        !
+        IF (ionode) THEN
+          CALL iotk_write_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
+        END IF
+      END DO
       !
-      IF (ionode) THEN
-        CALL iotk_write_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
-      END IF
-    END DO
+    END IF
     !
+    CALL mp_barrier(intra_group_comm)
+    !
+    ! ... close file
     IF (ionode) THEN
       CALL iotk_write_end(rismlaue_unit, "LAUE-RISM")
       !
@@ -1262,7 +1267,7 @@ CONTAINS
       END IF
     END IF
     !
-    ! ... find the index of the group that will write zuv
+    ! ... find the index of the group that will read zuv
     io_group_id = 0
     IF (ionode) THEN
       io_group_id = my_group_id
@@ -1283,37 +1288,39 @@ CONTAINS
     sowner(isite_start:isite_end) = my_group_id
     CALL mp_sum(sowner, inter_group_comm)
     !
-    ! ... write zuv for each solvent's site
-    DO isite = 1, nsite
-      IF (sowner(isite) == my_group_id) THEN
-        iisite = isite - isite_start + 1
-      ELSE
-        iisite = -1
-      END IF
+    ! ... read zuv for each solvent's site
+    IF (me_group == io_group) THEN
       !
-      IF (ionode) THEN
-        CALL iotk_scan_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
-      END IF
+      DO isite = 1, nsite
+        IF (sowner(isite) == my_group_id) THEN
+          iisite = isite - isite_start + 1
+        ELSE
+          iisite = -1
+        END IF
+        !
+        IF (ionode) THEN
+          CALL iotk_scan_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
+        END IF
+        !
+        IF (sowner(isite) /= io_group_id) THEN
+          !
+          CALL mp_get(zuv_site_, zuv_site, my_group_id, sowner(isite), &
+                    & io_group_id, isite, inter_group_comm)
+          !
+          zuv_site = zuv_site_
+          !
+        END IF
+        !
+        IF (sowner(isite) == my_group_id) THEN
+          !
+          zuv(iisite) = zuv_site
+          !
+        END IF
+      END DO
       !
-      IF (my_group_id == io_group_id) THEN
-        CALL mp_bcast(zuv_site, io_group, intra_group_comm)
-      END IF
-      !
-      IF (sowner(isite) /= io_group_id) THEN
-        !
-        CALL mp_get(zuv_site_, zuv_site, my_group_id, sowner(isite), &
-                  & io_group_id, isite, inter_group_comm)
-        !
-        zuv_site = zuv_site_
-        !
-      END IF
-      !
-      IF (sowner(isite) == my_group_id) THEN
-        !
-        zuv(iisite) = zuv_site
-        !
-      END IF
-    END DO
+    END IF
+    !
+    CALL mp_bcast(zuv, io_group, intra_group_comm)
     !
     ! ... close file
     IF (ionode) THEN
