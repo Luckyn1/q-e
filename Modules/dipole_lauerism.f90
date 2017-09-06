@@ -32,7 +32,6 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   INTEGER               :: isolV
   INTEGER               :: iatom
   INTEGER               :: izsolv
-  INTEGER               :: jzsolv
   REAL(DP)              :: qv
   REAL(DP)              :: beta
   REAL(DP)              :: zstep
@@ -40,6 +39,7 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   REAL(DP)              :: zedge
   REAL(DP)              :: vline0
   REAL(DP)              :: vline1
+  REAL(DP), ALLOCATABLE :: cs0(:)
   REAL(DP), ALLOCATABLE :: cd0(:)
   !
   ! ... check data type
@@ -96,9 +96,14 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   !
   ! ... allocate memory
   IF (rismt%nsite > 0) THEN
+    ALLOCATE(cs0(rismt%nsite))
     ALLOCATE(cd0(rismt%nsite))
+    cs0 = 0.0_DP
     cd0 = 0.0_DP
   END IF
+  !
+  ! ... average of short-range direct correlations, at the edge
+  CALL average_short_range(izsolv)
   !
   ! ... calculate amplitudes of dipole part,
   ! ... which is included in short-range direct correlations
@@ -110,8 +115,7 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
     qv    = solVs(isolV)%charge(iatom)
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      jzsolv = izsolv - rismt%lfft%izcell_start + 1
-      cd0(iiq) = DBLE(rismt%csgz(jzsolv, iiq)) &         ! short-range
+      cd0(iiq) = cs0(iiq) &                              ! short-range
              & - beta * qv * DBLE(rismt%vlgz(izsolv)) &  ! long-range
              & + beta * qv * (vline1 * zedge + vline0)   ! from void-region
     END IF
@@ -131,6 +135,7 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   !
   ! ... deallocate memoery
   IF (rismt%nsite > 0) THEN
+    DEALLOCATE(cs0)
     DEALLOCATE(cd0)
   END IF
   !
@@ -139,17 +144,98 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   !
 CONTAINS
   !
+  SUBROUTINE average_short_range(iz0)
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: iz0
+    !
+    INTEGER :: ir
+    INTEGER :: idx
+    INTEGER :: idx0
+    INTEGER :: i3min
+    INTEGER :: i3max
+    INTEGER :: i1, i2, i3
+    INTEGER :: iz
+#if defined(__OPENMP)
+    REAL(DP), ALLOCATABLE :: cs1(:)
+#endif
+    !
+    IF (rismt%nsite < 1) THEN
+      RETURN
+    END IF
+    !
+    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
+       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    !
+    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
+    !
+!$omp parallel default(shared) private(ir, idx, i1, i2, i3, iz)
+#if defined(__OPENMP)
+    ALLOCATE(cs1(rismt%nsite))
+    cs1 = 0.0_DP
+#endif
+!$omp do
+    DO ir = 1, rismt%cfft%dfftt%nnr
+      !
+      idx = idx0 + ir - 1
+      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
+      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
+      i2  = idx / rismt%cfft%dfftt%nr1x
+      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - rismt%cfft%dfftt%nr1x * i2
+      i1  = idx
+      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
+        CYCLE
+      END IF
+      !
+      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
+        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
+      ELSE
+        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
+      END IF
+      iz = iz + rismt%lfft%izcell_start
+      !
+      IF (iz == iz0) THEN
+#if defined(__OPENMP)
+        cs1(:) = cs1(:) + rismt%csr(ir, :)
+#else
+        cs0(:) = cs0(:) + rismt%csr(ir, :)
+#endif
+      END IF
+      !
+    END DO
+!$omp end do
+#if defined(__OPENMP)
+!$omp critical
+    cs0 = cs0 + cs1
+!$omp end critical
+    DEALLOCATE(cs1)
+#endif
+!$omp end parallel
+    !
+    cs0 = cs0 / DBLE(rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2)
+    !
+  END SUBROUTINE average_short_range
+  !
   SUBROUTINE update_short_range()
     IMPLICIT NONE
     !
-    INTEGER  :: ir
-    INTEGER  :: idx
-    INTEGER  :: idx0
-    INTEGER  :: i3min
-    INTEGER  :: i3max
-    INTEGER  :: i1, i2, i3
-    INTEGER  :: iz, iiz
-    INTEGER  :: isite
+    INTEGER :: ir
+    INTEGER :: idx
+    INTEGER :: idx0
+    INTEGER :: i3min
+    INTEGER :: i3max
+    INTEGER :: i1, i2, i3
+    INTEGER :: iz, iiz
+    INTEGER :: isite
     !
     IF (rismt%nsite < 1) THEN
       RETURN
@@ -197,7 +283,7 @@ CONTAINS
         CYCLE
       END IF
       !
-      DO isite = 1, rismt%%nsite
+      DO isite = 1, rismt%nsite
         rismt%csr (ir, isite) = rismt%csr(ir, isite) - cd0(isite) * rismt%cdzs(iiz)
         rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cdza(isite) * rismt%cdzs(iiz)
       END DO
