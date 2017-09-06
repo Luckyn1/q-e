@@ -1081,6 +1081,7 @@ CONTAINS
     INTEGER                  :: my_group_id
     INTEGER, ALLOCATABLE     :: sowner(:)
     REAL(DP)                 :: zuv_site
+    REAL(DP)                 :: zuv_site_
     !
     INTEGER, EXTERNAL        :: find_free_unit
     !
@@ -1160,8 +1161,11 @@ CONTAINS
           !
           CALL mp_barrier(inter_group_comm)
           !
-          CALL mp_get(zuv_site, zuv_site, my_group_id, io_group_id, &
+          CALL mp_get(zuv_site_, zuv_site, my_group_id, io_group_id, &
                     & sowner(isite), isite, inter_group_comm)
+          !
+          zuv_site = zuv_site_
+          !
         END IF
       END IF
       !
@@ -1214,6 +1218,7 @@ CONTAINS
     LOGICAL                 :: exst
     INTEGER, ALLOCATABLE    :: sowner(:)
     REAL(DP)                :: zuv_site
+    REAL(DP)                :: zuv_site_
     !
     INTEGER, EXTERNAL       :: find_free_unit
     !
@@ -1295,8 +1300,12 @@ CONTAINS
       END IF
       !
       IF (sowner(isite) /= io_group_id) THEN
-        CALL mp_get(zuv_site, zuv_site, my_group_id, sowner(isite), &
+        !
+        CALL mp_get(zuv_site_, zuv_site, my_group_id, sowner(isite), &
                   & io_group_id, isite, inter_group_comm)
+        !
+        zuv_site = zuv_site_
+        !
       END IF
       !
       IF (sowner(isite) == my_group_id) THEN
