@@ -318,7 +318,13 @@ CONTAINS
     REAL(DP), INTENT(IN)  :: z
     REAL(DP), INTENT(OUT) :: s
     !
-    s = 0.5_DP * (1.0_DP + ssign * SIN(0.5_DP * pi * z / z0))
+    REAL(DP) :: phi
+    !
+    phi = z / z0
+    phi = MAX(phi, -1.0_DP)
+    phi = MIN(phi, +1.0_DP)
+    !
+    s = 0.5_DP * (1.0_DP + ssign * SIN(0.5_DP * pi * phi))
     !
   END SUBROUTINE step_function
   !
