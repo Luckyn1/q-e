@@ -170,7 +170,7 @@ CONTAINS
     i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
     i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
     !
-!$omp parallel default(shared) private(ir, idx, i1, i2, i3, iz)
+!$omp parallel default(shared) private(ir, idx, i1, i2, i3, iz, cs1)
 #if defined(__OPENMP)
     ALLOCATE(cs1(rismt%nsite))
     cs1 = 0.0_DP
