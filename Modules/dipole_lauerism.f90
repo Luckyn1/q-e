@@ -221,6 +221,8 @@ CONTAINS
 #endif
 !$omp end parallel
     !
+    CALL mp_sum(cs0, rismt%mp_site%intra_sitg_comm)
+    !
     cs0 = cs0 / DBLE(rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2)
     !
   END SUBROUTINE average_short_range
