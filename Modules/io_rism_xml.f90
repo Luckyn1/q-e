@@ -275,16 +275,6 @@ CONTAINS
     !
     IF (rismt%itype == ITYPE_LAUERISM) THEN
       !
-      ! ... write cd(dipole)
-      file_base = TRIM(dirname) // '/3d-rism_cduv' // TRIM(ext)
-      datname   = 'Cduv'
-      !
-      IF (rismt%nsite > 0) THEN
-        CALL write_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base, datname)
-      ELSE
-        CALL write_lauedipole_x(rismt, rismt%nsite, ddummy, file_base, datname)
-      END IF
-      !
       ! ... write hs(laue)
       file_base = TRIM(dirname) // '/3d-rism_hsuv_l' // TRIM(ext)
       datname   = 'Hsuv(gxy,z)'
@@ -307,6 +297,16 @@ CONTAINS
       ELSE
         CALL write_lauerism_x(rismt, (rismt%nrzl * rismt%lfft%ngxy), rismt%nsite, &
                             & cdummy, ecut, gamma_only, file_base, datname)
+      END IF
+      !
+      ! ... write cd(dipole)
+      file_base = TRIM(dirname) // '/3d-rism_cduv' // TRIM(ext)
+      datname   = 'Cduv'
+      !
+      IF (rismt%nsite > 0) THEN
+        CALL write_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base, datname)
+      ELSE
+        CALL write_lauedipole_x(rismt, rismt%nsite, ddummy, file_base, datname)
       END IF
       !
     END IF
@@ -448,15 +448,6 @@ CONTAINS
     !
     IF (rismt%itype == ITYPE_LAUERISM) THEN
       !
-      ! ... read cd(dipole)
-      file_base = TRIM(dirname) // '/3d-rism_cduv' // TRIM(ext)
-      !
-      IF (rismt%nsite > 0) THEN
-        CALL read_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base)
-      ELSE
-        CALL read_lauedipole_x(rismt, rismt%nsite, ddummy, file_base)
-      END IF
-      !
       ! ... read hs(laue)
       file_base = TRIM(dirname) // '/3d-rism_hsuv_l' // TRIM(ext)
       !
@@ -477,6 +468,15 @@ CONTAINS
       ELSE
         CALL read_lauerism_x(rismt, (rismt%nrzl * rismt%lfft%ngxy), rismt%nsite, &
                            & cdummy, ecut, file_base)
+      END IF
+      !
+      ! ... read cd(dipole)
+      file_base = TRIM(dirname) // '/3d-rism_cduv' // TRIM(ext)
+      !
+      IF (rismt%nsite > 0) THEN
+        CALL read_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base)
+      ELSE
+        CALL read_lauedipole_x(rismt, rismt%nsite, ddummy, file_base)
       END IF
       !
     END IF
