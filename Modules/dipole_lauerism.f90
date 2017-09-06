@@ -62,7 +62,7 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
     !
     rismt%cdza = 0.0_DP
-    rismt%cdsr = rismt%csr
+    rismt%cssr = rismt%csr
     !
     ierr = IERR_RISM_NULL
     RETURN
