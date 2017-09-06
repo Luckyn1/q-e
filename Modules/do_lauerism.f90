@@ -147,7 +147,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       EXIT
     END IF
     !
-    ! ... extract dipole part: Cs(r) -> Cs(r), Cd(r)
+    ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
     CALL dipole_lauerism(rismt, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
@@ -156,7 +156,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     ! ... FFT: Cs(r) -> Cs(gxy,z)
     CALL fft_csr_to_cslaue()
     !
-    ! ... Laue-RISM eq.: Cs(gxy,z) -> H(gxy,z)
+    ! ... Laue-RISM eq.: Cs(gxy,z), Cd(z) -> H(gxy,z)
     CALL eqn_lauerism(rismt, lboth, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
