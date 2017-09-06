@@ -174,6 +174,12 @@ SUBROUTINE guess_3drism(rismt, ierr)
     CALL correct_edge()
   END IF
   !
+  ! ... set dipole part for Laue-RISM
+  IF (laue) THEN
+    rismt%cdza = 0.0_DP
+    rismt%csdr = rismt%csr
+  END IF
+  !
   ! ... normally done
 1 CONTINUE
   ierr = IERR_RISM_NULL
