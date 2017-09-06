@@ -147,12 +147,6 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       EXIT
     END IF
     !
-    ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
-    CALL dipole_lauerism(rismt, ierr)
-    IF (ierr /= IERR_RISM_NULL) THEN
-      GOTO 100
-    END IF
-    !
     ! ... FFT: Cs(r) -> Cs(gxy,z)
     CALL fft_csr_to_cslaue()
     !
@@ -258,6 +252,12 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       CALL update_by_mdiis(mdiist, rismt%csr, dcsr, rismt%intra_comm)
     ELSE
       CALL update_by_mdiis(mdiist, csr_, dcsr_, rismt%intra_comm)
+    END IF
+    !
+    ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
+    CALL dipole_lauerism(rismt, ierr)
+    IF (ierr /= IERR_RISM_NULL) THEN
+      GOTO 100
     END IF
     !
   ! ... end Laue-RISM iteration
