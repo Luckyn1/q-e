@@ -371,7 +371,6 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name
     !
     CALL write_lauedipole_xml(file_base, zd(1:nsite), name, &
-                            & rismt%mp_site%nsite, isite_start, isite_end, &
                             & rismt%mp_site%nsite, rismt%mp_site%isite_start, rismt%mp_site%isite_end, &
                             & ionode, rismt%mp_site%intra_sitg_comm, rismt%mp_site%inter_sitg_comm)
     !

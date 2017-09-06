@@ -1059,7 +1059,7 @@ CONTAINS
     IMPLICIT NONE
     !
     CHARACTER(LEN=*), INTENT(IN) :: rismlaue_file_base
-    COMPLEX(DP),      INTENT(IN) :: zuv(:)
+    REAL(DP),         INTENT(IN) :: zuv(:)
     CHARACTER(LEN=*), INTENT(IN) :: name
     INTEGER,          INTENT(IN) :: nsite
     INTEGER,          INTENT(IN) :: isite_start
@@ -1192,7 +1192,7 @@ CONTAINS
     IMPLICIT NONE
     !
     CHARACTER(LEN=*), INTENT(IN)  :: rismlaue_file_base
-    COMPLEX(DP),      INTENT(OUT) :: zuv(:,:)
+    REAL(DP),         INTENT(OUT) :: zuv(:)
     INTEGER,          INTENT(IN)  :: nsite
     INTEGER,          INTENT(IN)  :: isite_start
     INTEGER,          INTENT(IN)  :: isite_end
@@ -1213,7 +1213,7 @@ CONTAINS
     INTEGER                 :: my_group_id
     LOGICAL                 :: exst
     INTEGER, ALLOCATABLE    :: sowner(:)
-    REAL(DP),               :: zuv_site(:)
+    REAL(DP)                :: zuv_site
     !
     INTEGER, EXTERNAL       :: find_free_unit
     !
@@ -1315,7 +1315,6 @@ CONTAINS
     !
     ! ... deallocate memory
     DEALLOCATE(sowner)
-    DEALLOCATE(zuv_site)
     !
   END SUBROUTINE read_lauedipole_xml
   !
