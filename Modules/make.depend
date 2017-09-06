@@ -97,6 +97,13 @@ data_structure_3drism.o : mp_rism.o
 data_structure_3drism.o : recvec.o
 deviatoric.o : io_global.o
 deviatoric.o : kind.o
+dipole_lauerism.o : cell_base.o
+dipole_lauerism.o : constants.o
+dipole_lauerism.o : err_rism.o
+dipole_lauerism.o : kind.o
+dipole_lauerism.o : mp.o
+dipole_lauerism.o : rism.o
+dipole_lauerism.o : solvmol.o
 do_1drism.o : check_stop.o
 do_1drism.o : control_flags.o
 do_1drism.o : err_rism.o
