@@ -1007,6 +1007,9 @@ CONTAINS
       END IF
       !
       IF (sowner(isite) /= io_group_id) THEN
+        !
+        CALL mp_barrier(inter_group_comm)
+        !
         CALL mp_get(zuv_site, zuv_site, my_group_id, sowner(isite), &
                   & io_group_id, isite, inter_group_comm)
       END IF
@@ -1083,7 +1086,6 @@ CONTAINS
     INTEGER                  :: my_group_id
     INTEGER, ALLOCATABLE     :: sowner(:)
     REAL(DP)                 :: zuv_site
-    REAL(DP)                 :: zuv_site_
     !
     INTEGER, EXTERNAL        :: find_free_unit
     !
@@ -1143,14 +1145,14 @@ CONTAINS
     CALL mp_sum(sowner, inter_group_comm)
     !
     ! ... write zuv for each solvent's site
-    IF (me_group == io_group) THEN
+    DO isite = 1, nsite
+      IF (sowner(isite) == my_group_id) THEN
+        iisite = isite - isite_start + 1
+      ELSE
+        iisite = -1
+      END IF
       !
-      DO isite = 1, nsite
-        IF (sowner(isite) == my_group_id) THEN
-          iisite = isite - isite_start + 1
-        ELSE
-          iisite = -1
-        END IF
+      IF (me_group == io_group) THEN
         !
         IF (sowner(isite) == my_group_id) THEN
           !
@@ -1160,23 +1162,24 @@ CONTAINS
         !
         IF (sowner(isite) /= io_group_id) THEN
           !
-          CALL mp_barrier(inter_group_comm)
+          !CALL mp_barrier(inter_group_comm)
           !
-          CALL mp_get(zuv_site_, zuv_site, my_group_id, io_group_id, &
-                    & sowner(isite), isite, inter_group_comm)
+          !CALL mp_get(zuv_site, zuv_site, my_group_id, io_group_id, &
+          !          & sowner(isite), isite, inter_group_comm)
           !
-          zuv_site = zuv_site_
+          CALL mp_bcast(zuv_site, sowner(isite), inter_group_comm)
           !
         END IF
         !
-        IF (ionode) THEN
-          CALL iotk_write_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
-        END IF
-      END DO
+      END IF
       !
-    END IF
-    !
-    CALL mp_barrier(intra_group_comm)
+      CALL mp_barrier(intra_group_comm)
+      !
+      IF (ionode) THEN
+        CALL iotk_write_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
+      END IF
+      !
+    END DO
     !
     ! ... close file
     IF (ionode) THEN
@@ -1223,7 +1226,6 @@ CONTAINS
     LOGICAL                 :: exst
     INTEGER, ALLOCATABLE    :: sowner(:)
     REAL(DP)                :: zuv_site
-    REAL(DP)                :: zuv_site_
     !
     INTEGER, EXTERNAL       :: find_free_unit
     !
@@ -1289,40 +1291,43 @@ CONTAINS
     CALL mp_sum(sowner, inter_group_comm)
     !
     ! ... read zuv for each solvent's site
-    IF (me_group == io_group) THEN
+    DO isite = 1, nsite
+      IF (sowner(isite) == my_group_id) THEN
+        iisite = isite - isite_start + 1
+      ELSE
+        iisite = -1
+      END IF
       !
-      DO isite = 1, nsite
-        IF (sowner(isite) == my_group_id) THEN
-          iisite = isite - isite_start + 1
-        ELSE
-          iisite = -1
-        END IF
-        !
-        IF (ionode) THEN
-          CALL iotk_scan_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
-        END IF
+      IF (ionode) THEN
+        CALL iotk_scan_dat(rismlaue_unit, "site" // iotk_index(isite), zuv_site)
+      END IF
+      !
+      IF (me_group == io_group) THEN
         !
         IF (sowner(isite) /= io_group_id) THEN
           !
-          CALL mp_barrier(inter_group_comm)
+          !CALL mp_barrier(inter_group_comm)
           !
-          CALL mp_get(zuv_site_, zuv_site, my_group_id, sowner(isite), &
-                    & io_group_id, isite, inter_group_comm)
+          !CALL mp_get(zuv_site, zuv_site, my_group_id, sowner(isite), &
+          !          & io_group_id, isite, inter_group_comm)
           !
-          zuv_site = zuv_site_
+          CALL mp_bcast(zuv_site, io_group_id, inter_group_comm)
           !
         END IF
         !
-        IF (sowner(isite) == my_group_id) THEN
-          !
-          zuv(iisite) = zuv_site
-          !
-        END IF
-      END DO
+      END IF
       !
-    END IF
-    !
-    CALL mp_bcast(zuv, io_group, intra_group_comm)
+      CALL mp_barrier(intra_group_comm)
+      !
+      IF (sowner(isite) == my_group_id) THEN
+        !
+        CALL mp_bcast(zuv_site, io_group, intra_group_comm)
+        !
+        zuv(iisite) = zuv_site
+        !
+      END IF
+      !
+    END DO
     !
     ! ... close file
     IF (ionode) THEN
