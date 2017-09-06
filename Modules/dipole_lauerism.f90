@@ -149,6 +149,7 @@ CONTAINS
     INTEGER  :: i3max
     INTEGER  :: i1, i2, i3
     INTEGER  :: iz, iiz
+    INTEGER  :: isite
     !
     IF (rismt%nsite < 1) THEN
       RETURN
@@ -160,7 +161,7 @@ CONTAINS
     i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
     i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
     !
-!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz, iiz)
+!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz, iiz, isite)
     DO ir = 1, rismt%cfft%dfftt%nnr
       !
       idx = idx0 + ir - 1
@@ -196,8 +197,10 @@ CONTAINS
         CYCLE
       END IF
       !
-      rismt%csr (ir, :) = rismt%csr(ir, :) - cd0(:) * rismt%cdzs(iiz)
-      rismt%csdr(ir, :) = rismt%csr(ir, :) + rismt%cdza(:) * rismt%cdzs(iiz)
+      DO isite = 1, rismt%%nsite
+        rismt%csr (ir, isite) = rismt%csr(ir, isite) - cd0(isite) * rismt%cdzs(iiz)
+        rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cdza(isite) * rismt%cdzs(iiz)
+      END DO
       !
     END DO
 !$omp end parallel do
