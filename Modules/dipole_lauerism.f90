@@ -13,14 +13,13 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   !
   ! ... extract dipole part of direct correlations, in Laue-RISM calculation.
   !
-  USE cell_base, ONLY : at, alat
+  USE cell_base, ONLY : alat
   USE constants, ONLY : K_BOLTZMANN_RY
   USE err_rism,  ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
   USE kinds,     ONLY : DP
   USE mp,        ONLY : mp_sum
   USE rism,      ONLY : rism_type, ITYPE_LAUERISM
-  USE solvmol,   ONLY : solVs, get_nuniq_in_solVs, &
-                      & iuniq_to_isite, isite_to_isolV, isite_to_iatom
+  USE solvmol,   ONLY : solVs, iuniq_to_isite, isite_to_isolV, isite_to_iatom
   !
   IMPLICIT NONE
   !
