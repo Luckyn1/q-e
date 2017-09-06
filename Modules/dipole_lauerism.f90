@@ -60,6 +60,10 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   !
   ! ... is one-hand ?
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
+    !
+    rismt%cdza = 0.0_DP
+    rismt%cdsr = rismt%csr
+    !
     ierr = IERR_RISM_NULL
     RETURN
   END IF
