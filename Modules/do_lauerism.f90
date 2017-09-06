@@ -414,10 +414,11 @@ CONTAINS
       i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
       IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
         IF (rismt%nsite > 0) THEN
-          rismt%csr(ir, :) = 0.0_DP
-          rismt%hr (ir, :) = 0.0_DP
-          rismt%gr (ir, :) = 0.0_DP
-          dcsr     (ir, :) = 0.0_DP
+          rismt%csr (ir, :) = 0.0_DP
+          rismt%csdr(ir, :) = 0.0_DP
+          rismt%hr  (ir, :) = 0.0_DP
+          rismt%gr  (ir, :) = 0.0_DP
+          dcsr      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
@@ -426,10 +427,11 @@ CONTAINS
       i2  = idx / rismt%cfft%dfftt%nr1x
       IF (i2 >= rismt%cfft%dfftt%nr2) THEN
         IF (rismt%nsite > 0) THEN
-          rismt%csr(ir, :) = 0.0_DP
-          rismt%hr (ir, :) = 0.0_DP
-          rismt%gr (ir, :) = 0.0_DP
-          dcsr     (ir, :) = 0.0_DP
+          rismt%csr (ir, :) = 0.0_DP
+          rismt%csdr(ir, :) = 0.0_DP
+          rismt%hr  (ir, :) = 0.0_DP
+          rismt%gr  (ir, :) = 0.0_DP
+          dcsr      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
@@ -438,10 +440,11 @@ CONTAINS
       i1  = idx
       IF (i1 >= rismt%cfft%dfftt%nr1) THEN
         IF (rismt%nsite > 0) THEN
-          rismt%csr(ir, :) = 0.0_DP
-          rismt%hr (ir, :) = 0.0_DP
-          rismt%gr (ir, :) = 0.0_DP
-          dcsr     (ir, :) = 0.0_DP
+          rismt%csr (ir, :) = 0.0_DP
+          rismt%csdr(ir, :) = 0.0_DP
+          rismt%hr  (ir, :) = 0.0_DP
+          rismt%gr  (ir, :) = 0.0_DP
+          dcsr      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
@@ -455,28 +458,31 @@ CONTAINS
       !
       IF (iz > rismt%lfft%izright_end) THEN
         IF (rismt%nsite > 0) THEN
-          rismt%csr(ir, :) = 0.0_DP
-          rismt%hr (ir, :) = -1.0_DP
-          rismt%gr (ir, :) = 0.0_DP
-          dcsr     (ir, :) = 0.0_DP
+          rismt%csr (ir, :) = 0.0_DP
+          rismt%csdr(ir, :) = 0.0_DP
+          rismt%hr  (ir, :) = -1.0_DP
+          rismt%gr  (ir, :) = 0.0_DP
+          dcsr      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
       IF (iz < rismt%lfft%izleft_start) THEN
         IF (rismt%nsite > 0) THEN
-          rismt%csr(ir, :) = 0.0_DP
-          rismt%hr (ir, :) = -1.0_DP
-          rismt%gr (ir, :) = 0.0_DP
-          dcsr     (ir, :) = 0.0_DP
+          rismt%csr (ir, :) = 0.0_DP
+          rismt%csdr(ir, :) = 0.0_DP
+          rismt%hr  (ir, :) = -1.0_DP
+          rismt%gr  (ir, :) = 0.0_DP
+          dcsr      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
       IF (iz < rismt%lfft%izright_start .AND. iz > rismt%lfft%izleft_end) THEN
         IF (rismt%nsite > 0) THEN
-          rismt%csr(ir, :) = 0.0_DP
-          rismt%hr (ir, :) = -1.0_DP
-          rismt%gr (ir, :) = 0.0_DP
-          dcsr     (ir, :) = 0.0_DP
+          rismt%csr (ir, :) = 0.0_DP
+          rismt%csdr(ir, :) = 0.0_DP
+          rismt%hr  (ir, :) = -1.0_DP
+          rismt%gr  (ir, :) = 0.0_DP
+          dcsr      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
