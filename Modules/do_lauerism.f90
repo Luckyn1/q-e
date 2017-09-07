@@ -943,7 +943,8 @@ CONTAINS
     INTEGER :: i3max
     INTEGER :: i1, i2, i3
     INTEGER :: iz, iiz
-    INTEGER :: ngrid
+    INTEGER :: ngrid0
+    REAL(DP), ALLOCATABLE :: dcda0(:)
 #if defined(__OPENMP)
     INTEGER :: ngrid1
     REAL(DP), ALLOCATABLE :: dcda1(:)
@@ -953,8 +954,9 @@ CONTAINS
       RETURN
     END IF
     !
-    ngrid = 0
-    dcda(1:rismt%nsite) = 0.0_DP
+    ngrid0 = 0
+    ALLOCATE(dcda0(rismt%nsite))
+    dcda0 = 0.0_DP
     !
     idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
        & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
@@ -1006,27 +1008,27 @@ CONTAINS
       !
 #if defined(__OPENMP)
       ngrid1 = ngrid1 + 1
-      dcda1(1:rismt%nsite) = dcda1(1:rismt%nsite) + rismt%cdzs(iiz) * dcsr(ir, 1:rismt%nsite)
+      dcda1 = dcda1 + rismt%cdzs(iiz) * dcsr(ir, :)
 #else
-      ngrid = ngrid + 1
-      dcda(1:rismt%nsite) = dcda(1:rismt%nsite) + rismt%cdzs(iiz) * dcsr(ir, 1:rismt%nsite)
+      ngrid0 = ngrid0 + 1
+      dcda0 = dcda0 + rismt%cdzs(iiz) * dcsr(ir, :)
 #endif
       !
     END DO
 !$omp end do
 #if defined(__OPENMP)
 !$omp critical
-    ngrid = ngrid + ngrid1
-    dcda(1:rismt%nsite) = dcda(1:rismt%nsite) + dcda1(1:rismt%nsite)
+    ngrid0 = ngrid0 + ngrid1
+    dcda0  = dcda0  + dcda1
 !$omp end critical
     DEALLOCATE(dcda1)
 #endif
 !$omp end parallel
     !
-    CALL mp_sum(ngrid, rismt%mp_site%intra_sitg_comm)
-    CALL mp_sum(dcda,  rismt%mp_site%intra_sitg_comm)
+    CALL mp_sum(ngrid0, rismt%mp_site%intra_sitg_comm)
+    CALL mp_sum(dcda0,  rismt%mp_site%intra_sitg_comm)
     !
-    dcda(1:rismt%nsite) = dcda(1:rismt%nsite) / DBLE(ngrid)
+    dcda(1:rismt%nsite) = dcda0(1:rismt%nsite) / DBLE(ngrid)
     !
   END SUBROUTINE make_dcda
   !
