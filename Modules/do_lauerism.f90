@@ -1030,6 +1030,8 @@ CONTAINS
     !
     dcda(1:rismt%nsite) = dcda0(1:rismt%nsite) / DBLE(ngrid)
     !
+    DEALLOCATE(dcda0)
+    !
   END SUBROUTINE make_dcda
   !
 END SUBROUTINE do_lauerism
