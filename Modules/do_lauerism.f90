@@ -387,8 +387,8 @@ CONTAINS
     !
     INTEGER,     PARAMETER   :: NBOX      = 4
     INTEGER,     PARAMETER   :: MAXITER   = 4
-    INTEGER,     PARAMETER   :: MDIIS_EXT = 2
-    REAL(DP),    PARAMETER   :: ETA       = 0.1_DP
+    INTEGER,     PARAMETER   :: MDIIS_EXT = 4
+    REAL(DP),    PARAMETER   :: ETA       = 0.05_DP
     !
     ! ... is one-hand ?
     IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
