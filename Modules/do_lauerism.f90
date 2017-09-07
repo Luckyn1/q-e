@@ -385,9 +385,9 @@ CONTAINS
     REAL(DP)                 :: cda_ (1)
     REAL(DP)                 :: dcda_(1)
     !
-    INTEGER,     PARAMETER   :: NBOX      = 4
-    INTEGER,     PARAMETER   :: MAXITER   = 4
-    INTEGER,     PARAMETER   :: MDIIS_EXT = 4
+    INTEGER,     PARAMETER   :: NBOX      = 3
+    INTEGER,     PARAMETER   :: MAXITER   = 3
+    INTEGER,     PARAMETER   :: MDIIS_EXT = 3
     REAL(DP),    PARAMETER   :: ETA       = 0.05_DP
     !
     ! ... is one-hand ?
