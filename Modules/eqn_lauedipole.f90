@@ -243,7 +243,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     !
   ELSE
     ! ...
-    ! ... Calculate dipole part of total correlations
+    ! ... Calculate dipole parts of total correlations
     ! ..............................................................................
     !
     ! ... allocate working memory

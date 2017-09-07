@@ -134,6 +134,9 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   END IF
 #endif
   !
+  ! ... sum: Cs(r) + Cd(z)
+  CALL dipole_lauerism(rismt, .FALSE., ierr)
+  !
   ! ... Laue-RISM eq. of long-range around the expanded cell
   CALL eqn_lauelong(rismt, lboth, ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
@@ -249,13 +252,15 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     !
     ! ... MDIIS: dCs(r) -> Cs(r)
     IF (rismt%nr * rismt%nsite > 0) THEN
-      CALL update_by_mdiis(mdiist, rismt%csr, dcsr, rismt%intra_comm)
+      ! ... optimize with Cs(r) + Cd(z)
+      CALL update_by_mdiis(mdiist, rismt%csdr, dcsr, rismt%intra_comm)
+      rismt%csr = rismt%csdr
     ELSE
       CALL update_by_mdiis(mdiist, csr_, dcsr_, rismt%intra_comm)
     END IF
     !
     ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
-    CALL dipole_lauerism(rismt, ierr)
+    CALL dipole_lauerism(rismt, .TRUE., ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
     END IF

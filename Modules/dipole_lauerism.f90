@@ -8,10 +8,16 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------------------
-SUBROUTINE dipole_lauerism(rismt, ierr)
+SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
   !---------------------------------------------------------------------------
   !
-  ! ... extract dipole part of direct correlations, in Laue-RISM calculation.
+  ! ... extract dipole parts of direct correlations, in Laue-RISM calculation.
+  ! ...
+  ! ... Variables:
+  ! ...   lextract: if .TRUE.  extract dipole parts of direct correlations
+  ! ...                        and sum Cs(r) + Cd(z),
+  ! ...             if .FALSE. not extract dipole parts of direct correlation
+  ! ...                        but sum Cs(r) + Cd(z)
   !
   USE cell_base, ONLY : alat
   USE constants, ONLY : K_BOLTZMANN_RY
@@ -24,6 +30,7 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   IMPLICIT NONE
   !
   TYPE(rism_type), INTENT(INOUT) :: rismt
+  LOGICAL,         INTENT(IN)    :: lextract
   INTEGER,         INTENT(OUT)   :: ierr
   !
   INTEGER               :: iq
@@ -61,12 +68,28 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   ! ... is one-hand ?
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
     !
-    IF (rismt%nsite > 0) THEN
-      rismt%cdza = 0.0_DP
+    IF (lextract) THEN
+      IF (rismt%nsite > 0) THEN
+        rismt%cdza = 0.0_DP
+      END IF
     END IF
+    !
     IF (rismt%nr * rismt%nsite > 0) THEN
       rismt%csdr = rismt%csr
     END IF
+    !
+    ierr = IERR_RISM_NULL
+    RETURN
+  END IF
+  !
+  ! ... sum Cs(r) + Cd(z), then return
+  IF (.NOT. lextract) THEN
+    !
+    IF (rismt%nr * rismt%nsite > 0) THEN
+      rismt%csdr = 0.0_DP
+    END IF
+    !
+    CALL update_short_range(.FALSE.)
     !
     ierr = IERR_RISM_NULL
     RETURN
@@ -109,7 +132,7 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
   ! ... average of short-range direct correlations, at the edge
   CALL average_short_range(izsolv)
   !
-  ! ... calculate amplitudes of dipole part,
+  ! ... calculate amplitudes of dipole parts,
   ! ... which is included in short-range direct correlations
   DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
     iiq   = iq - rismt%mp_site%isite_start + 1
@@ -129,9 +152,9 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
     CALL mp_sum(cd0, rismt%mp_site%intra_sitg_comm)
   END IF
   !
-  ! ... update amplitudes of dipole part of direct correlations
+  ! ... update amplitudes of dipole parts of direct correlations
   IF (rismt%nsite > 0) THEN
-    rismt%cdza = rismt%cdza + cd0
+    rismt%cdza = cd0
   END IF
   !
   ! ... update short-range direct correlations
@@ -139,7 +162,7 @@ SUBROUTINE dipole_lauerism(rismt, ierr)
     rismt%csdr = 0.0_DP
   END IF
   !
-  CALL update_short_range()
+  CALL update_short_range(.TRUE.)
   !
   ! ... deallocate memoery
   IF (rismt%nsite > 0) THEN
@@ -235,8 +258,10 @@ CONTAINS
     !
   END SUBROUTINE average_short_range
   !
-  SUBROUTINE update_short_range()
+  SUBROUTINE update_short_range(modify_csr)
     IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN) :: modify_csr
     !
     INTEGER :: ir
     INTEGER :: idx
@@ -293,8 +318,13 @@ CONTAINS
         CYCLE
       END IF
       !
+      IF (modify_csr) THEN
+        DO isite = 1, rismt%nsite
+          rismt%csr(ir, isite) = rismt%csr(ir, isite) - cd0(isite) * rismt%cdzs(iiz)
+        END DO
+      END IF
+      !
       DO isite = 1, rismt%nsite
-        rismt%csr (ir, isite) = rismt%csr(ir, isite) - cd0(isite) * rismt%cdzs(iiz)
         rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cdza(isite) * rismt%cdzs(iiz)
       END DO
       !
