@@ -1028,7 +1028,7 @@ CONTAINS
     CALL mp_sum(ngrid0, rismt%mp_site%intra_sitg_comm)
     CALL mp_sum(dcda0,  rismt%mp_site%intra_sitg_comm)
     !
-    dcda(1:rismt%nsite) = dcda0(1:rismt%nsite) / DBLE(ngrid)
+    dcda(1:rismt%nsite) = dcda0(1:rismt%nsite) / DBLE(ngrid0)
     !
     DEALLOCATE(dcda0)
     !
