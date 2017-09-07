@@ -482,9 +482,19 @@ CONTAINS
       !
       CALL mp_bcast(rmscurr, rismt%mp_site%root_sitg, rismt%mp_site%intra_sitg_comm)
       !
-      ! ... converged ?
       IF (rmscurr < rmsconv) THEN
         lconv = .TRUE.
+      END IF
+      !
+#if defined (__DEBUG_RISM_DIPOLE)
+      ! ... write data
+      WRITE(stdout, '(7X,"iter. #",I6,"  RMS(g-h-1)=",1PE10.3,"  nbox=",I3)') &
+      & iter, rmscurr, mdiisd%nbox
+      FLUSH(stdout)
+#endif
+      !
+      ! ... converged ?
+      IF (lconv) THEN
         EXIT
       END IF
       !
