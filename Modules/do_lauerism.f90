@@ -431,6 +431,10 @@ CONTAINS
     ! ... start iteration of Dipole Optimization
     lconv = .FALSE.
     !
+#if defined (__DEBUG_RISM_DIPOLE)
+    WRITE(stdout, '(7X,"Laue-Dipole Calculation")')
+#endif
+    !
     DO iter = 1, MAXITER
       !
       ! ... stop by user
