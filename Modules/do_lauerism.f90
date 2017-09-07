@@ -385,10 +385,10 @@ CONTAINS
     REAL(DP)                 :: cda_ (1)
     REAL(DP)                 :: dcda_(1)
     !
-    INTEGER,     PARAMETER   :: NBOX      = 8
-    INTEGER,     PARAMETER   :: MAXITER   = 16
+    INTEGER,     PARAMETER   :: NBOX      = 4
+    INTEGER,     PARAMETER   :: MAXITER   = 4
     INTEGER,     PARAMETER   :: MDIIS_EXT = 2
-    REAL(DP),    PARAMETER   :: ETA       = 0.5_DP
+    REAL(DP),    PARAMETER   :: ETA       = 0.1_DP
     !
     ! ... is one-hand ?
     IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
@@ -1026,7 +1026,7 @@ CONTAINS
     CALL mp_sum(ngrid, rismt%mp_site%intra_sitg_comm)
     CALL mp_sum(dcda,  rismt%mp_site%intra_sitg_comm)
     !
-    dcda = dcda / DBLE(ngrid)
+    dcda(1:rismt%nsite) = dcda(1:rismt%nsite) / DBLE(ngrid)
     !
   END SUBROUTINE make_dcda
   !
