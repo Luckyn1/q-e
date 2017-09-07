@@ -954,6 +954,7 @@ CONTAINS
     ALLOCATE(dcda1(rismt%nsite))
     dcda1 = 0.0_DP
 #endif
+!$omp do
     DO ir = 1, rismt%cfft%dfftt%nnr
       !
       idx = idx0 + ir - 1
