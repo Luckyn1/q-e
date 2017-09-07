@@ -1452,7 +1452,7 @@ CONTAINS
           IF (izsta <= izend) THEN
             iiz = izsol - rismt%lfft%izcell_start + 1
             c2  = DBLE(rismt%csgz(iiz, iiq)) &
-              & + rismt%cdza(iiq) * rismt%cdzs(iiz) &
+              & + rismt%cda(iiq) * rismt%cdzs(iiz) &
               & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !
@@ -1542,7 +1542,7 @@ CONTAINS
           IF (izsta <= izend) THEN
             iiz = izsol - rismt%lfft%izcell_start + 1
             c2  = DBLE(rismt%csgz(iiz, iiq)) &
-              & + rismt%cdza(iiq) * rismt%cdzs(iiz) &
+              & + rismt%cda(iiq) * rismt%cdzs(iiz) &
               & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !

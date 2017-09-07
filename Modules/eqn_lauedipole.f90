@@ -113,7 +113,18 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
         rismt%cdzs = 0.0_DP
       END IF
       IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
-        rismt%hdz  = 0.0_DP
+        rismt%hdzi  = 0.0_DP
+      END IF
+      !
+    ELSE
+      IF (expand) THEN
+        IF (rismt%nrzl * rismt%nsite > 0) THEN
+          rismt%hdzl = 0.0_DP
+        END IF
+      ELSE
+        IF (rismt%nrzs * rismt%nsite > 0) THEN
+          rismt%hdzs = 0.0_DP
+        END IF
       END IF
     END IF
     !
@@ -191,9 +202,9 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
 !$omp end parallel do
     END IF
     !
-    ! ... calculate hdz, for all solvent-pairs
+    ! ... calculate hdzi, for all solvent-pairs
     IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
-      rismt%hdz = 0.0_DP
+      rismt%hdzi = 0.0_DP
     END IF
     !
     DO iq1 = 1, nq
@@ -217,11 +228,11 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
           END DO
 !$omp end parallel do
           !
-          ! ... convolute cdzs and x21 -> hdz
+          ! ... convolute cdzs and x21 -> hdzi
           IF (nzint2 * nzint1 > 0) THEN
             CALL dgemv('T', nzint2, nzint1, zstep, x21, nzint2, &
                      & rismt%cdzs(izsta2 - rismt%lfft%izcell_start + 1), 1, 0.0_DP, &
-                     & rismt%hdz(izsta1, iiq2, iq1), 1)
+                     & rismt%hdzi(izsta1, iiq2, iq1), 1)
           END IF
         END IF
         !
@@ -233,7 +244,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     END IF
     !
     IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
-      CALL mp_sum(rismt%hdz, rismt%mp_site%intra_sitg_comm)
+      CALL mp_sum(rismt%hdzi, rismt%mp_site%intra_sitg_comm)
     END IF
     !
     ! ... deallocate working memory
@@ -271,7 +282,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izsta1, izend1
             izint1 = iz1 - izsta1 + 1
-            h1(izint1) = h1(izint1) + rismt%cdza(iiq2) * rismt%hdz(iz1, iiq2, iq1)
+            h1(izint1) = h1(izint1) + rismt%cda(iiq2) * rismt%hdzi(iz1, iiq2, iq1)
           END DO
 !$omp end parallel do
         END IF
@@ -280,6 +291,33 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       !
       IF (nzint1 > 0) THEN
         CALL mp_sum(h1, rismt%mp_site%inter_sitg_comm)
+      END IF
+      !
+      IF (iiq1 > 0) THEN
+        IF (expand) THEN
+          ! ... add h1 -> hdzl
+          IF (rismt%nrzl > 0) THEN
+            rismt%hdzl(:, iiq1) = 0.0_DP
+          END IF
+!$omp parallel do default(shared) private(iz1, izint1)
+          DO iz1 = izsta1, izend1
+            izint1 = iz1 - izsta1 + 1
+            rismt%hdzl(iz1, iiq1) = h1(izint1)
+          END DO
+!$omp end parallel do
+        ELSE
+          ! ... add h1 -> hdzs
+          IF (rismt%nrzs > 0) THEN
+            rismt%hdzs(:, iiq1) = 0.0_DP
+          END IF
+!$omp parallel do default(shared) private(iz1, iiz1, izint1)
+          DO iz1 = izsta1, izend1
+            iiz1 = iz1 - rismt%lfft%izcell_start + 1
+            izint1 = iz1 - izsta1 + 1
+            rismt%hdzs(iiz1, iiq1) = h1(izint1)
+          END DO
+!$omp end parallel do
+        END IF
       END IF
       !
       IF (iiq1 > 0 .AND. rismt%lfft%gxystart > 1) THEN

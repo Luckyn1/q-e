@@ -32,7 +32,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   USE kinds,          ONLY : DP
   USE lauefft,        ONLY : fw_lauefft_2xy, inv_lauefft_2xy
   USE mdiis,          ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis, reset_mdiis
-  USE mp,             ONLY : mp_sum
+  USE mp,             ONLY : mp_sum, mp_bcast
   USE rism,           ONLY : rism_type, ITYPE_LAUERISM
   USE solvmol,        ONLY : get_nuniq_in_solVs, get_nsite_in_solVs, nsolV, solVs, &
                            & iuniq_to_nsite, iuniq_to_isite, isite_to_isolV
@@ -110,6 +110,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   IF (rismt%cfft%dfftt%nnr > 0) THEN
     ALLOCATE(aux(rismt%cfft%dfftt%nnr))
   END IF
+  !
   CALL allocate_mdiis(mdiist, nbox, rismt%nr * rismt%nsite, eta, MDIIS_EXT)
   !
   ! ... reset conditions
@@ -134,7 +135,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   END IF
 #endif
   !
-  ! ... sum: Cs(r) + Cd(z)
+  ! ... Cs(r) + Cd(z) -> Csd(r)
   CALL dipole_lauerism(rismt, .FALSE., ierr)
   !
   ! ... Laue-RISM eq. of long-range around the expanded cell
@@ -260,7 +261,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     END IF
     !
     ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
-    ! ... also sum: Cs(r) + Cd(z)
+    ! ... also perform: Cs(r) + Cd(z) -> Csd(r)
     CALL dipole_lauerism(rismt, .TRUE., ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
@@ -352,9 +353,161 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   IF (rismt%cfft%dfftt%nnr > 0) THEN
     DEALLOCATE(aux)
   END IF
+  !
   CALL deallocate_mdiis(mdiist)
   !
 CONTAINS
+  !
+  SUBROUTINE dipole_optimization(ierr)
+    IMPLICIT NONE
+    INTEGER, INTENT(OUT) :: ierr
+    !
+    INTEGER                  :: iter
+    INTEGER                  :: iz
+    INTEGER                  :: isite
+    INTEGER                  :: ngrid
+    REAL(DP)                 :: rmsdipole
+    COMPLEX(DP), ALLOCATABLE :: hgz0(:,:)
+    REAL(DP),    ALLOCATABLE :: hslr(:,:)
+    REAL(DP),    ALLOCATABLE :: dcda(:)
+    TYPE(mdiis_type)         :: mdiisd
+    ! if mdiisd is an automatic variable,
+    ! pointers in mdiis_type may not work well.
+    SAVE                     :: mdiisd
+    REAL(DP)                 :: cda_ (1)
+    REAL(DP)                 :: dcda_(1)
+    !
+    INTEGER,     PARAMETER   :: NBOX      = 8
+    INTEGER,     PARAMETER   :: MAXITER   = 16
+    INTEGER,     PARAMETER   :: MDIIS_EXT = 2
+    REAL(DP),    PARAMETER   :: ETA       = 0.5_DP
+    !
+    ! ... is one-hand ?
+    IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
+      ierr = IERR_RISM_NULL
+      RETURN
+    END IF
+    !
+    ! ... allocate memory
+    IF (rismt%nrzs * rismt%nsite > 0) THEN
+      ALLOCATE(hgz0(rismt%nrzs, rismt%nsite))
+    END IF
+    IF (rismt%nr * rismt%nsite > 0) THEN
+      ALLOCATE(hslr(rismt%nr, rismt%nsite))
+    END IF
+    IF (rismt%nsite > 0) THEN
+      ALLOCATE(dcda(rismt%nsite))
+    END IF
+    !
+    CALL allocate_mdiis(mdiisd, NBOX, rismt%nsite, ETA, MDIIS_EXT)
+    !
+    ! ... store the current short- and long-range total correlations
+    IF (rismt%lfft%gxystart > 1) THEN
+      DO isite = 1, rismt%nsite
+!$omp parallel do default(shared) private(iz)
+        DO iz = 1, rismt%nrzs
+          rismt%hgz(iz, isite) = rismt%hgz(iz, isite) &
+                             & - CMPLX(rismt%hdzs(iz, isite), 0.0_DP, kind=DP)
+          hgz0(iz, isite) = rismt%hgz(iz, isite)
+        END DO
+!$omp end parallel do
+      END DO
+    END IF
+    !
+    ! ... FFT: Hsl(gxy,z) -> Hsl(r)
+    CALL fft_hlaue_to_hr()
+    IF (rismt%nr * rismt%nsite > 0) THEN
+      hslr = rismt%hr
+    END IF
+    !
+    ! ... start iteration of Dipole Optimization
+    DO iter = 1, MAXITER
+      !
+      ! ... stop by user
+      IF (check_stop_now()) THEN
+        EXIT
+      END IF
+      !
+      ! ... Cs(r) + Cd(z) -> Csd(r)
+      CALL dipole_lauerism(rismt, .FALSE., ierr)
+      !
+      ! ... dipole part of Laue-RISM eq.: Cd(z) -> Hd(z)
+      IF (rismt%lfft%gxystart > 1) THEN
+        rismt%hgz(1:rismt%nrzs, :) = hgz0(:, :)
+      END IF
+      !
+      CALL eqn_lauedipole(rismt, .FALSE., .FALSE., ierr)
+      IF (ierr /= IERR_RISM_NULL) THEN
+        RETURN
+      END IF
+      !
+      ! ... Hsl(r) + Hd(z) -> H(r)
+      CALL hslr_and_hdz_to_hr(hslr)
+      !
+      ! ... Closure: H(r) -> G(r)
+      CALL closure(rismt, ierr)
+      IF (ierr /= IERR_RISM_NULL) THEN
+        RETURN
+      END IF
+      !
+      ! ... barrier G(r)
+      CALL barrier_gr()
+      !
+      ! ... Residual of dipole amplitude
+      CALL make_dcsr()
+      CALL make_dcda(dcda)
+      !
+      ! ... calculate RMS
+      nsite = get_nsite_in_solVs()
+      !
+      IF (rismt%mp_site%me_sitg == rismt%mp_site%root_sitg) THEN
+        IF (rismt%nsite > 0) THEN
+          CALL rms_residual(nsite, rismt%nsite, &
+                          & dcda, rmsdipole, rismt%mp_site%inter_sitg_comm)
+        ELSE
+          CALL rms_residual(nsite, rismt%nsite, &
+                          & dcda_, rmsdipole, rismt%mp_site%inter_sitg_comm)
+        END IF
+      END IF
+      !
+      CALL mp_bcast(rmsdipole, rismt%mp_site%root_sitg, rismt%mp_site%intra_sitg_comm)
+      !
+      ! ... converged ?
+      IF (rmsdipole < rmsconv) THEN
+        EXIT
+      END IF
+      !
+      ! ... MDIIS: dCs(r) -> Cs(r)
+      IF (rismt%mp_site%me_sitg == rismt%mp_site%root_sitg) THEN
+        IF (rismt%nsite > 0) THEN
+          CALL update_by_mdiis(mdiisd, rismt%cda, dcda, rismt%mp_site%inter_sitg_comm)
+        ELSE
+          CALL update_by_mdiis(mdiisd, cda_, dcda_, rismt%mp_site%inter_sitg_comm)
+        END IF
+      END IF
+      !
+      CALL mp_bcast(rismt%cda, rismt%mp_site%root_sitg, rismt%mp_site%intra_sitg_comm)
+      !
+    ! ... end iteration of Dipole Optimization
+    END DO
+    !
+    ! ... deallocate memory
+    IF (rismt%nrzs * rismt%nsite > 0) THEN
+      DEALLOCATE(hgz0)
+    END IF
+    IF (rismt%nr * rismt%nsite > 0) THEN
+      DEALLOCATE(hslr)
+    END IF
+    IF (rismt%nsite > 0) THEN
+      DEALLOCATE(dcda)
+    END IF
+    !
+    CALL deallocate_mdiis(mdiisd)
+    !
+    ! ... normally done
+    ierr = IERR_RISM_NULL
+    !
+  END SUBROUTINE dipole_optimization
   !
   SUBROUTINE fft_csr_to_cslaue()
     IMPLICIT NONE
@@ -462,17 +615,7 @@ CONTAINS
       END IF
       iz = iz + rismt%lfft%izcell_start
       !
-      IF (iz > rismt%lfft%izright_end) THEN
-        IF (rismt%nsite > 0) THEN
-          rismt%csr (ir, :) = 0.0_DP
-          rismt%csdr(ir, :) = 0.0_DP
-          rismt%hr  (ir, :) = -1.0_DP
-          rismt%gr  (ir, :) = 0.0_DP
-          dcsr      (ir, :) = 0.0_DP
-        END IF
-        CYCLE
-      END IF
-      IF (iz < rismt%lfft%izleft_start) THEN
+      IF (iz > rismt%lfft%izright_end .OR. iz < rismt%lfft%izleft_start) THEN
         IF (rismt%nsite > 0) THEN
           rismt%csr (ir, :) = 0.0_DP
           rismt%csdr(ir, :) = 0.0_DP
@@ -674,5 +817,171 @@ CONTAINS
 !$omp end parallel do
     !
   END SUBROUTINE modify_edge_dcsr
+  !
+  SUBROUTINE hslr_and_hdz_to_hr(hslr)
+    IMPLICIT NONE
+    !
+    REAL(DP), INTENT(IN) :: hslr(:, :)
+    !
+    INTEGER :: ir
+    INTEGER :: idx
+    INTEGER :: idx0
+    INTEGER :: i3min
+    INTEGER :: i3max
+    INTEGER :: i1, i2, i3
+    INTEGER :: iz, iiz
+    !
+    IF (rismt%nsite < 1) THEN
+      RETURN
+    END IF
+    !
+    rismt%hr = 0.0_DP
+    !
+    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
+       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    !
+    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
+    !
+!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz, iiz)
+    DO ir = 1, rismt%cfft%dfftt%nnr
+      !
+      idx = idx0 + ir - 1
+      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
+      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
+      i2  = idx / rismt%cfft%dfftt%nr1x
+      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - rismt%cfft%dfftt%nr1x * i2
+      i1  = idx
+      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
+        CYCLE
+      END IF
+      !
+      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
+        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
+      ELSE
+        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
+      END IF
+      iiz = iz + 1
+      iz  = iz + rismt%lfft%izcell_start
+      !
+      IF (iz > rismt%lfft%izright_end .OR. iz < rismt%lfft%izleft_start) THEN
+        CYCLE
+      END IF
+      IF (iz < rismt%lfft%izright_start .AND. iz > rismt%lfft%izleft_end) THEN
+        CYCLE
+      END IF
+      !
+      rismt%hr(ir, 1:rismt%nsite) = hslr(ir, 1:rismt%nsite) + rismt%hdzs(iiz, 1:rismt%nsite)
+      !
+    END DO
+!$omp end parallel do
+    !
+  END SUBROUTINE hslr_and_hdz_to_hr
+  !
+  SUBROUTINE make_dcda(dcda)
+    IMPLICIT NONE
+    !
+    REAL(DP), INTENT(OUT) :: dcda(:)
+    !
+    INTEGER :: ir
+    INTEGER :: idx
+    INTEGER :: idx0
+    INTEGER :: i3min
+    INTEGER :: i3max
+    INTEGER :: i1, i2, i3
+    INTEGER :: iz, iiz
+    INTEGER :: ngrid
+#if defined(__OPENMP)
+    INTEGER :: ngrid1
+    REAL(DP), ALLOCATABLE :: dcda1(:)
+#endif
+    !
+    IF (rismt%nsite < 1) THEN
+      RETURN
+    END IF
+    !
+    ngrid = 0
+    dcda(1:rismt%nsite) = 0.0_DP
+    !
+    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
+       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    !
+    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
+    !
+!$omp parallel default(shared) private(ir, idx, i1, i2, i3, iz, iiz, ngrid1, dcda1)
+#if defined(__OPENMP)
+    ngrid1 = 0
+    ALLOCATE(dcda1(rismt%nsite))
+    dcda1 = 0.0_DP
+#endif
+    DO ir = 1, rismt%cfft%dfftt%nnr
+      !
+      idx = idx0 + ir - 1
+      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
+      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
+      i2  = idx / rismt%cfft%dfftt%nr1x
+      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - rismt%cfft%dfftt%nr1x * i2
+      i1  = idx
+      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
+        CYCLE
+      END IF
+      !
+      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
+        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
+      ELSE
+        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
+      END IF
+      iiz = iz + 1
+      iz  = iz + rismt%lfft%izcell_start
+      !
+      IF (iz > rismt%lfft%izright_end .OR. iz < rismt%lfft%izleft_start) THEN
+        CYCLE
+      END IF
+      IF (iz < rismt%lfft%izright_start .AND. iz > rismt%lfft%izleft_end) THEN
+        CYCLE
+      END IF
+      !
+#if defined(__OPENMP)
+      ngrid1 = ngrid1 + 1
+      dcda1(1:rismt%nsite) = dcda1(1:rismt%nsite) + rismt%cdzs(iiz) * dcsr(ir, 1:rismt%nsite)
+#else
+      ngrid = ngrid + 1
+      dcda(1:rismt%nsite) = dcda(1:rismt%nsite) + rismt%cdzs(iiz) * dcsr(ir, 1:rismt%nsite)
+#endif
+      !
+    END DO
+!$omp end do
+#if defined(__OPENMP)
+!$omp critical
+    ngrid = ngrid + ngrid1
+    dcda(1:rismt%nsite) = dcda(1:rismt%nsite) + dcda1(1:rismt%nsite)
+!$omp end critical
+    DEALLOCATE(dcda1)
+#endif
+!$omp end parallel
+    !
+    CALL mp_sum(ngrid, rismt%mp_site%intra_sitg_comm)
+    CALL mp_sum(dcda,  rismt%mp_site%intra_sitg_comm)
+    !
+    dcda = dcda / DBLE(ngrid)
+    !
+  END SUBROUTINE make_dcda
   !
 END SUBROUTINE do_lauerism

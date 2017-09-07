@@ -70,7 +70,7 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
     !
     IF (lextract) THEN
       IF (rismt%nsite > 0) THEN
-        rismt%cdza = 0.0_DP
+        rismt%cda = 0.0_DP
       END IF
     END IF
     !
@@ -154,7 +154,7 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
   !
   ! ... update amplitudes of dipole parts of direct correlations
   IF (rismt%nsite > 0) THEN
-    rismt%cdza = cd0
+    rismt%cda = cd0
   END IF
   !
   ! ... update short-range direct correlations
@@ -325,7 +325,7 @@ CONTAINS
       END IF
       !
       DO isite = 1, rismt%nsite
-        rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cdza(isite) * rismt%cdzs(iiz)
+        rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cda(isite) * rismt%cdzs(iiz)
       END DO
       !
     END DO

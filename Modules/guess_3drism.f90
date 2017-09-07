@@ -177,7 +177,7 @@ SUBROUTINE guess_3drism(rismt, ierr)
   ! ... set dipole part for Laue-RISM
   IF (laue) THEN
     IF (rismt%nsite > 0) THEN
-      rismt%cdza = 0.0_DP
+      rismt%cda = 0.0_DP
     END IF
   END IF
   !

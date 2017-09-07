@@ -78,7 +78,7 @@ MODULE rism
     REAL(DP),    POINTER :: csg (:,:)    ! short-range direct correlations in G-space
     COMPLEX(DP), POINTER :: csgz(:,:)    ! short-range direct correlations in G-space or Laue-rep. (complex)
     REAL(DP),    POINTER :: csdr(:,:)    ! short-range and dipole parts of direct correlations in R-space (Laue-RISM)
-    REAL(DP),    POINTER :: cdza(:)      ! dipole-parts of direct correlations in Laue-rep. (amplitude)
+    REAL(DP),    POINTER :: cda (:)      ! dipole-parts of direct correlations in Laue-rep. (amplitude)
     REAL(DP),    POINTER :: cdzs(:)      ! dipole-parts of direct correlations in Laue-rep. (step function)
     REAL(DP),    POINTER :: uljr(:,:)    ! Lennard-Jones potential functions in R-space
     REAL(DP),    POINTER :: uwr (:,:)    ! repulsive-wall potential functions in R-space (Laue-RISM)
@@ -96,9 +96,11 @@ MODULE rism
     REAL(DP),    POINTER :: hr  (:,:)    ! total correlations in R-space
     REAL(DP),    POINTER :: hg  (:,:)    ! total correlations in G-space
     COMPLEX(DP), POINTER :: hgz (:,:)    ! total correlations in G-space or Laue-rep. (complex)
-    COMPLEX(DP), POINTER :: hsgz(:,:)    ! short-range total correlations in Laue-rep. (complex)
+    COMPLEX(DP), POINTER :: hsgz(:,:)    ! short-range total correlations in Laue-rep. (w/ dipole parts) (complex)
     COMPLEX(DP), POINTER :: hlgz(:,:)    ! long-range total correlations in Laue-rep. (complex)
-    REAL(DP),    POINTER :: hdz (:,:,:)  ! dipole-parts of total correlations in Laue-rep. (integrated intermediate)
+    REAL(DP),    POINTER :: hdzi(:,:,:)  ! dipole-parts of total correlations in Laue-rep. (integrated intermediate)
+    REAL(DP),    POINTER :: hdzs(:,:)    ! dipole-parts of total correlations in Laue-rep. (along short Z-stick)
+    REAL(DP),    POINTER :: hdzl(:,:)    ! dipole-parts of total correlations in Laue-rep. (along long Z-stick)
     REAL(DP),    POINTER :: gr  (:,:)    ! distribution functions in R-space
     REAL(DP),    POINTER :: wg  (:,:)    ! intra-molecular correlations in G-space
     REAL(DP),    POINTER :: xgs (:,:,:)  ! inter-site susceptibility in G-shell or Laue-rep.
@@ -547,13 +549,19 @@ CONTAINS
         ALLOCATE(rismt%hlgz(nrzl * ngxy, nsite))
       END IF
       IF (nsite > 0) THEN
-        ALLOCATE(rismt%cdza(nsite))
+        ALLOCATE(rismt%cda(nsite))
       END IF
       IF (nrzs > 0) THEN
         ALLOCATE(rismt%cdzs(nrzs))
       END IF
       IF ((nrzl * nsite * nsite_t) > 0) THEN
-        ALLOCATE(rismt%hdz(nrzl, nsite, nsite_t))
+        ALLOCATE(rismt%hdzi(nrzl, nsite, nsite_t))
+      END IF
+      IF ((nrzs * nsite) > 0) THEN
+        ALLOCATE(rismt%hdzs(nrzs, nsite))
+      END IF
+      IF ((nrzl * nsite) > 0) THEN
+        ALLOCATE(rismt%hdzl(nrzl, nsite))
       END IF
     END IF
     !
@@ -808,7 +816,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%csg))       DEALLOCATE(rismt%csg)
     IF (ASSOCIATED(rismt%csgz))      DEALLOCATE(rismt%csgz)
     IF (ASSOCIATED(rismt%csdr))      DEALLOCATE(rismt%csdr)
-    IF (ASSOCIATED(rismt%cdza))      DEALLOCATE(rismt%cdza)
+    IF (ASSOCIATED(rismt%cda))       DEALLOCATE(rismt%cda)
     IF (ASSOCIATED(rismt%cdzs))      DEALLOCATE(rismt%cdzs)
     IF (ASSOCIATED(rismt%uljr))      DEALLOCATE(rismt%uljr)
     IF (ASSOCIATED(rismt%uwr))       DEALLOCATE(rismt%uwr)
@@ -828,7 +836,9 @@ CONTAINS
     IF (ASSOCIATED(rismt%hgz ))      DEALLOCATE(rismt%hgz)
     IF (ASSOCIATED(rismt%hsgz))      DEALLOCATE(rismt%hsgz)
     IF (ASSOCIATED(rismt%hlgz))      DEALLOCATE(rismt%hlgz)
-    IF (ASSOCIATED(rismt%hdz))       DEALLOCATE(rismt%hdz)
+    IF (ASSOCIATED(rismt%hdzi))      DEALLOCATE(rismt%hdzi)
+    IF (ASSOCIATED(rismt%hdzs))      DEALLOCATE(rismt%hdzs)
+    IF (ASSOCIATED(rismt%hdzl))      DEALLOCATE(rismt%hdzl)
     IF (ASSOCIATED(rismt%gr ))       DEALLOCATE(rismt%gr)
     IF (ASSOCIATED(rismt%wg ))       DEALLOCATE(rismt%wg)
     IF (ASSOCIATED(rismt%xgs))       DEALLOCATE(rismt%xgs)
@@ -865,12 +875,14 @@ CONTAINS
     IF (ASSOCIATED(rismt%csg))      rismt%csg      = R_ZERO
     IF (ASSOCIATED(rismt%csgz))     rismt%csgz     = C_ZERO
     IF (ASSOCIATED(rismt%csdr))     rismt%csdr     = R_ZERO
-    IF (ASSOCIATED(rismt%cdza))     rismt%cdza     = R_ZERO
+    IF (ASSOCIATED(rismt%cda))      rismt%cda      = R_ZERO
     IF (ASSOCIATED(rismt%hr ))      rismt%hr       = R_ZERO
     IF (ASSOCIATED(rismt%hg ))      rismt%hg       = R_ZERO
     IF (ASSOCIATED(rismt%hgz ))     rismt%hgz      = C_ZERO
     IF (ASSOCIATED(rismt%hsgz))     rismt%hsgz     = C_ZERO
     IF (ASSOCIATED(rismt%hlgz))     rismt%hlgz     = C_ZERO
+    IF (ASSOCIATED(rismt%hdzs))     rismt%hdzs     = R_ZERO
+    IF (ASSOCIATED(rismt%hdzl))     rismt%hdzl     = R_ZERO
     IF (ASSOCIATED(rismt%gr ))      rismt%gr       = R_ZERO
     IF (ASSOCIATED(rismt%nsol))     rismt%nsol     = R_ZERO
     IF (ASSOCIATED(rismt%qsol))     rismt%qsol     = R_ZERO

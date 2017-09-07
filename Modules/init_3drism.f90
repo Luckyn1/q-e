@@ -91,7 +91,7 @@ SUBROUTINE init_3drism(rism3t, solu, lboth, ierr)
   END IF
   !
   ! ... prepare dipole part of Laue-RISM equation
-  IF (rism3t%itype == ITYPE_LAUERISM .AND. (.NOT. lboth)) THEN
+  IF (rism3t%itype == ITYPE_LAUERISM) THEN
     CALL eqn_lauedipole(rism3t, .TRUE., .TRUE., ierr)
     !
     IF (ierr /= IERR_RISM_NULL) THEN

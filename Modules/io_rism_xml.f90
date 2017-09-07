@@ -280,7 +280,7 @@ CONTAINS
       datname   = 'Cduv'
       !
       IF (rismt%nsite > 0) THEN
-        CALL write_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base, datname)
+        CALL write_lauedipole_x(rismt, rismt%nsite, rismt%cda, file_base, datname)
       ELSE
         CALL write_lauedipole_x(rismt, rismt%nsite, ddummy, file_base, datname)
       END IF
@@ -452,7 +452,7 @@ CONTAINS
       file_base = TRIM(dirname) // '/3d-rism_cduv' // TRIM(ext)
       !
       IF (rismt%nsite > 0) THEN
-        CALL read_lauedipole_x(rismt, rismt%nsite, rismt%cdza, file_base)
+        CALL read_lauedipole_x(rismt, rismt%nsite, rismt%cda, file_base)
       ELSE
         CALL read_lauedipole_x(rismt, rismt%nsite, ddummy, file_base)
       END IF
