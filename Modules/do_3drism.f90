@@ -94,6 +94,7 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
   IF (rismt%cfft%dfftt%nnr > 0) THEN
     ALLOCATE(aux(rismt%cfft%dfftt%nnr))
   END IF
+  !
   CALL allocate_mdiis(mdiist, nbox, rismt%nr * rismt%nsite, eta, MDIIS_EXT)
   !
   ! ... reset conditions
@@ -271,12 +272,14 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
   !
   ! ... deallocate memory
 100 CONTINUE
+  !
   IF (rismt%nr * rismt%nsite > 0) THEN
     DEALLOCATE(dcsr)
   END IF
   IF (rismt%cfft%dfftt%nnr > 0) THEN
     DEALLOCATE(aux)
   END IF
+  !
   CALL deallocate_mdiis(mdiist)
   !
 CONTAINS

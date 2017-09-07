@@ -160,6 +160,12 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       GOTO 100
     END IF
     !
+    ! ... Optimize Cd(z)
+    CALL dipole_optimization(ierr)
+    IF (ierr /= IERR_RISM_NULL) THEN
+      GOTO 100
+    END IF
+    !
     ! ... correct or normalize H(gxy,z)
     ! ... to guarantee total charge and stoichiometry of solvent system
     CALL eqn_laueshort(rismt, lboth, .TRUE., ierr)
@@ -347,6 +353,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   !
   ! ... deallocate memory
 100 CONTINUE
+  !
   IF (rismt%nr * rismt%nsite > 0) THEN
     DEALLOCATE(dcsr)
   END IF
@@ -366,7 +373,8 @@ CONTAINS
     INTEGER                  :: iz
     INTEGER                  :: isite
     INTEGER                  :: ngrid
-    REAL(DP)                 :: rmsdipole
+    LOGICAL                  :: lconv
+    REAL(DP)                 :: rmscurr
     COMPLEX(DP), ALLOCATABLE :: hgz0(:,:)
     REAL(DP),    ALLOCATABLE :: hslr(:,:)
     REAL(DP),    ALLOCATABLE :: dcda(:)
@@ -421,6 +429,8 @@ CONTAINS
     END IF
     !
     ! ... start iteration of Dipole Optimization
+    lconv = .FALSE.
+    !
     DO iter = 1, MAXITER
       !
       ! ... stop by user
@@ -438,7 +448,7 @@ CONTAINS
       !
       CALL eqn_lauedipole(rismt, .FALSE., .FALSE., ierr)
       IF (ierr /= IERR_RISM_NULL) THEN
-        RETURN
+        GOTO 200
       END IF
       !
       ! ... Hsl(r) + Hd(z) -> H(r)
@@ -447,7 +457,7 @@ CONTAINS
       ! ... Closure: H(r) -> G(r)
       CALL closure(rismt, ierr)
       IF (ierr /= IERR_RISM_NULL) THEN
-        RETURN
+        GOTO 200
       END IF
       !
       ! ... barrier G(r)
@@ -463,17 +473,18 @@ CONTAINS
       IF (rismt%mp_site%me_sitg == rismt%mp_site%root_sitg) THEN
         IF (rismt%nsite > 0) THEN
           CALL rms_residual(nsite, rismt%nsite, &
-                          & dcda, rmsdipole, rismt%mp_site%inter_sitg_comm)
+                          & dcda, rmscurr, rismt%mp_site%inter_sitg_comm)
         ELSE
           CALL rms_residual(nsite, rismt%nsite, &
-                          & dcda_, rmsdipole, rismt%mp_site%inter_sitg_comm)
+                          & dcda_, rmscurr, rismt%mp_site%inter_sitg_comm)
         END IF
       END IF
       !
-      CALL mp_bcast(rmsdipole, rismt%mp_site%root_sitg, rismt%mp_site%intra_sitg_comm)
+      CALL mp_bcast(rmscurr, rismt%mp_site%root_sitg, rismt%mp_site%intra_sitg_comm)
       !
       ! ... converged ?
-      IF (rmsdipole < rmsconv) THEN
+      IF (rmscurr < rmsconv) THEN
+        lconv = .TRUE.
         EXIT
       END IF
       !
@@ -491,7 +502,30 @@ CONTAINS
     ! ... end iteration of Dipole Optimization
     END DO
     !
+    ! ... set variable consistent, if not converged.
+    IF (.NOT. lconv) THEN
+      !
+      ! ... Cs(r) + Cd(z) -> Csd(r)
+      CALL dipole_lauerism(rismt, .FALSE., ierr)
+      !
+      ! ... dipole part of Laue-RISM eq.: Cd(z) -> Hd(z)
+      IF (rismt%lfft%gxystart > 1) THEN
+        rismt%hgz(1:rismt%nrzs, :) = hgz0(:, :)
+      END IF
+      !
+      CALL eqn_lauedipole(rismt, .FALSE., .FALSE., ierr)
+      IF (ierr /= IERR_RISM_NULL) THEN
+        GOTO 200
+      END IF
+      !
+    END IF
+    !
+    ! ... normally done
+    ierr = IERR_RISM_NULL
+    !
     ! ... deallocate memory
+200 CONTINUE
+    !
     IF (rismt%nrzs * rismt%nsite > 0) THEN
       DEALLOCATE(hgz0)
     END IF
@@ -503,9 +537,6 @@ CONTAINS
     END IF
     !
     CALL deallocate_mdiis(mdiisd)
-    !
-    ! ... normally done
-    ierr = IERR_RISM_NULL
     !
   END SUBROUTINE dipole_optimization
   !

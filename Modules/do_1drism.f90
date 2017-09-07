@@ -94,6 +94,7 @@ SUBROUTINE do_1drism(rismt, maxiter, rmsconv, nbox, eta, gbond, lhand, cool, tit
   END IF
   ALLOCATE(dcsrr(rismt%nr, rismt%nsite))
   ALLOCATE(csrr(rismt%nr, rismt%nsite))
+  !
   CALL allocate_mdiis(mdiist, nbox, rismt%nr * rismt%nsite, eta, MDIIS_EXT)
   !
   ! ... reset conditions
@@ -323,9 +324,11 @@ SUBROUTINE do_1drism(rismt, maxiter, rmsconv, nbox, eta, gbond, lhand, cool, tit
   !
   ! ... deallocate memory
 100 CONTINUE
+  !
   DEALLOCATE(work)
   DEALLOCATE(dcsrr)
   DEALLOCATE(csrr)
+  !
   CALL deallocate_mdiis(mdiist)
   !
 CONTAINS
