@@ -260,6 +260,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     END IF
     !
     ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
+    ! ... also sum: Cs(r) + Cd(z)
     CALL dipole_lauerism(rismt, .TRUE., ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
