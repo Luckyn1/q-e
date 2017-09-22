@@ -18,7 +18,7 @@ MODULE path_opt_qnewton
   ! ... (R.H.Byrd et al., Math. Program., 63:129-156, 1994.)
   !
   USE kinds,                ONLY : DP
-  USE constants,            ONLY : eps16
+  USE constants,            ONLY : eps8, eps16
   USE path_io_units_module, ONLY : qnew_file, iunqnew, iunpath
   USE path_variables,       ONLY : ds, pos, grad, dim1, frozen, nim => num_of_images, &
                                    qnewton_ndim, qnewton_step
@@ -102,6 +102,9 @@ MODULE path_opt_qnewton
        !
        IF ( lfcp ) THEN
           xscale = fcp_opt_scale()
+          IF ( xscale < eps8 ) THEN
+             xscale = 1.0_DP
+          END IF
        END IF
        !
        ALLOCATE( mask( dim2*nim ) )

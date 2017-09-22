@@ -175,6 +175,9 @@ MODULE path_opt_routines
        !
        IF ( lfcp ) THEN
           xscale = fcp_opt_scale()
+          IF ( xscale < eps8 ) THEN
+             xscale = 1.0_DP
+          END I
        END IF
        !
        ! ... starting guess for the inverse Jacobian
@@ -384,6 +387,9 @@ MODULE path_opt_routines
        !
        IF ( lfcp ) THEN
           xscale = fcp_opt_scale()
+          IF ( xscale < eps8 ) THEN
+             xscale = 1.0_DP
+          END I
        END IF
        !
        ! ... starting guess for the inverse Jacobian
