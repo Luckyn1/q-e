@@ -130,7 +130,7 @@ CONTAINS
    !------------------------------------------------------------------------
    SUBROUTINE bfgs( pos_in, h, nelec, energy, grad_in, fcell, felec, fixion, scratch, stdout,&
                  energy_thr, grad_thr, cell_thr, fcp_thr, energy_error, grad_error,     &
-                 cell_error, fcp_error, lmovecell, lfcp, fcp_cap, &
+                 cell_error, fcp_error, lmovecell, lfcp, fcp_cap, always_accepte, &
                  step_accepted, stop_bfgs, istep )
       !------------------------------------------------------------------------
       !
@@ -145,10 +145,13 @@ CONTAINS
       !  energy_thr     : treshold on energy difference for BFGS convergence
       !  grad_thr       : treshold on grad difference for BFGS convergence
       !                    the largest component of grad( V(x) ) is considered
+      !  fcp_thr        : treshold on grad of FCP for BFGS convergence
       !  energy_error   : energy difference | V(x_i) - V(x_i-1) |
       !  grad_error     : the largest component of
       !                         | grad(V(x_i)) - grad(V(x_i-1)) |
       !  cell_error     : the largest component of: omega*(stress-press*I)
+      !  fcp_error      : | grad(V(x_FCP)) |
+      !  always_accepte : if .TRUE. a new BFGS step will be always done
       !  step_accepted  : .TRUE. if a new BFGS step is done
       !  stop_bfgs      : .TRUE. if BFGS convergence has been achieved
       !
@@ -169,6 +172,7 @@ CONTAINS
       LOGICAL,          INTENT(IN)    :: lfcp ! include FCP, or not ?
       REAL(DP),         INTENT(IN)    :: fcp_cap ! capacitance for FCP
       REAL(DP),         INTENT(OUT)   :: energy_error, grad_error, cell_error, fcp_error
+      LOGICAL,          INTENT(IN)    :: always_accepte
       LOGICAL,          INTENT(OUT)   :: step_accepted, stop_bfgs
       INTEGER,          INTENT(OUT)   :: istep
       !
@@ -308,7 +312,7 @@ CONTAINS
       !
       ! ... the bfgs algorithm starts here
       !
-      IF ( .NOT. energy_wolfe_condition( energy ) .AND. (scf_iter > 1) .AND. (.NOT. lfcp) ) THEN
+      IF ( .NOT. energy_wolfe_condition( energy ) .AND. (scf_iter > 1) .AND. (.NOT. always_accepte) ) THEN
          !
          ! ... the previous step is rejected, line search goes on
          !
