@@ -320,6 +320,11 @@ input_description -distribution {Quantum Espresso} -package NEB -program neb.x {
                             Newton-Raphson method with diagonal hessian matrix.
                             Also, coupling with DIIS.
                         }
+                        opt -val 'coupled' {
+                            Coupled method with ionic positions.
+                            This is available only if @ref opt_scheme == 'broyden', 
+                            'broyden2', 'l-bfgs' or 'l-sr1'.
+                        }
                     }
                 }
             }

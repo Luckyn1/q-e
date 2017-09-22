@@ -22,6 +22,7 @@ MODULE path_opt_qnewton
   USE path_io_units_module, ONLY : qnew_file, iunqnew, iunpath
   USE path_variables,       ONLY : ds, pos, grad, dim1, frozen, nim => num_of_images, &
                                    qnewton_ndim, qnewton_step
+  USE fcp_variables,        ONLY : fcp_mu, fcp_nelec, fcp_ef
   USE io_global,            ONLY : meta_ionode, meta_ionode_id
   USE mp,                   ONLY : mp_bcast
   USE mp_world,             ONLY : world_comm
@@ -42,32 +43,37 @@ MODULE path_opt_qnewton
   CONTAINS
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE qnewton_lbfgs()
+     SUBROUTINE qnewton_lbfgs( lfcp )
        !-----------------------------------------------------------------------
        !
        IMPLICIT NONE
        !
-       CALL qnewton_x( HESS_LBFGS )
+       LOGICAL, INTENT(IN) :: lfcp
+       !
+       CALL qnewton_x( HESS_LBFGS, lfcp )
        !
      END SUBROUTINE qnewton_lbfgs
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE qnewton_lsr1()
+     SUBROUTINE qnewton_lsr1( lfcp )
        !-----------------------------------------------------------------------
        !
        IMPLICIT NONE
        !
-       CALL qnewton_x( HESS_LSR1 )
+       LOGICAL, INTENT(IN) :: lfcp
+       !
+       CALL qnewton_x( HESS_LSR1, lfcp )
        !
      END SUBROUTINE qnewton_lsr1
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE qnewton_x( ihess )
+     SUBROUTINE qnewton_x( ihess, lfcp )
        !-----------------------------------------------------------------------
        !
        IMPLICIT NONE
        !
        INTEGER,  INTENT(IN)  :: ihess
+       LOGICAL,  INTENT(IN)  :: lfcp
        !
        REAL(DP), ALLOCATABLE :: mask(:)
        REAL(DP), ALLOCATABLE :: dx(:)
@@ -78,23 +84,32 @@ MODULE path_opt_qnewton
        !
        REAL(DP)              :: norm_g, norm_dx
        LOGICAL               :: exists, opened
+       INTEGER               :: dim2
        INTEGER               :: map1, nsave
        INTEGER               :: i, I_in, I_fin
        !
-       ALLOCATE( mask( dim1*nim ) )
-       ALLOCATE( dx( dim1*nim ) )
-       ALLOCATE( x1( dim1*nim ), g1( dim1*nim ) )
-       ALLOCATE( x2( dim1*nim ), g2( dim1*nim ) )
+       ! ... set dimension an image
+       !
+       IF ( lfcp ) THEN
+         dim2 = dim1 + 1
+       ELSE
+         dim2 = dim1
+       END IF
+       !
+       ALLOCATE( mask( dim2*nim ) )
+       ALLOCATE( dx( dim2*nim ) )
+       ALLOCATE( x1( dim2*nim ), g1( dim2*nim ) )
+       ALLOCATE( x2( dim2*nim ), g2( dim2*nim ) )
        ALLOCATE( map( qnewton_ndim ) )
-       ALLOCATE( s( dim1*nim, qnewton_ndim ) )
-       ALLOCATE( y( dim1*nim, qnewton_ndim ) )
+       ALLOCATE( s( dim2*nim, qnewton_ndim ) )
+       ALLOCATE( y( dim2*nim, qnewton_ndim ) )
        !
        ! ... mask at frozen images
        !
        mask(:) = 0.0_DP
        DO i = 1, nim
-          I_in  = ( i - 1 )*dim1 + 1
-          I_fin = i * dim1
+          I_in  = ( i - 1 )*dim2 + 1
+          I_fin = i * dim2
           IF ( frozen(i) ) CYCLE
           mask(I_in:I_fin) = 1.0_DP
        END DO
@@ -102,10 +117,16 @@ MODULE path_opt_qnewton
        ! ... current position and gradient
        !
        DO i = 1, nim
-          I_in  = ( i - 1 )*dim1 + 1
-          I_fin = i * dim1
+          I_in  = ( i - 1 )*dim2 + 1
+          I_fin = ( i - 1 )*dim2 + dim1
+          !
           x1(I_in:I_fin) = pos (:,i)
           g1(I_in:I_fin) = grad(:,i)
+          !
+          IF ( lfcp ) THEN
+             x1(I_fin+1) = fcp_nelec(i)
+             g1(I_fin+1) = fcp_ef(i) - fcp_mu
+          END IF
        END DO
        !
        ! ... check norm of gradient
@@ -192,11 +213,11 @@ MODULE path_opt_qnewton
           !
           IF ( ihess == HESS_LBFGS ) THEN
              !
-             CALL lbfgs_hess( dim1*nim, nsave, dx, g1, map, s, y )
+             CALL lbfgs_hess( dim2*nim, nsave, dx, g1, map, s, y )
              !
           ELSE IF ( ihess == HESS_LSR1 ) THEN
              !
-             CALL lsr1_hess( dim1*nim, nsave, dx, g1, map, s, y )
+             CALL lsr1_hess( dim2*nim, nsave, dx, g1, map, s, y )
              !
           END IF
           !
@@ -234,11 +255,24 @@ MODULE path_opt_qnewton
           !
           dx(:) = dx(:) / norm_dx * MIN( norm_dx, qnewton_step )
           !
-          pos(:,1:nim) = pos(:,1:nim) + RESHAPE( dx(:), (/ dim1, nim /) )
+          DO i = 1, nim
+             I_in  = ( i - 1 )*dim2 + 1
+             I_fin = ( i - 1 )*dim2 + dim1
+             !
+             pos (:,i) = pos (:,i) + x1(I_in:I_fin)
+             !
+             IF ( lfcp ) THEN
+                fcp_nelec(i) = fcp_nelec(i) + x1(I_fin+1)
+             END IF
+          END DO
           !
        END IF
        !
        CALL mp_bcast( pos, meta_ionode_id, world_comm )
+       !
+       IF ( lfcp ) THEN
+          CALL mp_bcast( fcp_nelec, meta_ionode_id, world_comm )
+       END IF
        !
        DEALLOCATE( mask )
        DEALLOCATE( dx )

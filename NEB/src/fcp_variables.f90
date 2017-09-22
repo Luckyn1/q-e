@@ -26,6 +26,7 @@ MODULE fcp_variables
   LOGICAL :: &
        lfcp_linmin      = .FALSE., &! .TRUE. if fcp_scheme = "lm"
        lfcp_newton      = .FALSE.   ! .TRUE. if fcp_scheme = "newton"
+       lfcp_coupled     = .FALSE.   ! .TRUE. if fcp_scheme = "coupled"
   !
   REAL(DP) :: &
        fcp_thr          = 0.01_DP, &! convergence threshold for FCP relaxation, in eV

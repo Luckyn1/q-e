@@ -1178,29 +1178,34 @@ MODULE path_base
       USE path_opt_routines, ONLY : quick_min, broyden, broyden2, &
                                     steepest_descent, langevin
       USE path_opt_qnewton,  ONLY : qnewton_lbfgs, qnewton_lsr1
-      USE fcp_variables,     ONLY : lfcp
+      USE fcp_variables,     ONLY : lfcp, lfcp_coupled
       USE fcp_opt_routines,  ONLY : fcp_opt_perform
       !
       IMPLICIT NONE
       !
       INTEGER :: image
+      LOGICAL :: single_fcp
+      LOGICAL :: couple_fcp
       !
+      !
+      single_fcp = lfcp .AND. (.NOT. lfcp_coupled)
+      couple_fcp = lfcp .AND. lfcp_coupled
       !
       IF ( lbroyden ) THEN
          !
-         CALL broyden()
+         CALL broyden( couple_fcp )
          !
       ELSE IF (lbroyden2 ) THEN
          !
-         CALL broyden2()
+         CALL broyden2( couple_fcp )
          !
       ELSE IF ( llbfgs ) THEN
          !
-         CALL qnewton_lbfgs()
+         CALL qnewton_lbfgs( couple_fcp )
          !
       ELSE IF ( llsr1 ) THEN
          !
-         CALL qnewton_lsr1()
+         CALL qnewton_lsr1( couple_fcp )
          !
       ELSE
          !
@@ -1226,7 +1231,11 @@ MODULE path_base
          !
       END IF
       !
-      IF ( lfcp ) CALL fcp_opt_perform()
+      IF ( single_fcp ) THEN
+         !
+         CALL fcp_opt_perform()
+         !
+      END IF
       !
       RETURN
       !

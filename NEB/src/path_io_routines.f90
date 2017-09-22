@@ -49,7 +49,7 @@ MODULE path_io_routines
                                     qnewton_ndim, qnewton_step
        USE path_formats,     ONLY : summary_fmt
        USE path_io_units_module,         ONLY : iunpath
-       USE fcp_variables,    ONLY : lfcp, fcp_mu, fcp_thr, lfcp_newton
+       USE fcp_variables,    ONLY : lfcp, fcp_mu, fcp_thr
        !
        IMPLICIT NONE
        !

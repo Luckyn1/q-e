@@ -17,6 +17,7 @@ MODULE path_opt_routines
   USE kinds,          ONLY : DP
   USE constants,      ONLY : eps8, eps16
   USE path_variables, ONLY : ds, pos, grad
+  USE fcp_variables,  ONLY : fcp_mu, fcp_nelec, fcp_ef
   USE io_global,      ONLY : meta_ionode, meta_ionode_id
   USE mp,             ONLY : mp_bcast
   USE mp_world,       ONLY : world_comm
@@ -139,7 +140,7 @@ MODULE path_opt_routines
      ! ... Broyden (rank one) optimisation
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE broyden()
+     SUBROUTINE broyden( lfcp )
        !-----------------------------------------------------------------------
        !
        USE path_variables,  ONLY : lsmd
@@ -148,37 +149,51 @@ MODULE path_opt_routines
        !
        IMPLICIT NONE
        !
+       LOGICAL,  INTENT(IN)  :: lfcp
+       !
        REAL(DP), ALLOCATABLE :: t(:), g(:), s(:,:)
        INTEGER               :: k, i, j, I_in, I_fin
        REAL(DP)              :: s_norm, coeff, norm_g
        REAL(DP)              :: J0
        LOGICAL               :: exists
+       INTEGER               :: dim2
        !
        REAL(DP), PARAMETER   :: step_max = 0.6_DP
        INTEGER,  PARAMETER   :: broyden_ndim = 5
        !
+       ! ... set dimension an image
+       !
+       IF ( lfcp ) THEN
+         dim2 = dim1 + 1
+       ELSE
+         dim2 = dim1
+       END IF
        !
        ! ... starting guess for the inverse Jacobian
        !
        J0 = ds*ds
        !
-       ALLOCATE( g( dim1*nim ) )
-       ALLOCATE( s( dim1*nim, broyden_ndim ) )
-       ALLOCATE( t( dim1*nim ) )
+       ALLOCATE( g( dim2*nim ) )
+       ALLOCATE( s( dim2*nim, broyden_ndim ) )
+       ALLOCATE( t( dim2*nim ) )
        !
        g(:) = 0.0_DP
        t(:) = 0.0_DP
        !
        DO i = 1, nim
           !
-          I_in  = ( i - 1 )*dim1 + 1
-          I_fin = i * dim1
+          I_in  = ( i - 1 )*dim2 + 1
+          I_fin = ( i - 1 )*dim2 + dim1
           !
           IF ( frozen(i) ) CYCLE
           !
           IF ( lsmd ) t(I_in:I_fin) = tangent(:,i)
           !
           g(I_in:I_fin) = grad(:,i)
+          !
+          IF ( lfcp ) THEN
+             g(I_fin+1) = fcp_ef(i) - fcp_mu
+          END IF
           !
        END DO
        !
@@ -291,11 +306,26 @@ MODULE path_opt_routines
           !
           ! ... broyden's step
           !
-          pos(:,1:nim) = pos(:,1:nim) + RESHAPE( s(:,k), (/ dim1, nim /) )
+          DO i = 1, nim
+             !
+             I_in  = ( i - 1 )*dim2 + 1
+             I_fin = ( i - 1 )*dim2 + dim1
+             !
+             pos (:,i) = pos (:,i) + s(I_in:I_fin,k)
+             !
+             IF ( lfcp ) THEN
+                fcp_nelec(i) = fcp_nelec(i) + s(I_fin+1,k)
+             END IF
+             !
+          END DO
           !
        END IF
        !
        CALL mp_bcast( pos, meta_ionode_id, world_comm )
+       !
+       IF ( lfcp ) THEN
+          CALL mp_bcast( fcp_nelec, meta_ionode_id, world_comm )
+       END IF
        !
        DEALLOCATE( t )
        DEALLOCATE( g )
@@ -308,7 +338,7 @@ MODULE path_opt_routines
      ! ... Broyden (rank one) optimisation - second attempt
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE broyden2()
+     SUBROUTINE broyden2( lfcp )
        !-----------------------------------------------------------------------
 #define DEBUG
        !
@@ -317,6 +347,8 @@ MODULE path_opt_routines
        USE path_variables, ONLY : dim1, frozen, tangent, nim => num_of_images
        !
        IMPLICIT NONE
+       !
+       LOGICAL,  INTENT(IN)  :: lfcp
        !
        REAL(DP), PARAMETER   :: step_max = 0.6_DP
        INTEGER,  PARAMETER   :: broyden_ndim = 5
@@ -329,21 +361,30 @@ MODULE path_opt_routines
        REAL(DP)              :: x_norm, gamma0, J0, d2, d2_estimate
        LOGICAL               :: exists
        INTEGER               :: i, I_in, I_fin, info, j, niter
+       INTEGER               :: dim2
+       !
+       ! ... set dimension an image
+       !
+       IF ( lfcp ) THEN
+         dim2 = dim1 + 1
+       ELSE
+         dim2 = dim1
+       END IF
        !
        ! ... starting guess for the inverse Jacobian
        !
        J0 = ds*ds
        !
-       ALLOCATE( dx( dim1*nim, broyden_ndim ), df( dim1*nim, broyden_ndim ) )
-       ALLOCATE( x( dim1*nim ), f( dim1*nim ) )
-       ALLOCATE( x_last( dim1*nim ), f_last( dim1*nim ), mask( dim1*nim ) )
+       ALLOCATE( dx( dim2*nim, broyden_ndim ), df( dim2*nim, broyden_ndim ) )
+       ALLOCATE( x( dim2*nim ), f( dim2*nim ) )
+       ALLOCATE( x_last( dim2*nim ), f_last( dim2*nim ), mask( dim2*nim ) )
        !
        ! define mask to skip frozen images 
        !
        mask(:) = 0.0_DP
        DO i = 1, nim
-          I_in  = ( i - 1 )*dim1 + 1
-          I_fin = i * dim1
+          I_in  = ( i - 1 )*dim2 + 1
+          I_fin = i * dim2
           IF ( frozen(i) ) CYCLE
           mask(I_in:I_fin) = 1.0_DP
        END DO
@@ -351,10 +392,16 @@ MODULE path_opt_routines
        ! copy current positions and gradients in local arrays
        !
        DO i = 1, nim
-          I_in  = ( i - 1 )*dim1 + 1
-          I_fin = i * dim1
+          I_in  = ( i - 1 )*dim2 + 1
+          I_fin = ( i - 1 )*dim2 + dim1
+          !
           f(I_in:I_fin) =-grad(:,i)
           x(I_in:I_fin) = pos(:,i)
+          !
+          IF ( lfcp ) THEN
+             f(I_fin+1) = fcp_mu - fcp_ef(i)
+             x(I_fin+1) = fcp_nelec(i)
+          END IF
        END DO
        !
        ! only meta_ionode execute this part
@@ -453,8 +500,8 @@ MODULE path_opt_routines
              !
              DO i = 1, niter
                gamma0 = DOT_PRODUCT( b(1:niter,i), c(1:niter) )
-               call DAXPY(dim1*nim, -gamma0, dx(:,i),1, x,1)
-               call DAXPY(dim1*nim, -gamma0, df(:,i),1, f,1)
+               call DAXPY(dim2*nim, -gamma0, dx(:,i),1, x,1)
+               call DAXPY(dim2*nim, -gamma0, df(:,i),1, f,1)
              END DO
              !
              DEALLOCATE (b,c,work,iwork)
@@ -483,13 +530,26 @@ MODULE path_opt_routines
           !
           ! ... copy broyden's step on the position array ...
           !
-          pos(:,1:nim) =  RESHAPE( x, (/ dim1, nim /) )
+          DO i = 1, nim
+             I_in  = ( i - 1 )*dim2 + 1
+             I_fin = ( i - 1 )*dim2 + dim1
+             !
+             pos(:,i) = x(I_in:I_fin)
+             !
+             IF ( lfcp ) THEN
+                fcp_nelec(i) = x(I_fin+1)
+             END IF
+          END DO
           !
        END IF
        !
        ! ... and distribute it
        !
        CALL mp_bcast( pos, meta_ionode_id, world_comm )
+       !
+       IF ( lfcp ) THEN
+          CALL mp_bcast( fcp_nelec, meta_ionode_id, world_comm )
+       END IF
        !
        DEALLOCATE( df, dx, f, x, f_last, x_last, mask )
        !

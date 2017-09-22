@@ -40,7 +40,7 @@ SUBROUTINE ioneb()
                              qnewton_ndim_    => qnewton_ndim, &
                              qnewton_step_    => qnewton_step
   !
-  USE fcp_variables, ONLY : lfcp_linmin, lfcp_newton
+  USE fcp_variables, ONLY : lfcp_linmin, lfcp_newton, lfcp_coupled
   ! renamed variables
   USE fcp_variables, ONLY : lfcp_ => lfcp, &
                             fcp_mu_ => fcp_mu, &
@@ -205,6 +205,7 @@ SUBROUTINE ioneb()
   !
   lfcp_linmin = .FALSE.
   lfcp_newton = .FALSE.
+  lfcp_couple = .FALSE.
   !
   SELECT CASE( fcp_scheme )
   CASE( "lm", "line-min", "line-minimization", "line-minimisation" )
@@ -214,6 +215,10 @@ SUBROUTINE ioneb()
   CASE( "newton" )
      !
      lfcp_newton = .TRUE.
+     !
+  CASE( "couple", "coupled", "coupling" )
+     !
+     lfcp_coupled = .TRUE.
      !
   CASE DEFAULT
      !
