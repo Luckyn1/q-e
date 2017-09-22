@@ -14,13 +14,14 @@ MODULE path_opt_routines
   !
   ! ... Written by Carlo Sbraccia ( 2003-2006 )
   !
-  USE kinds,          ONLY : DP
-  USE constants,      ONLY : eps8, eps16
-  USE path_variables, ONLY : ds, pos, grad
-  USE fcp_variables,  ONLY : fcp_mu, fcp_nelec, fcp_ef, fcp_scale
-  USE io_global,      ONLY : meta_ionode, meta_ionode_id
-  USE mp,             ONLY : mp_bcast
-  USE mp_world,       ONLY : world_comm
+  USE kinds,            ONLY : DP
+  USE constants,        ONLY : eps8, eps16
+  USE path_variables,   ONLY : ds, pos, grad
+  USE fcp_variables,    ONLY : fcp_mu, fcp_nelec, fcp_ef
+  USE fcp_opt_routines, ONLY : fcp_opt_scale
+  USE io_global,        ONLY : meta_ionode, meta_ionode_id
+  USE mp,               ONLY : mp_bcast
+  USE mp_world,         ONLY : world_comm
   !
   USE basic_algebra_routines
   !
@@ -155,6 +156,7 @@ MODULE path_opt_routines
        INTEGER               :: k, i, j, I_in, I_fin
        REAL(DP)              :: s_norm, coeff, norm_g
        REAL(DP)              :: J0
+       REAL(DP)              :: xscale
        LOGICAL               :: exists
        INTEGER               :: dim2
        !
@@ -164,9 +166,15 @@ MODULE path_opt_routines
        ! ... set dimension an image
        !
        IF ( lfcp ) THEN
-         dim2 = dim1 + 1
+          dim2 = dim1 + 1
        ELSE
-         dim2 = dim1
+          dim2 = dim1
+       END IF
+       !
+       ! ... scaling factor: #electron -> Bohr
+       !
+       IF ( lfcp ) THEN
+          xscale = fcp_opt_scale()
        END IF
        !
        ! ... starting guess for the inverse Jacobian
@@ -192,7 +200,7 @@ MODULE path_opt_routines
           g(I_in:I_fin) = grad(:,i)
           !
           IF ( lfcp ) THEN
-             g(I_fin+1) = (fcp_ef(i) - fcp_mu) / fcp_scale
+             g(I_fin+1) = (fcp_ef(i) - fcp_mu) / xscale
           END IF
           !
        END DO
@@ -314,7 +322,7 @@ MODULE path_opt_routines
              pos (:,i) = pos (:,i) + s(I_in:I_fin,k)
              !
              IF ( lfcp ) THEN
-                fcp_nelec(i) = fcp_nelec(i) + s(I_fin+1,k) / fcp_scale
+                fcp_nelec(i) = fcp_nelec(i) + s(I_fin+1,k) / xscale
              END IF
              !
           END DO
@@ -359,6 +367,7 @@ MODULE path_opt_routines
        INTEGER, ALLOCATABLE  :: iwork(:)
        !
        REAL(DP)              :: x_norm, gamma0, J0, d2, d2_estimate
+       REAL(DP)              :: xscale
        LOGICAL               :: exists
        INTEGER               :: i, I_in, I_fin, info, j, niter
        INTEGER               :: dim2
@@ -366,9 +375,15 @@ MODULE path_opt_routines
        ! ... set dimension an image
        !
        IF ( lfcp ) THEN
-         dim2 = dim1 + 1
+          dim2 = dim1 + 1
        ELSE
-         dim2 = dim1
+          dim2 = dim1
+       END IF
+       !
+       ! ... scaling factor: #electron -> Bohr
+       !
+       IF ( lfcp ) THEN
+          xscale = fcp_opt_scale()
        END IF
        !
        ! ... starting guess for the inverse Jacobian
@@ -399,8 +414,8 @@ MODULE path_opt_routines
           x(I_in:I_fin) = pos(:,i)
           !
           IF ( lfcp ) THEN
-             f(I_fin+1) = (fcp_mu - fcp_ef(i)) / fcp_scale
-             x(I_fin+1) = fcp_nelec(i) * fcp_scale
+             f(I_fin+1) = (fcp_mu - fcp_ef(i)) / xscale
+             x(I_fin+1) = fcp_nelec(i) * xscale
           END IF
        END DO
        !
@@ -537,7 +552,7 @@ MODULE path_opt_routines
              pos(:,i) = x(I_in:I_fin)
              !
              IF ( lfcp ) THEN
-                fcp_nelec(i) = x(I_fin+1) / fcp_scale
+                fcp_nelec(i) = x(I_fin+1) / xscale
              END IF
           END DO
           !

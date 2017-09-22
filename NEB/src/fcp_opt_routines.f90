@@ -31,7 +31,7 @@ MODULE fcp_opt_routines
   !
   PRIVATE
   !
-  PUBLIC :: fcp_opt_perform
+  PUBLIC :: fcp_opt_perform, fcp_opt_scale
   !
   CONTAINS
      !
@@ -261,5 +261,22 @@ MODULE fcp_opt_routines
        END IF
        !
      END SUBROUTINE step_newton
+     !
+     !----------------------------------------------------------------------
+     REAL(DP) FUNCTION fcp_opt_scale()
+       !----------------------------------------------------------------------
+       !
+       ! ... see Modules/bfgs_module.f90
+       ! ... this is same as sqrt of the metric.
+       !
+       IMPLICIT NONE
+       !
+       REAL(DP) :: capacitance
+       !
+       CALL fcp_capacitance( capacitance )
+       !
+       fcp_opt_scale = 0.5_DP / (0.1_DP * capacitance)
+       !
+     END FUNCTION fcp_opt_scale
      !
 END MODULE fcp_opt_routines
