@@ -203,9 +203,9 @@ SUBROUTINE ioneb()
   !
   ! ... resolve fcp_scheme
   !
-  lfcp_linmin = .FALSE.
-  lfcp_newton = .FALSE.
-  lfcp_couple = .FALSE.
+  lfcp_linmin  = .FALSE.
+  lfcp_newton  = .FALSE.
+  lfcp_coupled = .FALSE.
   !
   SELECT CASE( fcp_scheme )
   CASE( "lm", "line-min", "line-minimization", "line-minimisation" )
