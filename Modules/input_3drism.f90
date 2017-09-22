@@ -101,9 +101,10 @@ SUBROUTINE iosys_3drism(laue, linit)
     ELSE IF (laue_expand_left > 0.0_DP) THEN
       laue_reference = 'left'
     END IF
-    !
+  END IF
+  !
   ! ... check laue_reference
-  ELSE
+  IF (laue .AND. TRIM(laue_reference) /= 'none') THEN
     IF (laue_expand_right > 0.0_DP .AND. laue_expand_left > 0.0_DP) THEN
       IF (laue_reference /= 'average') THEN
         CALL errore('iosys', "laue_reference must be 'average' for both-hands Laue-RISM", 1)
