@@ -566,7 +566,7 @@ MODULE input_parameters
         REAL(DP) :: gcscf_mu = 0.0_DP
           ! target Fermi energy of GC-SCF (in eV)
 
-        REAL(DP) :: gcscf_conv_thr = 0.0_DP
+        REAL(DP) :: gcscf_conv_thr = 1.0E-2_DP
           ! convergence threshold of GC-SCF (in eV)
 
         REAL(DP) :: gcscf_gk = 0.4_DP
@@ -577,13 +577,6 @@ MODULE input_parameters
 
         REAL(DP) :: gcscf_beta = 0.05_DP
           ! mixing rate of Fermi energy
-
-        REAL(DP) :: gcscf_delta = 0.0_DP
-          ! mixing threshold of Fermi energy (in eV)
-
-        REAL(DP) :: gcscf_anion_scale = 5.0_DP
-          ! scaling step of Fermi energy in case of anion,
-          ! to avoid incorrectness of GGA for virtual orbitals.
 
         INTEGER :: space_group = 0
           ! space group number for coordinates given in crystallographic form
@@ -629,7 +622,7 @@ MODULE input_parameters
              esm_bc, esm_efield, esm_w, esm_nfit, esm_debug, esm_debug_gpmax, &
              esm_a, esm_zb,                                                   &
              lgcscf, gcscf_ignore_mun, gcscf_mu, gcscf_conv_thr,              &
-             gcscf_gk, gcscf_gh, gcscf_beta, gcscf_delta, gcscf_anion_scale,  &
+             gcscf_gk, gcscf_gh, gcscf_beta,                                  &
              space_group, uniqueb, origin_choice, rhombohedral, zmon,         &
              relaxz, block, block_1, block_2, block_height
 

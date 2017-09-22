@@ -483,6 +483,9 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 and coupled with ESM method (i.e. ESM-RISM).
                 [for details see S.Nishihara and M.Otani, PRB 96, 115429 (2017)].
 
+                The default of @ref mixing_beta is 0.2
+                for both 3D-RISM and Laue-RISM.
+
                 For structural relaxation with BFGS,
                 @ref ignore_wolfe is always .TRUE. .
             }
@@ -1894,11 +1897,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
         }
 
         var mixing_beta -type REAL { 
-            default { 
-                0.1D0 if GC-SCF,
-                0.2D0 if RISM,
-                0.7D0 otherwise
-            }
+            default { 0.7D0 }
             info {
                 mixing factor for self-consistency
             }
@@ -2945,7 +2944,10 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
         }
 
         var rism3d_conv_thr -type REAL {
-            default { 1.D-4 }
+            default {
+                1.D-5 if @ref lgcscf == .FALSE.;
+                5.D-6 if @ref lgcscf == .TRUE.
+            }
             info {
                 Convergence threshold for 3D-RISM.
             }

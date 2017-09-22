@@ -62,6 +62,8 @@ SUBROUTINE iosys_3drism(laue, linit)
   INTEGER,  PARAMETER :: MDIIS_SWITCH      = 4
   REAL(DP), PARAMETER :: MDIIS_STEP_DEF1   = 0.8_DP
   REAL(DP), PARAMETER :: MDIIS_STEP_DEF2   = 0.4_DP
+  REAL(DP), PARAMETER :: CONV_THR_NORMAL   = 1.0E-5_DP
+  REAL(DP), PARAMETER :: CONV_THR_GCSCF    = 5.0E-6_DP
   REAL(DP), PARAMETER :: CONV_LEVEL_NORMAL = 0.1_DP
   REAL(DP), PARAMETER :: CONV_LEVEL_GCSCF  = 0.3_DP
   REAL(DP), PARAMETER :: BUFFER_DEF        = 8.0_DP
@@ -90,6 +92,15 @@ SUBROUTINE iosys_3drism(laue, linit)
       mdiis3d_step = MDIIS_STEP_DEF1
     ELSE
       mdiis3d_step = MDIIS_STEP_DEF2
+    END IF
+  END IF
+  !
+  ! ... modify rism3d_conv_thr
+  IF (rism3d_conv_thr <= 0.0_DP) THEN
+    IF (lgcscf) THEN
+      rism3d_conv_thr = CONV_THR_GCSCF
+    ELSE
+      rism3d_conv_thr = CONV_THR_NORMAL
     END IF
   END IF
   !
