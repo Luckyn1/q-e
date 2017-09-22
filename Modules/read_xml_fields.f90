@@ -186,6 +186,9 @@ CONTAINS
     CASE ( 'adapt' )
        CALL iotk_scan_dat_inside( xmlinputunit, adapt, ierr = ierr )
        !
+    CASE ( 'always_accepte' )
+       CALL iotk_scan_dat_inside( xmlinputunit, always_accepte, ierr = ierr )
+       !
     CASE ( 'ampre' )
        CALL iotk_scan_dat_inside( xmlinputunit, ampre, ierr = ierr )
        !

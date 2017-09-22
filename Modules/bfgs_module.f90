@@ -63,7 +63,7 @@ MODULE bfgs_module
    PUBLIC :: bfgs_ndim,        &
              trust_radius_ini, trust_radius_min, trust_radius_max, &
              w_1,              w_2, &
-             with_sr1
+             with_sr1,         always_accepte
    !
    ! ... global module variables
    !
@@ -123,14 +123,15 @@ MODULE bfgs_module
       w_2                 ! 2nd Wolfe condition: sufficient gradient decrease
 
    LOGICAL :: &
-      with_sr1            ! if .TRUE., SR1-BFGS formula of hessian is used
+      with_sr1,          &! if .TRUE., SR1-BFGS formula of hessian is used
+      always_accepte      ! if .TRUE., a new BFGS step will be always done
    !
 CONTAINS
    !
    !------------------------------------------------------------------------
    SUBROUTINE bfgs( pos_in, h, nelec, energy, grad_in, fcell, felec, fixion, scratch, stdout,&
                  energy_thr, grad_thr, cell_thr, fcp_thr, energy_error, grad_error,     &
-                 cell_error, fcp_error, lmovecell, lfcp, fcp_cap, always_accepte, &
+                 cell_error, fcp_error, lmovecell, lfcp, fcp_cap, &
                  step_accepted, stop_bfgs, istep )
       !------------------------------------------------------------------------
       !
@@ -151,7 +152,6 @@ CONTAINS
       !                         | grad(V(x_i)) - grad(V(x_i-1)) |
       !  cell_error     : the largest component of: omega*(stress-press*I)
       !  fcp_error      : | grad(V(x_FCP)) |
-      !  always_accepte : if .TRUE. a new BFGS step will be always done
       !  step_accepted  : .TRUE. if a new BFGS step is done
       !  stop_bfgs      : .TRUE. if BFGS convergence has been achieved
       !
@@ -172,7 +172,6 @@ CONTAINS
       LOGICAL,          INTENT(IN)    :: lfcp ! include FCP, or not ?
       REAL(DP),         INTENT(IN)    :: fcp_cap ! capacitance for FCP
       REAL(DP),         INTENT(OUT)   :: energy_error, grad_error, cell_error, fcp_error
-      LOGICAL,          INTENT(IN)    :: always_accepte
       LOGICAL,          INTENT(OUT)   :: step_accepted, stop_bfgs
       INTEGER,          INTENT(OUT)   :: istep
       !

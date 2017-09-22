@@ -127,7 +127,7 @@ SUBROUTINE move_ions ( idone )
            !
            CALL bfgs( pos, h, relec, etot, grad, fcell, felec, fixion, tmp_dir, stdout, epse, &
                       epsf, epsp1, fcp_eps, energy_error, gradient_error, cell_error, fcp_error, &
-                      lmovecell, lfcp, capacitance, lfcp .OR. lrism, step_accepted, conv_ions, istep )
+                      lmovecell, lfcp, capacitance, step_accepted, conv_ions, istep )
            !
         ELSE
            !

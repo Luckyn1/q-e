@@ -637,6 +637,7 @@ TYPE :: bfgs_type
    REAL(DP) :: w1
    REAL(DP) :: w2
    LOGICAL  :: with_sr1
+   LOGICAL  :: always_accepte
    !
 END TYPE bfgs_type
 
