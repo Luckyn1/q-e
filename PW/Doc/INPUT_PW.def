@@ -2832,26 +2832,6 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
             }
         }
 
-        var laue_reference -type CHARACTER {
-            options {
-                info {
-                    Set reference level of electrostatic potential for Laue-RISM.
-                }
-                opt -val 'average' {
-                    Average of potential of the right-hand side and that of the left-hand side.
-                    This is default if @ref laue_expand_right > 0.0 and @ref laue_expand_left > 0.0.
-                }
-                opt -val 'right' {
-                    Potential of the right-hand side.
-                    This is default if @ref laue_expand_right > 0.0 and @ref laue_expand_left <= 0.0.
-                }
-                opt -val 'left' {
-                    Potential of the left-hand side.
-                    This is default if @ref laue_expand_right <= 0.0 and @ref laue_expand_left > 0.0.
-                }
-            }
-        }
-
         var laue_wall -type CHARACTER {
             default { 'auto' }
             options {
