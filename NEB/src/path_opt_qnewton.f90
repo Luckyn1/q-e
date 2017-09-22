@@ -22,7 +22,7 @@ MODULE path_opt_qnewton
   USE path_io_units_module, ONLY : qnew_file, iunqnew, iunpath
   USE path_variables,       ONLY : ds, pos, grad, dim1, frozen, nim => num_of_images, &
                                    qnewton_ndim, qnewton_step
-  USE fcp_variables,        ONLY : fcp_mu, fcp_nelec, fcp_ef
+  USE fcp_variables,        ONLY : fcp_mu, fcp_nelec, fcp_ef, fcp_scale
   USE io_global,            ONLY : meta_ionode, meta_ionode_id
   USE mp,                   ONLY : mp_bcast
   USE mp_world,             ONLY : world_comm
@@ -124,8 +124,8 @@ MODULE path_opt_qnewton
           g1(I_in:I_fin) = grad(:,i)
           !
           IF ( lfcp ) THEN
-             x1(I_fin+1) = fcp_nelec(i)
-             g1(I_fin+1) = fcp_ef(i) - fcp_mu
+             x1(I_fin+1) = fcp_nelec(i) * fcp_scale
+             g1(I_fin+1) = (fcp_ef(i) - fcp_mu) / fcp_scale
           END IF
        END DO
        !
@@ -259,10 +259,10 @@ MODULE path_opt_qnewton
              I_in  = ( i - 1 )*dim2 + 1
              I_fin = ( i - 1 )*dim2 + dim1
              !
-             pos (:,i) = pos (:,i) + x1(I_in:I_fin)
+             pos (:,i) = pos (:,i) + dx(I_in:I_fin)
              !
              IF ( lfcp ) THEN
-                fcp_nelec(i) = fcp_nelec(i) + x1(I_fin+1)
+                fcp_nelec(i) = fcp_nelec(i) + dx(I_fin+1) / fcp_scale
              END IF
           END DO
           !

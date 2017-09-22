@@ -17,7 +17,7 @@ MODULE path_opt_routines
   USE kinds,          ONLY : DP
   USE constants,      ONLY : eps8, eps16
   USE path_variables, ONLY : ds, pos, grad
-  USE fcp_variables,  ONLY : fcp_mu, fcp_nelec, fcp_ef
+  USE fcp_variables,  ONLY : fcp_mu, fcp_nelec, fcp_ef, fcp_scale
   USE io_global,      ONLY : meta_ionode, meta_ionode_id
   USE mp,             ONLY : mp_bcast
   USE mp_world,       ONLY : world_comm
@@ -192,7 +192,7 @@ MODULE path_opt_routines
           g(I_in:I_fin) = grad(:,i)
           !
           IF ( lfcp ) THEN
-             g(I_fin+1) = fcp_ef(i) - fcp_mu
+             g(I_fin+1) = (fcp_ef(i) - fcp_mu) / fcp_scale
           END IF
           !
        END DO
@@ -314,7 +314,7 @@ MODULE path_opt_routines
              pos (:,i) = pos (:,i) + s(I_in:I_fin,k)
              !
              IF ( lfcp ) THEN
-                fcp_nelec(i) = fcp_nelec(i) + s(I_fin+1,k)
+                fcp_nelec(i) = fcp_nelec(i) + s(I_fin+1,k) / fcp_scale
              END IF
              !
           END DO
@@ -399,8 +399,8 @@ MODULE path_opt_routines
           x(I_in:I_fin) = pos(:,i)
           !
           IF ( lfcp ) THEN
-             f(I_fin+1) = fcp_mu - fcp_ef(i)
-             x(I_fin+1) = fcp_nelec(i)
+             f(I_fin+1) = (fcp_mu - fcp_ef(i)) / fcp_scale
+             x(I_fin+1) = fcp_nelec(i) * fcp_scale
           END IF
        END DO
        !
@@ -537,7 +537,7 @@ MODULE path_opt_routines
              pos(:,i) = x(I_in:I_fin)
              !
              IF ( lfcp ) THEN
-                fcp_nelec(i) = x(I_fin+1)
+                fcp_nelec(i) = x(I_fin+1) / fcp_scale
              END IF
           END DO
           !
