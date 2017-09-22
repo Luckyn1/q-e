@@ -25,7 +25,7 @@ MODULE fcp_variables
   !
   LOGICAL :: &
        lfcp_linmin      = .FALSE., &! .TRUE. if fcp_scheme = "lm"
-       lfcp_newton      = .FALSE.   ! .TRUE. if fcp_scheme = "newton"
+       lfcp_newton      = .FALSE., &! .TRUE. if fcp_scheme = "newton"
        lfcp_coupled     = .FALSE.   ! .TRUE. if fcp_scheme = "coupled"
   !
   REAL(DP) :: &
