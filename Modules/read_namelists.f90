@@ -499,7 +499,7 @@ MODULE read_namelists_module
        w_1              = 0.01_DP
        w_2              = 0.50_DP
        with_sr1         =.FALSE.
-       always_accepte   =.TRUE.
+       ignore_wolfe     =.FALSE.
        !
        l_mplathe=.false.
        n_muller=0
@@ -1196,7 +1196,7 @@ MODULE read_namelists_module
        CALL mp_bcast( w_1,              ionode_id, intra_image_comm )
        CALL mp_bcast( w_2,              ionode_id, intra_image_comm )
        CALL mp_bcast( with_sr1,         ionode_id, intra_image_comm )
-       CALL mp_bcast( always_accepte,   ionode_id, intra_image_comm )
+       CALL mp_bcast( ignore_wolfe,     ionode_id, intra_image_comm )
        !
        CALL mp_bcast(l_mplathe,         ionode_id, intra_image_comm )
        CALL mp_bcast(n_muller,          ionode_id, intra_image_comm )

@@ -463,7 +463,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                   in @ref SYSTEM namelist.
                 - ESM-RISM is also supported (@ref assume_isolated = 'esm' and @ref esm_bc = 'bc1'
                   and @ref trism = .TRUE.).
-                - @ref always_accept is always .TRUE., for BFGS.
+                - @ref ignore_wolfe is always .TRUE., for BFGS.
             }
         }
 
@@ -483,7 +483,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 and coupled with ESM method (i.e. ESM-RISM).
 
                 For structural relaxation with BFGS,
-                @ref always_accept is always .TRUE. .
+                @ref ignore_wolfe is always .TRUE. .
             }
         }
 
@@ -2417,7 +2417,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 }
             }
 
-            var always_accepte -type LOGICAL { 
+            var ignore_wolfe -type LOGICAL { 
                 default { .FALSE. }
                 info {
                     If .TRUE. new step of BFGS is always performed,

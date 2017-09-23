@@ -3101,19 +3101,19 @@ SUBROUTINE qes_write_bfgs(iun, obj)
             WRITE(iun, '(A)',advance='no')  'false'
          ENDIF
       CALL iotk_write_end(iun, 'with_sr1',indentation=.FALSE.)
-      CALL iotk_write_begin(iun, 'always_accepte',new_line=.FALSE.)
-         IF (obj%always_accepte) THEN
+      CALL iotk_write_begin(iun, 'ignore_wolfe',new_line=.FALSE.)
+         IF (obj%ignore_wolfe) THEN
             WRITE(iun, '(A)',advance='no')  'true'
          ELSE
             WRITE(iun, '(A)',advance='no')  'false'
          ENDIF
-      CALL iotk_write_end(iun, 'always_accepte',indentation=.FALSE.)
+      CALL iotk_write_end(iun, 'ignore_wolfe',indentation=.FALSE.)
    CALL iotk_write_end(iun, TRIM(obj%tagname))
    !
 END SUBROUTINE qes_write_bfgs
 
 SUBROUTINE qes_init_bfgs(obj, tagname, ndim, trust_radius_min, trust_radius_max, &
-                              trust_radius_init, w1, w2, with_sr1, always_accepte)
+                              trust_radius_init, w1, w2, with_sr1, ignore_wolfe)
    IMPLICIT NONE
 
    TYPE(bfgs_type) :: obj
@@ -3126,7 +3126,7 @@ SUBROUTINE qes_init_bfgs(obj, tagname, ndim, trust_radius_min, trust_radius_max,
    REAL(DP) :: w1
    REAL(DP) :: w2
    LOGICAL  :: with_sr1
-   LOGICAL  :: always_accepte
+   LOGICAL  :: ignore_wolfe
 
    obj%tagname = TRIM(tagname)
    obj%ndim = ndim
@@ -3136,7 +3136,7 @@ SUBROUTINE qes_init_bfgs(obj, tagname, ndim, trust_radius_min, trust_radius_max,
    obj%w1 = w1
    obj%w2 = w2
    obj%with_sr1 = with_sr1
-   obj%always_accepte = always_accepte
+   obj%ignore_wolfe = ignore_wolfe
 
 END SUBROUTINE qes_init_bfgs
 

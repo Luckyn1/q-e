@@ -63,7 +63,7 @@ MODULE bfgs_module
    PUBLIC :: bfgs_ndim,        &
              trust_radius_ini, trust_radius_min, trust_radius_max, &
              w_1,              w_2, &
-             with_sr1,         always_accepte
+             with_sr1,         ignore_wolfe
    !
    ! ... global module variables
    !
@@ -124,7 +124,7 @@ MODULE bfgs_module
 
    LOGICAL :: &
       with_sr1,          &! if .TRUE., SR1-BFGS formula of hessian is used
-      always_accepte      ! if .TRUE., a new BFGS step will be always done
+      ignore_wolfe        ! if .TRUE., a new BFGS step will be always done
    !
 CONTAINS
    !
@@ -311,7 +311,7 @@ CONTAINS
       !
       ! ... the bfgs algorithm starts here
       !
-      IF ( .NOT. energy_wolfe_condition( energy ) .AND. (scf_iter > 1) .AND. (.NOT. always_accepte) ) THEN
+      IF ( .NOT. energy_wolfe_condition( energy ) .AND. (scf_iter > 1) .AND. (.NOT. ignore_wolfe) ) THEN
          !
          ! ... the previous step is rejected, line search goes on
          !

@@ -186,9 +186,6 @@ CONTAINS
     CASE ( 'adapt' )
        CALL iotk_scan_dat_inside( xmlinputunit, adapt, ierr = ierr )
        !
-    CASE ( 'always_accepte' )
-       CALL iotk_scan_dat_inside( xmlinputunit, always_accepte, ierr = ierr )
-       !
     CASE ( 'ampre' )
        CALL iotk_scan_dat_inside( xmlinputunit, ampre, ierr = ierr )
        !
@@ -411,6 +408,9 @@ CONTAINS
        !
     CASE ( 'greasp' )
        CALL iotk_scan_dat_inside( xmlinputunit, greasp, ierr = ierr )
+       !
+    CASE ( 'ignore_wolfe' )
+       CALL iotk_scan_dat_inside( xmlinputunit, ignore_wolfe, ierr = ierr )
        !
     CASE ( 'iprint' )
        CALL iotk_scan_dat_inside( xmlinputunit, iprint, ierr = ierr )

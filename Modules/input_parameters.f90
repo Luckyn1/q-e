@@ -1134,7 +1134,7 @@ MODULE input_parameters
         REAL(DP)  :: w_2 = 0.5_DP
 
         LOGICAL :: with_sr1 = .false.
-        LOGICAL :: always_accepte = .false.
+        LOGICAL :: ignore_wolfe = .false.
 
         LOGICAL :: l_mplathe=.false. !if true apply Muller Plathe strategy
         INTEGER :: n_muller=0!number of intermediate sub-cells
@@ -1151,7 +1151,7 @@ MODULE input_parameters
                           wfc_extrapolation, nraise, remove_rigid_rot,         &
                           trust_radius_max, trust_radius_min,                  &
                           trust_radius_ini, w_1, w_2, bfgs_ndim,               &
-                          with_sr1, always_accepte,                            &
+                          with_sr1, ignore_wolfe,                              &
                           l_mplathe, n_muller,np_muller,l_exit_muller
 
 

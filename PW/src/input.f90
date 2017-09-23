@@ -194,7 +194,7 @@ SUBROUTINE iosys()
                             w_1_              => w_1, &
                             w_2_              => w_2, &
                             with_sr1_         => with_sr1, &
-                            always_accepte_   => always_accepte
+                            ignore_wolfe_     => ignore_wolfe
   USE wannier_new, ONLY :   use_wannier_      => use_wannier, &
                             use_energy_int_   => use_energy_int, &
                             nwan_             => nwan, &
@@ -276,7 +276,7 @@ SUBROUTINE iosys()
                                pot_extrapolation,  wfc_extrapolation,          &
                                w_1, w_2, trust_radius_max, trust_radius_min,   &
                                trust_radius_ini, bfgs_ndim, with_sr1,          &
-                               always_accepte, rd_pos, sp_pos, rd_for,         &
+                               ignore_wolfe, rd_pos, sp_pos, rd_for,           &
                                rd_if_pos => if_pos, lsg
   !
   ! ... CELL namelist
@@ -1247,10 +1247,10 @@ SUBROUTINE iosys()
   w_2_              = w_2
   with_sr1_         = with_sr1
   !
-  IF (lfcp .OR. trism) THEN
-     always_accepte_ = .TRUE.
+  IF ( lfcp .OR. trism ) THEN
+     ignore_wolfe_ = .TRUE.
   ELSE
-     always_accepte_ = always_accepte
+     ignore_wolfe_ = ignore_wolfe
   END IF
   !
   IF (trim(occupations) /= 'from_input') one_atom_occupations_=.false.
