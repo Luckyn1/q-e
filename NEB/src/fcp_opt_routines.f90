@@ -273,10 +273,13 @@ MODULE fcp_opt_routines
        !
        REAL(DP) :: capacitance
        !
+       REAL(DP), PARAMETER :: max_step = 0.60_DP ! Bohr
+       REAL(DP), PARAMETER :: max_volt = 0.05_DP ! Hartree
+       !
        CALL fcp_capacitance( capacitance )
        capacitance = e2 * capacitance
        !
-       fcp_opt_scale = 0.5_DP / (0.05_DP * capacitance)
+       fcp_opt_scale = max_step / (max_volt * capacitance)
        !
      END FUNCTION fcp_opt_scale
      !
