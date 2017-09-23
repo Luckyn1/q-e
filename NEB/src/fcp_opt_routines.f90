@@ -274,8 +274,9 @@ MODULE fcp_opt_routines
        REAL(DP) :: capacitance
        !
        CALL fcp_capacitance( capacitance )
+       capacitance = e2 * capacitance
        !
-       fcp_opt_scale = 0.5_DP / (0.1_DP * capacitance)
+       fcp_opt_scale = 0.5_DP / (0.05_DP * capacitance)
        !
      END FUNCTION fcp_opt_scale
      !
