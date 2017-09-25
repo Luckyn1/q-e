@@ -210,14 +210,17 @@ SUBROUTINE ioneb()
   SELECT CASE( fcp_scheme )
   CASE( "lm", "line-min", "line-minimization", "line-minimisation" )
      !
+     fcp_scheme = "lm"
      lfcp_linmin = .true.
      !
   CASE( "newton" )
      !
+     fcp_scheme = "newton"
      lfcp_newton = .TRUE.
      !
   CASE( "couple", "coupled", "coupling" )
      !
+     fcp_scheme = "coupled"
      lfcp_coupled = .TRUE.
      !
   CASE DEFAULT

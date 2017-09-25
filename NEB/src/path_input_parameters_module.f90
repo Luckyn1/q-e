@@ -125,13 +125,15 @@ MODULE path_input_parameters_module
   REAL(DP)   :: fcp_thr = 0.01_DP ! in eV
   !
   CHARACTER(len=80) :: fcp_scheme = 'lm'
-  ! fcp_scheme = 'lm' | 'newton'
+  ! fcp_scheme = 'lm' | 'newton' | 'coupled'
   ! set the minimization algorithm for FCP
   ! 'lm'          line-minimization
   ! 'newton'      newton-raphson
+  ! 'coupled'     coupled-method with ionic postions
   !
-  CHARACTER(len=80) :: fcp_scheme_allowed(2)
-  DATA fcp_scheme_allowed / 'lm', 'newton' /
+  CHARACTER(len=80) :: fcp_scheme_allowed(8)
+  DATA fcp_scheme_allowed / 'lm', 'line-min', 'line-minimization', 'line-minimisation', &
+                          & 'newton', 'couple', 'coupled', 'coupling' /
   !
   INTEGER    :: fcp_ndiis = 4
   REAL(DP)   :: fcp_rdiis = 1.0_DP
