@@ -61,6 +61,11 @@ MODULE fcp_variables
   TYPE(mdiis_type) :: &
        mdiist                       ! - data of DIIS
   !
+  ! ... variables for Coupled Method with ionic positions
+  !
+  REAL(DP) :: &
+       fcp_max_volt     = 0.05_DP   ! - maximum estimated voltage, in Hartree
+  !
   CONTAINS
      !
      !--------------------------------------------------------------------------

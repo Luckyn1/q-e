@@ -46,7 +46,8 @@ SUBROUTINE ioneb()
                             fcp_mu_ => fcp_mu, &
                             fcp_thr_ => fcp_thr, &
                             fcp_ndiis_ => fcp_ndiis, &
-                            fcp_rdiis_ => fcp_rdiis
+                            fcp_rdiis_ => fcp_rdiis, &
+                            fcp_max_volt_ => fcp_max_volt
   !
   USE path_input_parameters_module, ONLY : restart_mode, nstep_path,   &
                                string_method, num_of_images, path_thr, &
@@ -55,7 +56,7 @@ SUBROUTINE ioneb()
                                ds, use_freezing, fixed_tan,            &
                                qnewton_ndim, qnewton_step,             &
                                lfcp, fcp_mu, fcp_thr, fcp_scheme,      &
-                               fcp_ndiis, fcp_rdiis
+                               fcp_ndiis, fcp_rdiis, fcp_max_volt
   !
   IMPLICIT NONE
   !
@@ -232,11 +233,12 @@ SUBROUTINE ioneb()
   !
   ! ... "FCP"-optimization variables
   !
-  lfcp_      = lfcp
-  fcp_mu_    = fcp_mu / autoev
-  fcp_thr_   = fcp_thr
-  fcp_ndiis_ = fcp_ndiis
-  fcp_rdiis_ = fcp_rdiis
+  lfcp_         = lfcp
+  fcp_mu_       = fcp_mu / autoev
+  fcp_thr_      = fcp_thr
+  fcp_ndiis_    = fcp_ndiis
+  fcp_rdiis_    = fcp_rdiis
+  fcp_max_volt_ = fcp_max_volt / autoev
   !
   IF ( lfcp_ ) CALL fcp_check( .TRUE. )
   !

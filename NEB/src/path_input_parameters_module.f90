@@ -135,8 +135,9 @@ MODULE path_input_parameters_module
   DATA fcp_scheme_allowed / 'lm', 'line-min', 'line-minimization', 'line-minimisation', &
                           & 'newton', 'couple', 'coupled', 'coupling' /
   !
-  INTEGER    :: fcp_ndiis = 4
-  REAL(DP)   :: fcp_rdiis = 1.0_DP
+  INTEGER    :: fcp_ndiis    = 4
+  REAL(DP)   :: fcp_rdiis    = 1.0_DP
+  REAL(DP)   :: fcp_max_volt = 0.5_DP ! in eV
   !
   !
   NAMELIST / PATH / &
@@ -147,7 +148,7 @@ MODULE path_input_parameters_module
                     path_thr, fixed_tan, use_freezing, minimum_image, &
                     qnewton_ndim, qnewton_step, &
                     lfcp, fcp_mu, fcp_thr, fcp_scheme, &
-                    fcp_ndiis, fcp_rdiis
+                    fcp_ndiis, fcp_rdiis, fcp_max_volt
 !
 !    ATOMIC_POSITIONS
 !

@@ -71,12 +71,13 @@ MODULE path_read_namelists_module
        !
        ! ... defaults for "FCP" optimisations variables
        !
-       lfcp       = .FALSE.
-       fcp_mu     = fcp_not_set
-       fcp_thr    = 0.01_DP
-       fcp_scheme = 'lm'
-       fcp_ndiis  = 4
-       fcp_rdiis  = 1.0_DP
+       lfcp         = .FALSE.
+       fcp_mu       = fcp_not_set
+       fcp_thr      = 0.01_DP
+       fcp_scheme   = 'lm'
+       fcp_ndiis    = 4
+       fcp_rdiis    = 1.0_DP
+       fcp_max_volt = 0.5_DP
        !
        RETURN
        !
@@ -127,6 +128,7 @@ MODULE path_read_namelists_module
        CALL mp_bcast( fcp_scheme,           ionode_id, world_comm )
        CALL mp_bcast( fcp_ndiis,            ionode_id, world_comm )
        CALL mp_bcast( fcp_rdiis,            ionode_id, world_comm )
+       CALL mp_bcast( fcp_max_volt,         ionode_id, world_comm )
        !
        RETURN
        !
@@ -195,6 +197,9 @@ MODULE path_read_namelists_module
           IF( fcp_mu == fcp_not_set ) &
              CALL errore( sub_name,' fcp_mu is not set ', 1 )
           !
+          IF ( fcp_thr <= 0.0_DP ) &
+             CALL errore( sub_name, 'fcp_thr out of range', 1 )
+          !
           allowed = .FALSE.
           DO i = 1, SIZE( fcp_scheme_allowed )
              IF ( TRIM( fcp_scheme ) == fcp_scheme_allowed(i) ) allowed = .TRUE.
@@ -203,6 +208,15 @@ MODULE path_read_namelists_module
           IF ( .NOT. allowed ) &
              CALL errore( sub_name, ' fcp_scheme ''' // &
                          & TRIM( fcp_scheme ) //''' not allowed ', 1 )
+          !
+          IF ( fcp_ndiis < 1 ) &
+             CALL errore( sub_name, 'fcp_ndiis out of range', 1 )
+          !
+          IF ( fcp_rdiis <= 0.0_DP ) &
+             CALL errore( sub_name, 'fcp_rdiis out of range', 1 )
+          !
+          IF ( fcp_max_volt <= 0.0_DP ) &
+             CALL errore( sub_name, 'fcp_max_volt out of range', 1 )
           !
        END IF
        !

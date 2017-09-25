@@ -269,17 +269,34 @@ MODULE fcp_opt_routines
        ! ... see Modules/bfgs_module.f90
        ! ... this is same as sqrt of the metric.
        !
+       USE path_variables, ONLY : llbfgs, llsr1, qnewton_step
+       USE fcp_variables,  ONLY : fcp_max_volt
+       !
        IMPLICIT NONE
        !
        REAL(DP) :: capacitance
+       REAL(DP) :: max_step
        !
-       REAL(DP), PARAMETER :: max_step = 0.60_DP ! Bohr
-       REAL(DP), PARAMETER :: max_volt = 0.05_DP ! Hartree
+       ! ... set capacitance
        !
        CALL fcp_capacitance( capacitance )
        capacitance = e2 * capacitance
        !
-       fcp_opt_scale = max_step / (max_volt * capacitance)
+       ! ... set max step
+       !
+       IF ( llbfgs .OR. llsr1 ) THEN
+          !
+          max_step = qnewton_step
+          !
+       ELSE
+          !
+          max_step = 0.6_DP ! Bohr
+          !
+       END IF
+       !
+       ! ... set scaling factor
+       !
+       fcp_opt_scale = max_step / (fcp_max_volt * capacitance)
        !
      END FUNCTION fcp_opt_scale
      !
