@@ -137,7 +137,7 @@ MODULE path_input_parameters_module
   !
   INTEGER    :: fcp_ndiis    = 4
   REAL(DP)   :: fcp_rdiis    = 1.0_DP
-  REAL(DP)   :: fcp_max_volt = 0.5_DP ! in eV
+  REAL(DP)   :: fcp_max_volt = 1.0_DP ! in eV
   !
   !
   NAMELIST / PATH / &

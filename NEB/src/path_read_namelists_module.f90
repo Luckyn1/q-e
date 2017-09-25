@@ -77,7 +77,7 @@ MODULE path_read_namelists_module
        fcp_scheme   = 'lm'
        fcp_ndiis    = 4
        fcp_rdiis    = 1.0_DP
-       fcp_max_volt = 0.5_DP
+       fcp_max_volt = 1.0_DP
        !
        RETURN
        !
