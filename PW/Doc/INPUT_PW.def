@@ -481,6 +481,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                 If @ref assume_isolated = 'esm' and @ref esm_bc = 'bc1',
                 Laue-RISM is calculated instead of 3D-RISM
                 and coupled with ESM method (i.e. ESM-RISM).
+                [for details see S.Nishihara and M.Otani, PRB 96, 115429 (2017)].
 
                 For structural relaxation with BFGS,
                 @ref ignore_wolfe is always .TRUE. .
