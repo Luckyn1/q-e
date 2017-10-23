@@ -18,11 +18,11 @@ MODULE path_opt_qnewton
   ! ... (R.H.Byrd et al., Math. Program., 63:129-156, 1994.)
   !
   USE kinds,                ONLY : DP
-  USE constants,            ONLY : eps8, eps16
+  USE constants,            ONLY : e2, eps4, eps8, eps16
   USE path_io_units_module, ONLY : qnew_file, iunqnew, iunpath
   USE path_variables,       ONLY : ds, pos, grad, dim1, frozen, nim => num_of_images, &
                                    qnewton_ndim, qnewton_step
-  USE fcp_variables,        ONLY : fcp_mu, fcp_nelec, fcp_ef
+  USE fcp_variables,        ONLY : fcp_mu, fcp_nelec, fcp_ef, fcp_dos
   USE fcp_opt_routines,     ONLY : fcp_opt_scale
   USE io_global,            ONLY : meta_ionode, meta_ionode_id
   USE mp,                   ONLY : mp_bcast
@@ -80,11 +80,14 @@ MODULE path_opt_qnewton
        REAL(DP), ALLOCATABLE :: dx(:)
        REAL(DP), ALLOCATABLE :: x1(:), g1(:)
        REAL(DP), ALLOCATABLE :: x2(:), g2(:)
+       REAL(DP), ALLOCATABLE :: H0(:)
        INTEGER,  ALLOCATABLE :: map(:)
        REAL(DP), ALLOCATABLE :: s(:,:), y(:,:)
        !
        REAL(DP)              :: norm_g, norm_dx
        REAL(DP)              :: xscale
+       REAL(DP)              :: fcp_cap
+       REAL(DP)              :: fcp_hess
        LOGICAL               :: exists, opened
        INTEGER               :: dim2
        INTEGER               :: map1, nsave
@@ -107,10 +110,18 @@ MODULE path_opt_qnewton
           END IF
        END IF
        !
+       ! ... estimated capacitance
+       !
+       IF ( lfcp ) THEN
+          CALL fcp_capacitance( fcp_cap )
+          fcp_cap = e2 * fcp_cap
+       END IF
+       !
        ALLOCATE( mask( dim2*nim ) )
        ALLOCATE( dx( dim2*nim ) )
        ALLOCATE( x1( dim2*nim ), g1( dim2*nim ) )
        ALLOCATE( x2( dim2*nim ), g2( dim2*nim ) )
+       ALLOCATE( H0( dim2*nim ) )
        ALLOCATE( map( qnewton_ndim ) )
        ALLOCATE( s( dim2*nim, qnewton_ndim ) )
        ALLOCATE( y( dim2*nim, qnewton_ndim ) )
@@ -125,7 +136,7 @@ MODULE path_opt_qnewton
           mask(I_in:I_fin) = 1.0_DP
        END DO
        !
-       ! ... current position and gradient
+       ! ... current position, gradient and 0-th hessian
        !
        DO i = 1, nim
           I_in  = ( i - 1 )*dim2 + 1
@@ -133,10 +144,23 @@ MODULE path_opt_qnewton
           !
           x1(I_in:I_fin) = pos (:,i)
           g1(I_in:I_fin) = grad(:,i)
+          H0(I_in:I_fin) = ds * ds
           !
           IF ( lfcp ) THEN
              x1(I_fin+1) = fcp_nelec(i) * xscale
              g1(I_fin+1) = (fcp_ef(i) - fcp_mu) / xscale
+             !
+             fcp_hess = fcp_dos(i)
+             !
+             IF ( fcp_cap > eps4 ) THEN
+                fcp_hess = MIN( fcp_hess, fcp_cap )
+             END IF
+             !
+             IF ( fcp_hess > eps4 ) THEN
+                H0(I_fin+1) = fcp_hess * xscale * xscale
+             ELSE
+                H0(I_fin+1) = ds * ds
+             END IF
           END IF
        END DO
        !
@@ -224,18 +248,18 @@ MODULE path_opt_qnewton
           !
           IF ( ihess == HESS_LBFGS ) THEN
              !
-             CALL lbfgs_hess( dim2*nim, nsave, dx, g1, map, s, y )
+             CALL lbfgs_hess( dim2*nim, nsave, dx, g1, H0, map, s, y )
              !
           ELSE IF ( ihess == HESS_LSR1 ) THEN
              !
-             CALL lsr1_hess( dim2*nim, nsave, dx, g1, map, s, y )
+             CALL lsr1_hess( dim2*nim, nsave, dx, g1, H0, map, s, y )
              !
           END IF
           !
           IF ( nsave < 0 ) THEN
              !
              nsave = 0
-             dx(:) = -ds * ds * g1(:)
+             dx(:) = -H0(:) * g1(:)
              !
              WRITE( UNIT = iunpath, &
                     FMT = '(/,5X,"hessian is not well-defined : history is reset",/)' )
@@ -289,6 +313,7 @@ MODULE path_opt_qnewton
        DEALLOCATE( dx )
        DEALLOCATE( x1, g1 )
        DEALLOCATE( x2, g2 )
+       DEALLOCATE( H0 )
        DEALLOCATE( map )
        DEALLOCATE( s )
        DEALLOCATE( y )
@@ -298,7 +323,7 @@ MODULE path_opt_qnewton
      END SUBROUTINE qnewton_x
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE lbfgs_hess( ndim, nvec, dx, g, map, s, y )
+     SUBROUTINE lbfgs_hess( ndim, nvec, dx, g, H0, map, s, y )
        !-----------------------------------------------------------------------
        !
        IMPLICIT NONE
@@ -307,19 +332,18 @@ MODULE path_opt_qnewton
        INTEGER,  INTENT(INOUT) :: nvec
        REAL(DP), INTENT(OUT)   :: dx(ndim)
        REAL(DP), INTENT(IN)    :: g(ndim)
+       REAL(DP), INTENT(IN)    :: H0(ndim)
        INTEGER,  INTENT(IN)    :: map(*)
        REAL(DP), INTENT(IN)    :: s(ndim,*)
        REAL(DP), INTENT(IN)    :: y(ndim,*)
        !
        REAL(DP), ALLOCATABLE   :: rho(:), alpha(:)
-       REAL(DP)                :: H0, ys, beta
+       REAL(DP)                :: ys, beta
        INTEGER                 :: i, ii
-       !
-       H0 = ds * ds
        !
        IF ( nvec < 1 ) THEN
           !
-          dx(:) = -H0 * g(:)
+          dx(:) = -H0(:) * g(:)
           !
           RETURN
           !
@@ -346,7 +370,7 @@ MODULE path_opt_qnewton
           !
        END DO
        !
-       dx(:) = H0 * dx(:)
+       dx(:) = H0(:) * dx(:)
        !
        DO i = nvec, 1, -1
           !
@@ -365,7 +389,7 @@ MODULE path_opt_qnewton
      END SUBROUTINE lbfgs_hess
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE lsr1_hess( ndim, nvec, dx, g, map, s, y )
+     SUBROUTINE lsr1_hess( ndim, nvec, dx, g, H0, map, s, y )
        !-----------------------------------------------------------------------
        !
        IMPLICIT NONE
@@ -374,6 +398,7 @@ MODULE path_opt_qnewton
        INTEGER,  INTENT(INOUT) :: nvec
        REAL(DP), INTENT(OUT)   :: dx(ndim)
        REAL(DP), INTENT(IN)    :: g(ndim)
+       REAL(DP), INTENT(IN)    :: H0(ndim)
        INTEGER,  INTENT(IN)    :: map(*)
        REAL(DP), INTENT(IN)    :: s(ndim,*)
        REAL(DP), INTENT(IN)    :: y(ndim,*)
@@ -381,16 +406,13 @@ MODULE path_opt_qnewton
        REAL(DP), ALLOCATABLE   :: M(:,:)
        REAL(DP), ALLOCATABLE   :: psi(:,:)
        REAL(DP), ALLOCATABLE   :: psig(:)
-       REAL(DP)                :: H0
        INTEGER                 :: i, j, ii
        INTEGER                 :: info
        INTEGER,  ALLOCATABLE   :: ipiv(:)
        INTEGER                 :: nwork
        REAL(DP), ALLOCATABLE   :: work(:)
        !
-       H0 = ds * ds
-       !
-       dx(:) = -H0 * g(:)
+       dx(:) = -H0(:) * g(:)
        !
        IF ( nvec < 1 ) RETURN
        !
@@ -406,7 +428,7 @@ MODULE path_opt_qnewton
           !
           ii = map(nvec - i + 1)
           !
-          psi(:,i) = s(:,ii) - H0 * y(:,ii)
+          psi(:,i) = s(:,ii) - H0(:) * y(:,ii)
           !
        END DO
        !
