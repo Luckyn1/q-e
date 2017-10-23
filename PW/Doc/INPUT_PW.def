@@ -3012,7 +3012,7 @@ input_description -distribution {Quantum Espresso} -package PWscf -program pw.x 
                     The threshold becomes @ref rism3d_conv_thr, when
                     estimated energy error is enough small.
                 }
-                opt -val 0.0<x<0.1 {
+                opt -val 0.0<x<1.0 {
                     Convergence level is 'medium'.
                     Convergence threshold of 3D-RISM is intermediate value
                     between 'low' and 'high', where @ref rism3d_conv_level is mixing rate.
