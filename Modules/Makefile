@@ -178,6 +178,7 @@ do_lauerism.o \
 eqn_1drism.o \
 eqn_3drism.o \
 eqn_lauedipole.o \
+eqn_lauegxy0.o \
 eqn_lauelong.o \
 eqn_lauerism.o \
 eqn_laueshort.o \

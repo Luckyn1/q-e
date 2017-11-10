@@ -18,7 +18,6 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   ! ...                /-inf
   ! ...
   !
-  USE constants, ONLY : K_BOLTZMANN_RY, eps8
   USE cell_base, ONLY : alat
   USE err_rism,  ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
   USE kinds,     ONLY : DP
