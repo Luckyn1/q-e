@@ -77,6 +77,7 @@ MODULE rism
     REAL(DP),    POINTER :: csr (:,:)    ! short-range direct correlations in R-space
     REAL(DP),    POINTER :: csg (:,:)    ! short-range direct correlations in G-space
     COMPLEX(DP), POINTER :: csgz(:,:)    ! short-range direct correlations in G-space or Laue-rep. (complex)
+    REAL(DP),    POINTER :: csg0(:,:)    ! short-range direct correlations when Gxy = 0 (Laue-RISM)
     REAL(DP),    POINTER :: csdr(:,:)    ! short-range and dipole parts of direct correlations in R-space (Laue-RISM)
     REAL(DP),    POINTER :: cda (:)      ! dipole-parts of direct correlations in Laue-rep. (amplitude)
     REAL(DP),    POINTER :: cdzs(:)      ! dipole-parts of direct correlations in Laue-rep. (step function)
@@ -561,6 +562,7 @@ CONTAINS
         ALLOCATE(rismt%hdzs(nrzs, nsite))
       END IF
       IF ((nrzl * nsite) > 0) THEN
+        ALLOCATE(rismt%csg0(nrzl, nsite))
         ALLOCATE(rismt%hdzl(nrzl, nsite))
       END IF
     END IF
@@ -815,6 +817,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%csr))       DEALLOCATE(rismt%csr)
     IF (ASSOCIATED(rismt%csg))       DEALLOCATE(rismt%csg)
     IF (ASSOCIATED(rismt%csgz))      DEALLOCATE(rismt%csgz)
+    IF (ASSOCIATED(rismt%csg0))      DEALLOCATE(rismt%csg0)
     IF (ASSOCIATED(rismt%csdr))      DEALLOCATE(rismt%csdr)
     IF (ASSOCIATED(rismt%cda))       DEALLOCATE(rismt%cda)
     IF (ASSOCIATED(rismt%cdzs))      DEALLOCATE(rismt%cdzs)
@@ -874,6 +877,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%csr))      rismt%csr      = R_ZERO
     IF (ASSOCIATED(rismt%csg))      rismt%csg      = R_ZERO
     IF (ASSOCIATED(rismt%csgz))     rismt%csgz     = C_ZERO
+    IF (ASSOCIATED(rismt%csg0))     rismt%csg0     = R_ZERO
     IF (ASSOCIATED(rismt%csdr))     rismt%csdr     = R_ZERO
     IF (ASSOCIATED(rismt%cda))      rismt%cda      = R_ZERO
     IF (ASSOCIATED(rismt%hr ))      rismt%hr       = R_ZERO

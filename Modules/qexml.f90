@@ -2413,7 +2413,13 @@ CONTAINS
             IF ( .NOT. lbinary ) filename = "./3d-rism_cduv.xml"
             !
             CALL iotk_link( ounit, "DIRECT_CORR_AS_LAUE_DIPOLE", TRIM( filename ), &
-                                    CREATE=.FALSE., BINARY=.FALSE. )
+                                    CREATE=.FALSE., BINARY=.TRUE. )
+            !
+            filename = "./3d-rism_csuv_0.dat"
+            IF ( .NOT. lbinary ) filename = "./3d-rism_csuv_0.xml"
+            !
+            CALL iotk_link( ounit, "DIRECT_CORR_AS_LAUE_GXY0", TRIM( filename ), &
+                                    CREATE=.FALSE., BINARY=.TRUE. )
             !
             filename = "./3d-rism_hsuv_l.dat"
             IF ( .NOT. lbinary ) filename = "./3d-rism_hsuv_l.xml"

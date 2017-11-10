@@ -19,7 +19,8 @@ MODULE io_rism_xml
   USE xml_io_rism, ONLY : write_1drism_xml, read_1drism_xml, &
                         & write_3drism_xml, read_3drism_xml, &
                         & write_lauerism_xml, read_lauerism_xml, &
-                        & write_lauedipole_xml, read_lauedipole_xml
+                        & write_lauedipole_xml, read_lauedipole_xml, &
+                        & write_lauegxy0_xml, read_lauegxy0_xml
   !
   IMPLICIT NONE
   SAVE
@@ -285,6 +286,18 @@ CONTAINS
         CALL write_lauedipole_x(rismt, rismt%nsite, ddummy, file_base, datname)
       END IF
       !
+      ! ... write cs(Gxy=0)
+      file_base = TRIM(dirname) // '/3d-rism_csuv_0' // TRIM(ext)
+      datname   = 'Csuv(0,z)'
+      !
+      IF (rismt%nsite > 0) THEN
+        CALL write_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite, &
+                            & rismt%csg0, file_base, datname)
+      ELSE
+        CALL write_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite, &
+                            & rdummy, file_base, datname)
+      END IF
+      !
       ! ... write hs(laue)
       file_base = TRIM(dirname) // '/3d-rism_hsuv_l' // TRIM(ext)
       datname   = 'Hsuv(gxy,z)'
@@ -377,6 +390,26 @@ CONTAINS
   END SUBROUTINE write_lauedipole_x
   !
   !------------------------------------------------------------------------
+  SUBROUTINE write_lauegxy0_x(rismt, nl, nsite, zl, file_base, name)
+    !------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE(rism_type),  INTENT(IN) :: rismt
+    INTEGER,          INTENT(IN) :: nl
+    INTEGER,          INTENT(IN) :: nsite
+    REAL(DP),         INTENT(IN) :: zl(nl, nsite)
+    CHARACTER(LEN=*), INTENT(IN) :: file_base
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    !
+    CALL write_lauegxy0_xml(file_base, zl(1:nl, 1:nsite), name, &
+                          & rismt%mp_site%nsite, rismt%mp_site%isite_start, rismt%mp_site%isite_end, &
+                          & rismt%lfft, ionode, &
+                          & rismt%mp_site%intra_sitg_comm, rismt%mp_site%inter_sitg_comm)
+    !
+  END SUBROUTINE write_lauegxy0_x
+  !
+  !------------------------------------------------------------------------
   SUBROUTINE read_3drism(rismt, ecut, extension)
     !------------------------------------------------------------------------
     !
@@ -455,6 +488,17 @@ CONTAINS
         CALL read_lauedipole_x(rismt, rismt%nsite, rismt%cda, file_base)
       ELSE
         CALL read_lauedipole_x(rismt, rismt%nsite, ddummy, file_base)
+      END IF
+      !
+      ! ... read cs(Gxy=0)
+      file_base = TRIM(dirname) // '/3d-rism_csuv_0' // TRIM(ext)
+      !
+      IF (rismt%nsite > 0) THEN
+        CALL read_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite,
+                           & rismt%csg0, file_base)
+      ELSE
+        CALL read_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite,
+                           & rdummy, file_base)
       END IF
       !
       ! ... read hs(laue)
@@ -541,5 +585,24 @@ CONTAINS
                            & ionode, rismt%mp_site%intra_sitg_comm, rismt%mp_site%inter_sitg_comm)
     !
   END SUBROUTINE read_lauedipole_x
+  !
+  !------------------------------------------------------------------------
+  SUBROUTINE read_lauegxy0_x(rismt, nl, nsite, zl, file_base)
+    !------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE(rism_type),  INTENT(IN)  :: rismt
+    INTEGER,          INTENT(IN)  :: nl
+    INTEGER,          INTENT(IN)  :: nsite
+    REAL(DP),         INTENT(OUT) :: zl(nl, nsite)
+    CHARACTER(LEN=*), INTENT(IN)  :: file_base
+    !
+    CALL read_lauegxy0_xml(file_base, zl(1:nl, 1:nsite), &
+                         & rismt%mp_site%nsite, rismt%mp_site%isite_start, rismt%mp_site%isite_end, &
+                         & rismt%lfft, ionode, &
+                         & rismt%mp_site%intra_sitg_comm, rismt%mp_site%inter_sitg_comm)
+    !
+  END SUBROUTINE read_lauegxy0_x
   !
 END MODULE io_rism_xml
