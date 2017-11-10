@@ -98,6 +98,7 @@ MODULE rism
     REAL(DP),    POINTER :: hg  (:,:)    ! total correlations in G-space
     COMPLEX(DP), POINTER :: hgz (:,:)    ! total correlations in G-space or Laue-rep. (complex)
     COMPLEX(DP), POINTER :: hsgz(:,:)    ! short-range total correlations in Laue-rep. (w/ dipole parts) (complex)
+    REAL(DP),    POINTER :: hsg0(:,:)    ! short-range total correlations when Gxy = 0 (Laue-RISM)
     COMPLEX(DP), POINTER :: hlgz(:,:)    ! long-range total correlations in Laue-rep. (complex)
     REAL(DP),    POINTER :: hdzi(:,:,:)  ! dipole-parts of total correlations in Laue-rep. (integrated intermediate)
     REAL(DP),    POINTER :: hdzs(:,:)    ! dipole-parts of total correlations in Laue-rep. (along short Z-stick)
@@ -563,6 +564,7 @@ CONTAINS
       END IF
       IF ((nrzl * nsite) > 0) THEN
         ALLOCATE(rismt%csg0(nrzl, nsite))
+        ALLOCATE(rismt%hsg0(nrzl, nsite))
         ALLOCATE(rismt%hdzl(nrzl, nsite))
       END IF
     END IF
@@ -838,6 +840,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%hg ))       DEALLOCATE(rismt%hg)
     IF (ASSOCIATED(rismt%hgz ))      DEALLOCATE(rismt%hgz)
     IF (ASSOCIATED(rismt%hsgz))      DEALLOCATE(rismt%hsgz)
+    IF (ASSOCIATED(rismt%hsg0))      DEALLOCATE(rismt%hsg0)
     IF (ASSOCIATED(rismt%hlgz))      DEALLOCATE(rismt%hlgz)
     IF (ASSOCIATED(rismt%hdzi))      DEALLOCATE(rismt%hdzi)
     IF (ASSOCIATED(rismt%hdzs))      DEALLOCATE(rismt%hdzs)
@@ -884,6 +887,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%hg ))      rismt%hg       = R_ZERO
     IF (ASSOCIATED(rismt%hgz ))     rismt%hgz      = C_ZERO
     IF (ASSOCIATED(rismt%hsgz))     rismt%hsgz     = C_ZERO
+    IF (ASSOCIATED(rismt%hsg0))     rismt%hsg0     = R_ZERO
     IF (ASSOCIATED(rismt%hlgz))     rismt%hlgz     = C_ZERO
     IF (ASSOCIATED(rismt%hdzs))     rismt%hdzs     = R_ZERO
     IF (ASSOCIATED(rismt%hdzl))     rismt%hdzl     = R_ZERO
