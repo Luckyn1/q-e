@@ -16,7 +16,11 @@ MODULE lauefft
   ! ... in Laue-rep., X and Y are in G-space, and Z is in R-space.
   ! ... the unit cell(-z0<z<z0) is expanded along Z, as
   !
-  !           zleft     -z0                              z0         zright
+  !                                   izleft_end0
+  !                                   |
+  !                  izleft_start0    |    izright_start0    izright_end0
+  !                  |                |    |                 |
+  !           zleft  v  -z0           v    v             z0  v      zright
   !     ------|----------|-------------------------------|----------|--------> z
   !                      ^  ^   ^  ^           ^  ^   ^  ^
   !                      |  |   |  |           |  |   |  |
@@ -50,52 +54,56 @@ MODULE lauefft
     TYPE(fft_type_descriptor), POINTER :: dfft
     !
     ! ... properties about Z-stick (R-space, corresponding to expanded cell)
-    INTEGER           :: nrz            ! 1D-FFT dimension
-    INTEGER           :: nrzx           ! 1D-FFT grid leading dimension
-    LOGICAL           :: xright         ! expand cell for right(z>z0), or not.
-    LOGICAL           :: xleft          ! expand cell for left(z<-z0), or not.
-    REAL(DP)          :: zstep          ! R-space step of grid (in alat units)
-    REAL(DP)          :: zoffset        ! R-space offset of grid (in alat units)
-    REAL(DP)          :: zright         ! cell is expanded to zright(>z0) (in alat units)
-    REAL(DP)          :: zleft          ! cell is expanded to zleft(<-z0) (in alat units)
-    INTEGER           :: izcell_start   ! starting index of unit cell.
-    INTEGER           :: izcell_end     ! ending index of unit cell.
-    INTEGER           :: izright_start  ! starting index of integral region for right.
-    INTEGER           :: izright_end    ! ending index of integral region for right.
-    INTEGER           :: izright_gedge  ! in [izright_start, izright_gedge], g(z) = 0.
-    INTEGER           :: izleft_start   ! starting index of integral region for left.
-    INTEGER           :: izleft_end     ! ending index of integral region for left.
-    INTEGER           :: izleft_gedge   ! in [izleft_gedge, izleft_end], g(z) = 0.
+    INTEGER           :: nrz             ! 1D-FFT dimension
+    INTEGER           :: nrzx            ! 1D-FFT grid leading dimension
+    LOGICAL           :: xright          ! expand cell for right(z>z0), or not.
+    LOGICAL           :: xleft           ! expand cell for left(z<-z0), or not.
+    REAL(DP)          :: zstep           ! R-space step of grid (in alat units)
+    REAL(DP)          :: zoffset         ! R-space offset of grid (in alat units)
+    REAL(DP)          :: zright          ! cell is expanded to zright(>z0) (in alat units)
+    REAL(DP)          :: zleft           ! cell is expanded to zleft(<-z0) (in alat units)
+    INTEGER           :: izcell_start    ! starting index of unit cell.
+    INTEGER           :: izcell_end      ! ending index of unit cell.
+    INTEGER           :: izright_start   ! starting index of integral region for right.
+    INTEGER           :: izright_end     ! ending index of integral region for right.
+    INTEGER           :: izright_start0  ! starting index of integral region for right. (for Gxy = 0)
+    INTEGER           :: izright_end0    ! ending index of integral region for right. (for Gxy = 0)
+    INTEGER           :: izright_gedge   ! in [izright_start, izright_gedge], g(z) = 0.
+    INTEGER           :: izleft_start    ! starting index of integral region for left.
+    INTEGER           :: izleft_end      ! ending index of integral region for left.
+    INTEGER           :: izleft_start0   ! starting index of integral region for left. (for Gxy = 0)
+    INTEGER           :: izleft_end0     ! ending index of integral region for left. (for Gxy = 0)
+    INTEGER           :: izleft_gedge    ! in [izleft_gedge, izleft_end], g(z) = 0.
     !
     ! ... properties about Z-stick (G-space, corresponding to unit cell)
-    INTEGER           :: ngz            ! number of Gz-vectors
-    INTEGER           :: gzzero         ! index, where Gz = 0
-    INTEGER,  POINTER :: nlz(:)         ! 1D-FFT index for Gz-vectors
-    REAL(DP), POINTER :: gz(:)          ! Gz-vectors (in units of tpiba=(2pi/a))
-    INTEGER,  POINTER :: millz(:)       ! miller index
-    INTEGER,  POINTER :: igtoigz(:,:)   ! index of G to index of Gz
+    INTEGER           :: ngz             ! number of Gz-vectors
+    INTEGER           :: gzzero          ! index, where Gz = 0
+    INTEGER,  POINTER :: nlz(:)          ! 1D-FFT index for Gz-vectors
+    REAL(DP), POINTER :: gz(:)           ! Gz-vectors (in units of tpiba=(2pi/a))
+    INTEGER,  POINTER :: millz(:)        ! miller index
+    INTEGER,  POINTER :: igtoigz(:,:)    ! index of G to index of Gz
     !
     ! ... properties about Z-stick (G-space, corresponding to expanded cell)
-    INTEGER           :: ngz_x          ! number of Gz-vectors
-    INTEGER           :: gzzero_x       ! index, where Gz = 0
-    INTEGER,  POINTER :: nlz_x(:)       ! 1D-FFT index for Gz-vectors
-    REAL(DP), POINTER :: gz_x(:)        ! Gz-vectors (in units of tpiba=(2pi/a))
-    INTEGER,  POINTER :: millz_x(:)     ! miller index
+    INTEGER           :: ngz_x           ! number of Gz-vectors
+    INTEGER           :: gzzero_x        ! index, where Gz = 0
+    INTEGER,  POINTER :: nlz_x(:)        ! 1D-FFT index for Gz-vectors
+    REAL(DP), POINTER :: gz_x(:)         ! Gz-vectors (in units of tpiba=(2pi/a))
+    INTEGER,  POINTER :: millz_x(:)      ! miller index
     !
     ! ... properties about XY-plane (G-space)
-    INTEGER           :: ngxy           ! number of Gxy-vectors
-    INTEGER           :: ngxy_g         ! number of Gxy-vectors (in global)
-    INTEGER           :: nglxy          ! number of Gxy-vector shells
-    INTEGER           :: gxystart       ! index of the first Gxy-vectors
-    INTEGER,  POINTER :: nlxy(:)        ! 2D-FFT index for Gxy-vectors (0 < Gxy)
-    INTEGER,  POINTER :: nlmxy(:)       ! 2D-FFT index for Gxy-vectors (0 > Gxy)
-    REAL(DP), POINTER :: gxy(:,:)       ! Gxy-vectors (in units of tpiba=(2pi/a))
-    REAL(DP), POINTER :: gnxy(:)        ! |Gxy| (in units of tpiba=(2pi/a))
-    REAL(DP), POINTER :: ggxy(:)        ! Gxy^2 (in units of tpiba2=(2pi/a)^2)
-    INTEGER,  POINTER :: millxy(:,:)    ! miller index
-    REAL(DP), POINTER :: glxy(:)        ! Gxy^2 for each shell (in units of tpiba2=(2pi/a)^2)
-    INTEGER,  POINTER :: igtonglxy(:)   ! shell index for Gxy-vectors
-    INTEGER,  POINTER :: igtoigxy(:)    ! index of G to index of Gxy
+    INTEGER           :: ngxy            ! number of Gxy-vectors
+    INTEGER           :: ngxy_g          ! number of Gxy-vectors (in global)
+    INTEGER           :: nglxy           ! number of Gxy-vector shells
+    INTEGER           :: gxystart        ! index of the first Gxy-vectors
+    INTEGER,  POINTER :: nlxy(:)         ! 2D-FFT index for Gxy-vectors (0 < Gxy)
+    INTEGER,  POINTER :: nlmxy(:)        ! 2D-FFT index for Gxy-vectors (0 > Gxy)
+    REAL(DP), POINTER :: gxy(:,:)        ! Gxy-vectors (in units of tpiba=(2pi/a))
+    REAL(DP), POINTER :: gnxy(:)         ! |Gxy| (in units of tpiba=(2pi/a))
+    REAL(DP), POINTER :: ggxy(:)         ! Gxy^2 (in units of tpiba2=(2pi/a)^2)
+    INTEGER,  POINTER :: millxy(:,:)     ! miller index
+    REAL(DP), POINTER :: glxy(:)         ! Gxy^2 for each shell (in units of tpiba2=(2pi/a)^2)
+    INTEGER,  POINTER :: igtonglxy(:)    ! shell index for Gxy-vectors
+    INTEGER,  POINTER :: igtoigxy(:)     ! index of G to index of Gxy
     !
   END TYPE lauefft_type
   !
@@ -105,6 +113,7 @@ MODULE lauefft
   PUBLIC :: deallocate_lauefft
   PUBLIC :: set_lauefft_offset
   PUBLIC :: set_lauefft_barrier
+  PUBLIC :: set_lauefft_gxy0domain
   PUBLIC :: fw_lauefft_1z
   PUBLIC :: inv_lauefft_1z
   PUBLIC :: fw_lauefft_1z_exp
@@ -175,22 +184,26 @@ CONTAINS
     END IF
     !
     ! ... clear properties about Z-stick (R-space)
-    lauefft0%nrz           = 0
-    lauefft0%nrzx          = 0
-    lauefft0%xright        = .FALSE.
-    lauefft0%xleft         = .FALSE.
-    lauefft0%zstep         = 0.0_DP
-    lauefft0%zoffset       = 0.0_DP
-    lauefft0%zright        = 0.0_DP
-    lauefft0%zleft         = 0.0_DP
-    lauefft0%izcell_start  = 0
-    lauefft0%izcell_end    = 0
-    lauefft0%izright_start = 0
-    lauefft0%izright_end   = 0
-    lauefft0%izright_gedge = 0
-    lauefft0%izleft_start  = 0
-    lauefft0%izleft_end    = 0
-    lauefft0%izleft_gedge  = 0
+    lauefft0%nrz            = 0
+    lauefft0%nrzx           = 0
+    lauefft0%xright         = .FALSE.
+    lauefft0%xleft          = .FALSE.
+    lauefft0%zstep          = 0.0_DP
+    lauefft0%zoffset        = 0.0_DP
+    lauefft0%zright         = 0.0_DP
+    lauefft0%zleft          = 0.0_DP
+    lauefft0%izcell_start   = 0
+    lauefft0%izcell_end     = 0
+    lauefft0%izright_start  = 0
+    lauefft0%izright_end    = 0
+    lauefft0%izright_start0 = 0
+    lauefft0%izright_end0   = 0
+    lauefft0%izright_gedge  = 0
+    lauefft0%izleft_start   = 0
+    lauefft0%izleft_end     = 0
+    lauefft0%izleft_start0  = 0
+    lauefft0%izleft_end0    = 0
+    lauefft0%izleft_gedge   = 0
     !
     ! ... clear properties about Z-stick (G-space of unit cell)
     lauefft0%ngz    = 0
@@ -263,6 +276,30 @@ CONTAINS
     CALL set_lauefft_barrier_x(lauefft0, wright, wleft)
     !
   END SUBROUTINE set_lauefft_barrier
+  !
+  !--------------------------------------------------------------------------
+  SUBROUTINE set_lauefft_gxy0domain(lauefft0, wright1, wright2, wleft1, wleft2)
+    !--------------------------------------------------------------------------
+    !
+    ! ... set additional domain of cs(z) = 0, for Gxy = 0 .
+    ! ...
+    ! ... Variables:
+    ! ...   wright1: offset of solute-side on right-hand side (in alat units)
+    ! ...   wright2: offset of solvent-side on right-hand side (in alat units)
+    ! ...   wleft1:  offset of solute-side on left-hand side (in alat units)
+    ! ...   wleft2:  offset of solvent-side on left-hand side (in alat units)
+    !
+    IMPLICIT NONE
+    !
+    TYPE(lauefft_type), INTENT(INOUT) :: lauefft0
+    REAL(DP),           INTENT(IN)    :: wright1
+    REAL(DP),           INTENT(IN)    :: wright2
+    REAL(DP),           INTENT(IN)    :: wleft1
+    REAL(DP),           INTENT(IN)    :: wleft2
+    !
+    CALL set_lauefft_gxy0domain_x(lauefft0, wright1, wright2, wleft1, wleft2)
+    !
+  END SUBROUTINE set_lauefft_gxy0domain
   !
   !--------------------------------------------------------------------------
   SUBROUTINE fw_lauefft_1z(lauefft0, cl, nrz, irz_start, cg)
