@@ -263,8 +263,8 @@ SUBROUTINE solvation_esm_potential(rismt, iref, vref, ierr)
 !$omp parallel do default(shared) private(igz, gz) reduction(+:realr, reall, imager, imagel)
     DO igz = (rismt%lfft%gzzero_x + 1), rismt%lfft%ngz_x
       gz = rismt%lfft%gz_x(igz)
-      realr  = realr  + REAL( rhogz(igz) * expigzr(igz)) / gz / gz
-      reall  = reall  + REAL( rhogz(igz) * expigzl(igz)) / gz / gz
+      realr  = realr  + DBLE( rhogz(igz) * expigzr(igz)) / gz / gz
+      reall  = reall  + DBLE( rhogz(igz) * expigzl(igz)) / gz / gz
       imager = imager + AIMAG(rhogz(igz) * expigzr(igz)) / gz
       imagel = imagel + AIMAG(rhogz(igz) * expigzl(igz)) / gz
     END DO
