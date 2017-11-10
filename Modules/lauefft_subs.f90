@@ -865,6 +865,6 @@ SUBROUTINE gxyshells(lauefft0, vc)
     IF (igl /= lauefft0%nglxy) THEN
       CALL errore(' gxyshells ', ' igl <> ngl ', lauefft0%nglxy)
     END IF
- END IF
- !
+  END IF
+  !
 END SUBROUTINE gxyshells
