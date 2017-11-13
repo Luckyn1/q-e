@@ -49,9 +49,13 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   INTEGER                  :: nzright
   INTEGER                  :: izright_sta
   INTEGER                  :: izright_end
+  INTEGER                  :: izright_sta0
+  INTEGER                  :: izright_end0
   INTEGER                  :: nzleft
   INTEGER                  :: izleft_sta
   INTEGER                  :: izleft_end
+  INTEGER                  :: izleft_sta0
+  INTEGER                  :: izleft_end0
   REAL(DP),    ALLOCATABLE :: xgt(:)
   REAL(DP),    ALLOCATABLE :: ygt(:)
   COMPLEX(DP)              :: zstep
@@ -103,16 +107,23 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   zstep = CMPLX(alat * rismt%lfft%zstep, 0.0_DP, kind=DP)
   !
   ! ... set integral regions as index of short Z-stick (i.e. unit cell)
-  izright_sta = rismt%lfft%izright_start - rismt%lfft%izcell_start + 1
-  izright_end = rismt%lfft%izright_end   - rismt%lfft%izcell_start + 1
-  izleft_sta  = rismt%lfft%izleft_start  - rismt%lfft%izcell_start + 1
-  izleft_end  = rismt%lfft%izleft_end    - rismt%lfft%izcell_start + 1
+  izright_sta  = rismt%lfft%izright_start  - rismt%lfft%izcell_start + 1
+  izright_end  = rismt%lfft%izright_end    - rismt%lfft%izcell_start + 1
+  izright_sta0 = rismt%lfft%izright_start0 - rismt%lfft%izcell_start + 1
+  izright_end0 = rismt%lfft%izright_end0   - rismt%lfft%izcell_start + 1
+  izleft_sta   = rismt%lfft%izleft_start   - rismt%lfft%izcell_start + 1
+  izleft_end   = rismt%lfft%izleft_end     - rismt%lfft%izcell_start + 1
+  izleft_sta0  = rismt%lfft%izleft_start0  - rismt%lfft%izcell_start + 1
+  izleft_end0  = rismt%lfft%izleft_end0    - rismt%lfft%izcell_start + 1
   !
   ! ... count integral points along Z
   nzright = MAX(izright_end - izright_sta + 1, 0)
   nzleft  = MAX(izleft_end  - izleft_sta  + 1, 0)
   nzint   = nzright + nzleft
   !
+  ! ...
+  ! ... Laue-RISM equation of short-range (Gxy /= 0)
+  ! ...
   ! ... allocate working memory
   IF (rismt%nrzl > 0) THEN
     ALLOCATE(xgt(rismt%nrzl))
@@ -128,7 +139,6 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
     ALLOCATE(hs1(nzint, rismt%lfft%ngxy))
   END IF
   !
-  ! ... Laue-RISM equation of short-range
   DO iq1 = 1, nq
     ! ... properties of site1
     IF (rismt%mp_site%isite_start <= iq1 .AND. iq1 <= rismt%mp_site%isite_end) THEN
@@ -148,7 +158,8 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
       ! ... solve Laue-RISM equation for each igxy
       iglxy_old = -1
       !
-      DO igxy = 1, rismt%lfft%ngxy
+      ! ... loop for Gxy /= 0
+      DO igxy = rismt%lfft%gxystart, rismt%lfft%ngxy
         jgxy  = rismt%nrzs * (igxy - 1)
         iglxy = rismt%lfft%igtonglxy(igxy)
         jglxy = rismt%nrzl * (iglxy - 1)
@@ -292,7 +303,8 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
         rismt%hgz(1:rismt%cfft%dfftt%nr3, iiq1) = C_MONE
       END IF
       !
-      DO igxy = 1, rismt%lfft%ngxy
+      ! ... loop for Gxy /= 0
+      DO igxy = rismt%lfft%gxystart, rismt%lfft%ngxy
         jgxy  = rismt%nrzs * (igxy - 1)
         !
 !$omp parallel do default(shared) private(iz1, izint1)
@@ -313,10 +325,34 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
     !
   END DO
   !
+  ! ... deallocate working memory
+  IF (rismt%nrzl > 0) THEN
+    DEALLOCATE(xgt)
+  END IF
+  IF (lboth .AND. rismt%nrzl > 0) THEN
+    DEALLOCATE(ygt)
+  END IF
+  IF (nzint > 0) THEN
+    DEALLOCATE(x21)
+    DEALLOCATE(cs2)
+  END IF
+  IF (nzint * rismt%lfft%ngxy > 0) THEN
+    DEALLOCATE(hs1)
+  END IF
+  !
+  ! ...
+  ! ... Laue-RISM equation of short-range (Gxy = 0)
+  ! ...
+  CALL eqn_lauegxy0(rismt, lboth, .FALSE., ierr)
+  !
+  ! ...
   ! ... add long-range correlation
+  ! ...
   DO iq1 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
     iiq1 = iq1 - rismt%mp_site%isite_start + 1
-    DO igxy = 1, rismt%lfft%ngxy
+    !
+    ! ... loop for Gxy /= 0
+    DO igxy = rismt%lfft%gxystart, rismt%lfft%ngxy
       jgxy = rismt%nrzs * (igxy - 1)
       kgxy = rismt%nrzl * (igxy - 1)
       !
@@ -334,37 +370,42 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
       END DO
 !$omp end parallel do
     END DO
+    !
+    ! ... the case of Gxy = 0
+    IF (rismt%lfft%gxystart > 1) THEN
+!$omp parallel do default(shared) private(iz1, iiz1)
+      DO iz1 = izleft_sta0, izleft_end0
+        iiz1 = iz1 + rismt%lfft%izcell_start - 1
+        rismt%hgz(iz1, iiq1) = rismt%hgz(iz1, iiq1) + rismt%hlgz(iiz1, iiq1)
+      END DO
+!$omp end parallel do
+      !
+!$omp parallel do default(shared) private(iz1, iiz1)
+      DO iz1 = izright_sta0, izright_end0
+        iiz1 = iz1 + rismt%lfft%izcell_start - 1
+        rismt%hgz(iz1, iiq1) = rismt%hgz(iz1, iiq1) + rismt%hlgz(iiz1, iiq1)
+      END DO
+!$omp end parallel do
+    END IF
   END DO
   !
+  ! ...
   ! ... add dipole part of Laue-RISM
+  ! ...
   CALL eqn_lauedipole(rismt, .FALSE., .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
-    GOTO 1
+    RETURN
   END IF
   !
+  ! ...
   ! ... add contribution from void-region
+  ! ...
   CALL eqn_lauevoid(rismt, .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
-    GOTO 1
+    RETURN
   END IF
   !
   ! ... normally done
   ierr = IERR_RISM_NULL
-  !
-  ! ... deallocate working memory
-1 CONTINUE
-  IF (rismt%nrzl > 0) THEN
-    DEALLOCATE(xgt)
-  END IF
-  IF (lboth .AND. rismt%nrzl > 0) THEN
-    DEALLOCATE(ygt)
-  END IF
-  IF (nzint > 0) THEN
-    DEALLOCATE(x21)
-    DEALLOCATE(cs2)
-  END IF
-  IF (nzint * rismt%lfft%ngxy > 0) THEN
-    DEALLOCATE(hs1)
-  END IF
   !
 END SUBROUTINE eqn_lauerism
