@@ -497,7 +497,6 @@ CONTAINS
   !
   SUBROUTINE barrier_gr()
     IMPLICIT NONE
-    !
     INTEGER  :: ir
     INTEGER  :: idx
     INTEGER  :: idx0
@@ -601,7 +600,6 @@ CONTAINS
   !
   SUBROUTINE modify_edge_dcsr()
     IMPLICIT NONE
-    !
     INTEGER  :: ir
     INTEGER  :: idx
     INTEGER  :: idx0
