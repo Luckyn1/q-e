@@ -135,11 +135,11 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   ! ... set domain of z1 as index of long Z-stick (i.e. expanded cell)
   IF (rismt%lfft%xright) THEN
     IF (expand .OR. prepare) THEN
-      izsta1 = rismt%lfft%izright_start
+      izsta1 = rismt%lfft%izright_start0
       izend1 = rismt%lfft%nrz
     ELSE
-      izsta1 = rismt%lfft%izright_start
-      izend1 = rismt%lfft%izcell_end
+      izsta1 = rismt%lfft%izright_start0
+      izend1 = rismt%lfft%izcell_end0
     END IF
     !
     ssign = -1.0_DP
@@ -147,10 +147,10 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   ELSE !IF (rismt%lfft%xleft) THEN
     IF (expand .OR. prepare) THEN
       izsta1 = 1
-      izend1 = rismt%lfft%izleft_end
+      izend1 = rismt%lfft%izleft_end0
     ELSE
-      izsta1 = rismt%lfft%izcell_start
-      izend1 = rismt%lfft%izleft_end
+      izsta1 = rismt%lfft%izcell_start0
+      izend1 = rismt%lfft%izleft_end0
     END IF
     !
     ssign = +1.0_DP
@@ -171,12 +171,12 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     !
     ! ... set domain of z2 as index of long Z-stick (i.e. expanded cell)
     IF (rismt%lfft%xright) THEN
-      izsta2 = rismt%lfft%izright_start
-      izend2 = rismt%lfft%izright_end
+      izsta2 = rismt%lfft%izright_start0
+      izend2 = rismt%lfft%izright_end0
       !
     ELSE !IF (rismt%lfft%xleft) THEN
-      izsta2 = rismt%lfft%izleft_start
-      izend2 = rismt%lfft%izleft_end
+      izsta2 = rismt%lfft%izleft_start0
+      izend2 = rismt%lfft%izleft_end0
     END IF
     !
     ! ... count integral points along z2
