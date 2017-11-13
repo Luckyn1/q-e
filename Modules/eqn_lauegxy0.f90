@@ -8,7 +8,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------------------
-SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, ierr)
+SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, long, ierr)
   !---------------------------------------------------------------------------
   !
   ! ... solve short-range part of Laue-RISM equation at Gxy = 0, which is defined as
@@ -18,6 +18,7 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, ierr)
   ! ...               /-inf
   ! ...
   ! ... total correlations are calculated around the unit cell or the expanded cell.
+  ! ... optionally, long-range part can be added.
   ! ...
   !
   USE cell_base, ONLY : alat
@@ -32,6 +33,7 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, ierr)
   TYPE(rism_type), INTENT(INOUT) :: rismt
   LOGICAL,         INTENT(IN)    :: lboth  ! both-hands calculation, or not
   LOGICAL,         INTENT(IN)    :: expand ! expand-cell(.TRUE.) or unit-cell(.FALSE.)
+  LOGICAL,         INTENT(IN)    :: long   ! add long-range part, or not
   INTEGER,         INTENT(OUT)   :: ierr
   !
   INTEGER               :: nq
@@ -89,10 +91,10 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, ierr)
   !
   ! ... set integral regions as index of long Z-stick (i.e. expanded cell)
   IF (expand) THEN
-    izright1_sta = rismt%lfft%izright_start
+    izright1_sta = rismt%lfft%izright_gedge
     izright1_end = rismt%lfft%nrz
     izleft1_sta  = 1
-    izleft1_end  = rismt%lfft%izleft_end
+    izleft1_end  = rismt%lfft%izleft_gedge
   ELSE
     izright1_sta = rismt%lfft%izright_start0
     izright1_end = rismt%lfft%izright_end0
@@ -229,19 +231,36 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, ierr)
         ! ... copy hs1 -> hsgz (expand-cell)
         rismt%hsgz(1:rismt%lfft%nrz, iiq1) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
         !
+        IF (long) THEN
 !$omp parallel do default(shared) private(iz1, izint1)
-        DO iz1 = izleft1_sta, izleft1_end
-          izint1 = iz1 - izleft1_sta + 1
-          rismt%hsgz(iz1, iiq1) = CMPLX(hs1(izint1), 0.0_DP, kind=DP)
-        END DO
+          DO iz1 = izleft1_sta, izleft1_end
+            izint1 = iz1 - izleft1_sta + 1
+            rismt%hsgz(iz1, iiq1) = rismt%hlgz(iz1, iiq1) + CMPLX(hs1(izint1), 0.0_DP, kind=DP)
+          END DO
 !$omp end parallel do
-        !
+          !
 !$omp parallel do default(shared) private(iz1, izint1)
-        DO iz1 = izright1_sta, izright1_end
-          izint1 = nzleft1 + iz1 - izright1_sta + 1
-          rismt%hsgz(iz1, iiq1) = CMPLX(hs1(izint1), 0.0_DP, kind=DP)
-        END DO
+          DO iz1 = izright1_sta, izright1_end
+            izint1 = nzleft1 + iz1 - izright1_sta + 1
+            rismt%hsgz(iz1, iiq1) = rismt%hlgz(iz1, iiq1) + CMPLX(hs1(izint1), 0.0_DP, kind=DP)
+          END DO
 !$omp end parallel do
+          !
+        ELSE
+!$omp parallel do default(shared) private(iz1, izint1)
+          DO iz1 = izleft1_sta, izleft1_end
+            izint1 = iz1 - izleft1_sta + 1
+            rismt%hsgz(iz1, iiq1) = CMPLX(hs1(izint1), 0.0_DP, kind=DP)
+          END DO
+!$omp end parallel do
+          !
+!$omp parallel do default(shared) private(iz1, izint1)
+          DO iz1 = izright1_sta, izright1_end
+            izint1 = nzleft1 + iz1 - izright1_sta + 1
+            rismt%hsgz(iz1, iiq1) = CMPLX(hs1(izint1), 0.0_DP, kind=DP)
+          END DO
+!$omp end parallel do
+        END IF
         !
       ELSE
         ! ... copy hs1 -> hsg0 (unit-cell)
@@ -257,19 +276,36 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, ierr)
           rismt%hsg0(iz1, iiq1) = 0.0_DP
         END DO
         !
+        IF (long) THEN
 !$omp parallel do default(shared) private(iz1, izint1)
-        DO iz1 = izleft1_sta, izleft1_end
-          izint1 = iz1 - izleft1_sta + 1
-          rismt%hsg0(iz1, iiq1) = hs1(izint1)
-        END DO
+          DO iz1 = izleft1_sta, izleft1_end
+            izint1 = iz1 - izleft1_sta + 1
+            rismt%hsg0(iz1, iiq1) = DBLE(rismt%hlgz(iz1, iiq1)) + hs1(izint1)
+          END DO
 !$omp end parallel do
-        !
+          !
 !$omp parallel do default(shared) private(iz1, izint1)
-        DO iz1 = izright1_sta, izright1_end
-          izint1 = nzleft1 + iz1 - izright1_sta + 1
-          rismt%hsg0(iz1, iiq1) = hs1(izint1)
-        END DO
+          DO iz1 = izright1_sta, izright1_end
+            izint1 = nzleft1 + iz1 - izright1_sta + 1
+            rismt%hsg0(iz1, iiq1) = DBLE(rismt%hlgz(iz1, iiq1)) + hs1(izint1)
+          END DO
 !$omp end parallel do
+          !
+        ELSE
+!$omp parallel do default(shared) private(iz1, izint1)
+          DO iz1 = izleft1_sta, izleft1_end
+            izint1 = iz1 - izleft1_sta + 1
+            rismt%hsg0(iz1, iiq1) = hs1(izint1)
+          END DO
+!$omp end parallel do
+          !
+!$omp parallel do default(shared) private(iz1, izint1)
+          DO iz1 = izright1_sta, izright1_end
+            izint1 = nzleft1 + iz1 - izright1_sta + 1
+            rismt%hsg0(iz1, iiq1) = hs1(izint1)
+          END DO
+!$omp end parallel do
+        END IF
         !
       END IF
       !

@@ -46,7 +46,6 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
   INTEGER               :: izint
   INTEGER               :: izdelt
   INTEGER               :: iz
-  INTEGER               :: iiz
   INTEGER               :: izsta
   INTEGER               :: izend
   INTEGER               :: izsolv
@@ -101,15 +100,15 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
   ! ... set integral regions as index of long Z-stick (i.e. expanded cell)
   IF (rismt%lfft%xright) THEN
     IF (expand) THEN
-      izsta = rismt%lfft%izright_start0
+      izsta = rismt%lfft%izright_gedge
       izend = rismt%lfft%nrz
     ELSE
       izsta = rismt%lfft%izright_start0
       izend = rismt%lfft%izcell_end0
     END IF
     !
-    izsolv = izsta
-    izvoid = izsta - 1
+    izsolv = rismt%lfft%izright_start0
+    izvoid = izsolv - 1
     !
     IF (rismt%lfft%gxystart > 1) THEN
       voppo = DBLE(rismt%vleft(1)) / alat
@@ -122,14 +121,14 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
   ELSE !IF (rismt%lfft%xleft) THEN
     IF (expand) THEN
       izsta = 1
-      izend = rismt%lfft%izleft_end0
+      izend = rismt%lfft%izleft_gedge
     ELSE
       izsta = rismt%lfft%izcell_start0
       izend = rismt%lfft%izleft_end0
     END IF
     !
-    izsolv = izend
-    izvoid = izend + 1
+    izsolv = rismt%lfft%izleft_end0
+    izvoid = izsolv + 1
     !
     IF (rismt%lfft%gxystart > 1) THEN
       voppo = DBLE(rismt%vright(1)) / alat
@@ -166,9 +165,8 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
     qv2    = solVs(isolV2)%charge(iatom2)
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      iiz = izsolv - rismt%lfft%izcell_start + 1
-      c2(iiq2) = DBLE(rismt%csgz(iiz, iiq2)) &
-             & + rismt%cda(iiq2) * rismt%cdzs(iiz) &
+      c2(iiq2) = rismt%csg0(izsolv, iiq2) &
+             & + rismt%cda(iiq2) * rismt%cdz(izsolv) &
              & - beta * qv2 * DBLE(rismt%vlgz(izsolv))
       d2(iiq2) = -beta * qv2 * voppo
     ELSE
@@ -198,43 +196,42 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
       iiq2 = iq2 - rismt%mp_site%isite_start + 1
       !
       ! ... h1(z1)
-      IF (rismt%lfft%gxystart > 1) THEN
 !$omp parallel do default(shared) private(iz, izint, izdelt, z, cz, dz)
-        DO iz = izsta, izend
-          izint  = iz - izsta + 1
-          izdelt = ABS(iz - izvoid) + 1
-          z  = zoffs + zstep * DBLE(iz - 1)
-          cz = c2(iiq2) + d2(iiq2) * (z - zedge)
-          dz = d2(iiq2) * vsign
-          h1(izint) = h1(izint) &
-          & + cz * rismt%xgs0(izdelt, iiq2, iq1) &
-          & + dz * rismt%xgs1(izdelt, iiq2, iq1)
-        END DO
+      DO iz = izsta, izend
+        izint  = iz - izsta + 1
+        izdelt = ABS(iz - izvoid) + 1
+        z  = zoffs + zstep * DBLE(iz - 1)
+        cz = c2(iiq2) + d2(iiq2) * (z - zedge)
+        dz = d2(iiq2) * vsign
+        h1(izint) = h1(izint) &
+        & + cz * rismt%xgs0(izdelt, iiq2, iq1) &
+        & + dz * rismt%xgs1(izdelt, iiq2, iq1)
+      END DO
 !$omp end parallel do
-      END IF
     END DO
     !
     IF (nzint > 0) THEN
       CALL mp_sum(h1, rismt%mp_site%inter_sitg_comm)
     END IF
     !
-    IF (iiq1 > 0 .AND. rismt%lfft%gxystart > 1) THEN
+    IF (iiq1 > 0) THEN
       IF (expand) THEN
         ! ... add h1 -> hsgz
+        IF (rismt%lfft%gxystart > 1) THEN
 !$omp parallel do default(shared) private(iz, izint)
-        DO iz = izsta, izend
-          izint = iz - izsta + 1
-          rismt%hsgz(iz, iiq1) = rismt%hsgz(iz, iiq1) + CMPLX(h1(izint), 0.0_DP, kind=DP)
-        END DO
+          DO iz = izsta, izend
+            izint = iz - izsta + 1
+            rismt%hsgz(iz, iiq1) = rismt%hsgz(iz, iiq1) + CMPLX(h1(izint), 0.0_DP, kind=DP)
+          END DO
 !$omp end parallel do
+        END IF
         !
       ELSE
         ! ... add h1 -> hgz
-!$omp parallel do default(shared) private(iz, iiz, izint)
+!$omp parallel do default(shared) private(iz, izint)
         DO iz = izsta, izend
-          iiz   = iz - rismt%lfft%izcell_start + 1
           izint = iz - izsta + 1
-          rismt%hgz(iiz, iiq1) = rismt%hgz(iiz, iiq1) + CMPLX(h1(izint), 0.0_DP, kind=DP)
+          rismt%hsg0(iz, iiq1) = rismt%hsg0(iz, iiq1) + h1(izint)
         END DO
 !$omp end parallel do
       END IF

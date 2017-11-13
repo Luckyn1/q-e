@@ -60,7 +60,7 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
     RETURN
   END IF
   !
-  IF (rismt%nrzs < rismt%cfft%dfftt%nr3) THEN
+  IF (rismt%nrzl < rismt%lfft%nrz) THEN
     ierr = IERR_RISM_INCORRECT_DATA_TYPE
     RETURN
   END IF
@@ -269,7 +269,7 @@ CONTAINS
     INTEGER :: i3min
     INTEGER :: i3max
     INTEGER :: i1, i2, i3
-    INTEGER :: iz, iiz
+    INTEGER :: iz
     INTEGER :: isite
     !
     IF (rismt%nsite < 1) THEN
@@ -282,7 +282,7 @@ CONTAINS
     i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
     i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
     !
-!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz, iiz, isite)
+!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz, isite)
     DO ir = 1, rismt%cfft%dfftt%nnr
       !
       idx = idx0 + ir - 1
@@ -308,8 +308,7 @@ CONTAINS
       ELSE
         iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
       END IF
-      iiz = iz + 1
-      iz  = iz + rismt%lfft%izcell_start
+      iz = iz + rismt%lfft%izcell_start + 1
       !
       IF (iz > rismt%lfft%izright_end .OR. iz < rismt%lfft%izleft_start) THEN
         CYCLE
@@ -320,12 +319,12 @@ CONTAINS
       !
       IF (modify_csr) THEN
         DO isite = 1, rismt%nsite
-          rismt%csr(ir, isite) = rismt%csr(ir, isite) - cd0(isite) * rismt%cdzs(iiz)
+          rismt%csr(ir, isite) = rismt%csr(ir, isite) - cd0(isite) * rismt%cdz(iz)
         END DO
       END IF
       !
       DO isite = 1, rismt%nsite
-        rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cda(isite) * rismt%cdzs(iiz)
+        rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cda(isite) * rismt%cdz(iz)
       END DO
       !
     END DO

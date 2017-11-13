@@ -341,15 +341,7 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   END IF
   !
   ! ...
-  ! ... Laue-RISM equation of short-range (Gxy = 0)
-  ! ...
-  CALL eqn_lauegxy0(rismt, lboth, .FALSE., ierr)
-  IF (ierr /= IERR_RISM_NULL) THEN
-    RETURN
-  END IF
-  !
-  ! ...
-  ! ... add long-range correlation
+  ! ... add long-range correlation (Gxy /= 0)
   ! ...
   DO iq1 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
     iiq1 = iq1 - rismt%mp_site%isite_start + 1
@@ -374,23 +366,15 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
 !$omp end parallel do
     END DO
     !
-    ! ... the case of Gxy = 0
-    IF (rismt%lfft%gxystart > 1) THEN
-!$omp parallel do default(shared) private(iz1, iiz1)
-      DO iz1 = izleft_sta0, izleft_end0
-        iiz1 = iz1 + rismt%lfft%izcell_start - 1
-        rismt%hgz(iz1, iiq1) = rismt%hgz(iz1, iiq1) + rismt%hlgz(iiz1, iiq1)
-      END DO
-!$omp end parallel do
-      !
-!$omp parallel do default(shared) private(iz1, iiz1)
-      DO iz1 = izright_sta0, izright_end0
-        iiz1 = iz1 + rismt%lfft%izcell_start - 1
-        rismt%hgz(iz1, iiq1) = rismt%hgz(iz1, iiq1) + rismt%hlgz(iiz1, iiq1)
-      END DO
-!$omp end parallel do
-    END IF
   END DO
+  !
+  ! ...
+  ! ... Laue-RISM equation of short-range and long-range (Gxy = 0)
+  ! ...
+  CALL eqn_lauegxy0(rismt, lboth, .FALSE., .TRUE., ierr)
+  IF (ierr /= IERR_RISM_NULL) THEN
+    RETURN
+  END IF
   !
   ! ...
   ! ... add dipole part of Laue-RISM (Gxy = 0)

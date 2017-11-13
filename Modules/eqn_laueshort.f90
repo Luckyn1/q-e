@@ -34,7 +34,7 @@ SUBROUTINE eqn_laueshort(rismt, lboth, lgxy0, ierr)
   INTEGER,         INTENT(OUT)   :: ierr
   !
   ! ... Laue-RISM equation of short-range (Gxy /= 0)
-  IF (lgxy0) THEN
+  IF (.NOT. lgxy0) THEN
     CALL eqn_laueshort_x(rismt, lboth, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       RETURN
@@ -42,7 +42,7 @@ SUBROUTINE eqn_laueshort(rismt, lboth, lgxy0, ierr)
   END IF
   !
   ! ... Laue-RISM equation of short-range (Gxy = 0)
-  CALL eqn_lauegxy0(rismt, lboth, .TRUE., ierr)
+  CALL eqn_lauegxy0(rismt, lboth, .TRUE., .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
     RETURN
   END IF

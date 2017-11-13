@@ -65,7 +65,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   INTEGER               :: iq1, iq2
   INTEGER               :: iiq1, iiq2
   INTEGER               :: iz1, iz2
-  INTEGER               :: iiz1, iiz2
   INTEGER               :: izdelt
   INTEGER               :: izsta1, izsta2
   INTEGER               :: izend1, izend2
@@ -95,11 +94,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     RETURN
   END IF
   !
-  IF (rismt%nrzs < rismt%cfft%dfftt%nr3) THEN
-    ierr = IERR_RISM_INCORRECT_DATA_TYPE
-    RETURN
-  END IF
-  !
   IF (rismt%nrzl < rismt%lfft%nrz) THEN
     ierr = IERR_RISM_INCORRECT_DATA_TYPE
     RETURN
@@ -109,22 +103,11 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   IF (rismt%lfft%xright .AND. rismt%lfft%xleft) THEN
     !
     IF (prepare) THEN
-      IF (rismt%nrzs > 0) THEN
-        rismt%cdzs = 0.0_DP
+      IF (rismt%nrzl > 0) THEN
+        rismt%cdz = 0.0_DP
       END IF
       IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
-        rismt%hdzi  = 0.0_DP
-      END IF
-      !
-    ELSE
-      IF (expand) THEN
-        IF (rismt%nrzl * rismt%nsite > 0) THEN
-          rismt%hdzl = 0.0_DP
-        END IF
-      ELSE
-        IF (rismt%nrzs * rismt%nsite > 0) THEN
-          rismt%hdzs = 0.0_DP
-        END IF
+        rismt%hdz  = 0.0_DP
       END IF
     END IF
     !
@@ -134,8 +117,11 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
   !
   ! ... set domain of z1 as index of long Z-stick (i.e. expanded cell)
   IF (rismt%lfft%xright) THEN
-    IF (expand .OR. prepare) THEN
+    IF (prepare) THEN
       izsta1 = rismt%lfft%izright_start0
+      izend1 = rismt%lfft%nrz
+    ELSE IF (expand) THEN
+      izsta1 = rismt%lfft%izright_gedge
       izend1 = rismt%lfft%nrz
     ELSE
       izsta1 = rismt%lfft%izright_start0
@@ -145,9 +131,12 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     ssign = -1.0_DP
     !
   ELSE !IF (rismt%lfft%xleft) THEN
-    IF (expand .OR. prepare) THEN
+    IF (prepare) THEN
       izsta1 = 1
       izend1 = rismt%lfft%izleft_end0
+    ELSE IF (expand) THEN
+      izsta1 = 1
+      izend1 = rismt%lfft%izleft_gedge
     ELSE
       izsta1 = rismt%lfft%izcell_start0
       izend1 = rismt%lfft%izleft_end0
@@ -187,28 +176,27 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       ALLOCATE(x21(nzint2, nzint1))
     END IF
     !
-    ! ... calculate cdzs: step function of dipole part
-    IF (rismt%nrzs > 0) THEN
-      rismt%cdzs = 0.0_DP
+    ! ... calculate cdz: step function of dipole part
+    IF (rismt%nrzl > 0) THEN
+      rismt%cdz = 0.0_DP
     END IF
     !
     IF (rismt%lfft%gxystart > 1) THEN
-!$omp parallel do default(shared) private(iz2, iiz2, z)
+!$omp parallel do default(shared) private(iz2, z)
       DO iz2 = izsta2, izend2
-        iiz2 = iz2 - rismt%lfft%izcell_start + 1
         z = zoffs + zstep * DBLE(iz2 - 1)
-        CALL step_function(z, rismt%cdzs(iiz2))
+        CALL step_function(z, rismt%cdz(iz2))
       END DO
 !$omp end parallel do
     END IF
     !
-    IF (rismt%nrzs > 0) THEN
-      CALL mp_sum(rismt%cdzs, rismt%mp_site%intra_sitg_comm)
+    IF (rismt%nrzl > 0) THEN
+      CALL mp_sum(rismt%cdz, rismt%mp_site%intra_sitg_comm)
     END IF
     !
-    ! ... calculate hdzi, for all solvent-pairs
+    ! ... calculate hdz, for all solvent-pairs
     IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
-      rismt%hdzi = 0.0_DP
+      rismt%hdz = 0.0_DP
     END IF
     !
     DO iq1 = 1, nq
@@ -232,11 +220,11 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
           END DO
 !$omp end parallel do
           !
-          ! ... convolute cdzs and x21 -> hdzi
+          ! ... convolute cdz and x21 -> hdz
           IF (nzint2 * nzint1 > 0) THEN
             CALL dgemv('T', nzint2, nzint1, zstep, x21, nzint2, &
-                     & rismt%cdzs(izsta2 - rismt%lfft%izcell_start + 1), 1, 0.0_DP, &
-                     & rismt%hdzi(izsta1, iiq2, iq1), 1)
+                     & rismt%cdz(izsta2), 1, 0.0_DP, &
+                     & rismt%hdz(izsta1, iiq2, iq1), 1)
           END IF
         END IF
         !
@@ -244,7 +232,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
     END DO
     !
     IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
-      CALL mp_sum(rismt%hdzi, rismt%mp_site%intra_sitg_comm)
+      CALL mp_sum(rismt%hdz, rismt%mp_site%intra_sitg_comm)
     END IF
     !
     ! ... deallocate working memory
@@ -278,14 +266,12 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
         iiq2 = iq2 - rismt%mp_site%isite_start + 1
         !
         ! ... calculate h1(z1)
-        IF (rismt%lfft%gxystart > 1) THEN
 !$omp parallel do default(shared) private(iz1, izint1)
-          DO iz1 = izsta1, izend1
-            izint1 = iz1 - izsta1 + 1
-            h1(izint1) = h1(izint1) + rismt%cda(iiq2) * rismt%hdzi(iz1, iiq2, iq1)
-          END DO
+        DO iz1 = izsta1, izend1
+          izint1 = iz1 - izsta1 + 1
+          h1(izint1) = h1(izint1) + rismt%cda(iiq2) * rismt%hdz(iz1, iiq2, iq1)
+        END DO
 !$omp end parallel do
-        END IF
         !
       END DO
       !
@@ -295,47 +281,21 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       !
       IF (iiq1 > 0) THEN
         IF (expand) THEN
-          ! ... add h1 -> hdzl
-          IF (rismt%nrzl > 0) THEN
-            rismt%hdzl(:, iiq1) = 0.0_DP
-          END IF
-!$omp parallel do default(shared) private(iz1, izint1)
-          DO iz1 = izsta1, izend1
-            izint1 = iz1 - izsta1 + 1
-            rismt%hdzl(iz1, iiq1) = h1(izint1)
-          END DO
-!$omp end parallel do
-        ELSE
-          ! ... add h1 -> hdzs
-          IF (rismt%nrzs > 0) THEN
-            rismt%hdzs(:, iiq1) = 0.0_DP
-          END IF
-!$omp parallel do default(shared) private(iz1, iiz1, izint1)
-          DO iz1 = izsta1, izend1
-            iiz1 = iz1 - rismt%lfft%izcell_start + 1
-            izint1 = iz1 - izsta1 + 1
-            rismt%hdzs(iiz1, iiq1) = h1(izint1)
-          END DO
-!$omp end parallel do
-        END IF
-      END IF
-      !
-      IF (iiq1 > 0 .AND. rismt%lfft%gxystart > 1) THEN
-        IF (expand) THEN
           ! ... add h1 -> hsgz
+          IF (rismt%lfft%gxystart > 1) THEN
+!$omp parallel do default(shared) private(iz1, izint1)
+            DO iz1 = izsta1, izend1
+              izint1 = iz1 - izsta1 + 1
+              rismt%hsgz(iz1, iiq1) = rismt%hsgz(iz1, iiq1) + CMPLX(h1(izint1), 0.0_DP, kind=DP)
+            END DO
+!$omp end parallel do
+          END IF
+        ELSE
+          ! ... add h1 -> hsg0
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izsta1, izend1
             izint1 = iz1 - izsta1 + 1
-            rismt%hsgz(iz1, iiq1) = rismt%hsgz(iz1, iiq1) + CMPLX(h1(izint1), 0.0_DP, kind=DP)
-          END DO
-!$omp end parallel do
-        ELSE
-          ! ... add h1 -> hgz
-!$omp parallel do default(shared) private(iz1, iiz1, izint1)
-          DO iz1 = izsta1, izend1
-            iiz1 = iz1 - rismt%lfft%izcell_start + 1
-            izint1 = iz1 - izsta1 + 1
-            rismt%hgz(iiz1, iiq1) = rismt%hgz(iiz1, iiq1) + CMPLX(h1(izint1), 0.0_DP, kind=DP)
+            rismt%hsg0(iz1, iiq1) = rismt%hsg0(iz1, iiq1) + h1(izint1)
           END DO
 !$omp end parallel do
         END IF
