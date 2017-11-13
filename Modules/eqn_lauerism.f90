@@ -344,6 +344,9 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   ! ... Laue-RISM equation of short-range (Gxy = 0)
   ! ...
   CALL eqn_lauegxy0(rismt, lboth, .FALSE., ierr)
+  IF (ierr /= IERR_RISM_NULL) THEN
+    RETURN
+  END IF
   !
   ! ...
   ! ... add long-range correlation
@@ -390,7 +393,7 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   END DO
   !
   ! ...
-  ! ... add dipole part of Laue-RISM
+  ! ... add dipole part of Laue-RISM (Gxy = 0)
   ! ...
   CALL eqn_lauedipole(rismt, .FALSE., .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
@@ -398,7 +401,7 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   END IF
   !
   ! ...
-  ! ... add contribution from void-region
+  ! ... add contribution from void-region (Gxy = 0)
   ! ...
   CALL eqn_lauevoid(rismt, .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
