@@ -159,10 +159,10 @@ SUBROUTINE eqn_lauelong(rismt, lboth, ierr)
   igxy_len = igxy_end - igxy_sta + 1
   !
   ! ... set integral regions as index of long Z-stick (i.e. expanded cell)
-  izright_sta = rismt%lfft%izright_start0 !<- special buffer is added
+  izright_sta = rismt%lfft%izright_start0
   izright_end = rismt%lfft%nrz
   izleft_sta  = 1
-  izleft_end  = rismt%lfft%izleft_end0    !<- special buffer is added
+  izleft_end  = rismt%lfft%izleft_end0
   !
   ! ... integrate long-range part of Laue-RISM eq.
   CALL int_lauelong()

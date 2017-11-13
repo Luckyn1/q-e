@@ -101,11 +101,11 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
   ! ... set integral regions as index of long Z-stick (i.e. expanded cell)
   IF (rismt%lfft%xright) THEN
     IF (expand) THEN
-      izsta = rismt%lfft%izright_start
+      izsta = rismt%lfft%izright_start0
       izend = rismt%lfft%nrz
     ELSE
-      izsta = rismt%lfft%izright_start
-      izend = rismt%lfft%izcell_end
+      izsta = rismt%lfft%izright_start0
+      izend = rismt%lfft%izcell_end0
     END IF
     !
     izsolv = izsta
@@ -122,10 +122,10 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
   ELSE !IF (rismt%lfft%xleft) THEN
     IF (expand) THEN
       izsta = 1
-      izend = rismt%lfft%izleft_end
+      izend = rismt%lfft%izleft_end0
     ELSE
-      izsta = rismt%lfft%izcell_start
-      izend = rismt%lfft%izleft_end
+      izsta = rismt%lfft%izcell_start0
+      izend = rismt%lfft%izleft_end0
     END IF
     !
     izsolv = izend
