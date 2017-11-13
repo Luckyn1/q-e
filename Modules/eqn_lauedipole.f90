@@ -202,6 +202,10 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
 !$omp end parallel do
     END IF
     !
+    IF (rismt%nrzs > 0) THEN
+      CALL mp_sum(rismt%cdzs, rismt%mp_site%intra_sitg_comm)
+    END IF
+    !
     ! ... calculate hdzi, for all solvent-pairs
     IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
       rismt%hdzi = 0.0_DP
@@ -238,10 +242,6 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
         !
       END DO
     END DO
-    !
-    IF (rismt%nrzs > 0) THEN
-      CALL mp_sum(rismt%cdzs, rismt%mp_site%intra_sitg_comm)
-    END IF
     !
     IF (rismt%nrzl * rismt%nsite * rismt%mp_site%nsite > 0) THEN
       CALL mp_sum(rismt%hdzi, rismt%mp_site%intra_sitg_comm)
