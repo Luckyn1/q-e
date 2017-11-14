@@ -181,6 +181,15 @@ SUBROUTINE guess_3drism(rismt, ierr)
     END IF
   END IF
   !
+  ! ... set Gxy=0 term for Laue-RISM
+  IF (laue) THEN
+    IF (rismt%nrzl * rismt%nsite > 0) THEN
+      rismt%csg0 = 0.0_DP
+    END IF
+    !
+    CALL corrgxy0_laue(rismt, .TRUE., rismt%csr, rismt%csg0, ierr)
+  END IF
+  !
   ! ... normally done
 1 CONTINUE
   ierr = IERR_RISM_NULL
