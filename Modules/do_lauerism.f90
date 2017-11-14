@@ -54,23 +54,17 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   INTEGER                  :: iter
   INTEGER                  :: ngrid
   INTEGER                  :: nsite
-  INTEGER                  :: nr
-  INTEGER                  :: nrr
-  INTEGER                  :: nrl
-  INTEGER                  :: nrtot
   LOGICAL                  :: lconv
   REAL(DP)                 :: rmscurr
   REAL(DP)                 :: rmssave
   INTEGER                  :: rmswarn
-  REAL(DP),    ALLOCATABLE :: hr  (:,:)
-  REAL(DP),    ALLOCATABLE :: gr  (:,:)
-  REAL(DP),    ALLOCATABLE :: usr (:,:)
-  REAL(DP),    ALLOCATABLE :: csr (:,:)
   REAL(DP),    ALLOCATABLE :: dcsr(:,:)
   TYPE(mdiis_type)         :: mdiist
   ! if mdiist is an automatic variable,
   ! pointers in mdiis_type may not work well.
   SAVE                     :: mdiist
+  REAL(DP)                 :: csr_ (1, 1)
+  REAL(DP)                 :: dcsr_(1, 1)
 #if defined (__DEBUG_RISM)
   CHARACTER(LEN=5)         :: str
 #endif

@@ -24,7 +24,7 @@ SUBROUTINE closure(rismt, ierr)
   INTEGER,         INTENT(OUT)   :: ierr
   !
   INTEGER  :: iclosure
-  INTEGER  :: mr
+  INTEGER  :: mr, lr
   REAL(DP) :: beta
   !
   ! ... check data type
@@ -35,34 +35,53 @@ SUBROUTINE closure(rismt, ierr)
   !
   ! ... set variables
   iclosure = rismt%closure
-  mr = rismt%nr * rismt%nsite
   beta = 1.0_DP / K_BOLTZMANN_RY / rismt%temp
   !
-  ! ... if no data, return as normally done.
-  IF (mr < 1) THEN
-    ierr = IERR_RISM_NULL
-    RETURN
+  mr = rismt%nr * rismt%nsite
+  !
+  IF (rismt%itype == ITYPE_LAUERISM) THEN
+    lr = rismt%nrzl * rismt%nsite
   END IF
   !
   ! ... solve closure equation
   IF (iclosure == CLOSURE_HNC) THEN
     !
     IF (rismt%itype /= ITYPE_LAUERISM) THEN
-      CALL closure_HNC_x(mr, beta, &
-         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+      IF (mr > 0) THEN
+        CALL closure_HNC_x(mr, beta, &
+           & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+      END IF
+      !
     ELSE
-      CALL closure_HNC_x(mr, beta, &
-         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csdr(1, 1), rismt%gr(1, 1))
+      IF (mr > 0) THEN
+        CALL closure_HNC_x(mr, beta, &
+           & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csdr(1, 1), rismt%gr(1, 1))
+      END IF
+      !
+      IF (lr > 0) THEN
+        CALL closure_HNC_x(lr, beta, &
+           & rismt%usg0(1, 1), rismt%hg0(1, 1), rismt%csdg0(1, 1), rismt%gg0(1, 1))
+      END IF
     END IF
     !
   ELSE IF (iclosure == CLOSURE_KH) THEN
     !
     IF (rismt%itype /= ITYPE_LAUERISM) THEN
-      CALL closure_KH_x(mr, beta, &
-         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+      IF (mr > 0) THEN
+        CALL closure_KH_x(mr, beta, &
+           & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csr(1, 1), rismt%gr(1, 1))
+      END IF
+      !
     ELSE
-      CALL closure_KH_x(mr, beta, &
-         & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csdr(1, 1), rismt%gr(1, 1))
+      IF (mr > 0) THEN
+        CALL closure_KH_x(mr, beta, &
+           & rismt%usr(1, 1), rismt%hr(1, 1), rismt%csdr(1, 1), rismt%gr(1, 1))
+      END IF
+      !
+      IF (lr > 0) THEN
+        CALL closure_KH_x(lr, beta, &
+           & rismt%usg0(1, 1), rismt%hg0(1, 1), rismt%csdg0(1, 1), rismt%gg0(1, 1))
+      END IF
     END IF
     !
   ELSE
@@ -72,7 +91,7 @@ SUBROUTINE closure(rismt, ierr)
   !
   ! ... set zero, if R = 0 (for 1D-RISM)
   IF (rismt%itype == ITYPE_1DRISM) THEN
-    IF (rismt%mp_task%ivec_start == 1) THEN
+    IF (rismt%mp_task%ivec_start == 1 .AND. rismt%nsite > 0) THEN
       rismt%gr(1, :) = 0.0_DP
     END IF
   END IF
