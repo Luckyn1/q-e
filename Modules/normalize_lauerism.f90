@@ -215,7 +215,7 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
     !
   END DO
   !
-  ! ... truncate hgz, hsgz, hlgz
+  ! ... truncate hgz, hg0, hsgz, hlgz
   DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
     iiq = iq - rismt%mp_site%isite_start + 1
     !
@@ -242,20 +242,36 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
       !
     ELSE
       ! ... unit-cell
-      DO igxy = 1, rismt%lfft%ngxy
+      DO igxy = rismt%lfft%gxystart, rismt%lfft%ngxy
         jgxy = (igxy - 1) * rismt%nrzs
         !
+!$omp parallel do default(shared) private(irz, iirz)
         DO irz = rismt%lfft%izcell_start, rismt%lfft%izleft_gedge
           iirz = irz - rismt%lfft%izcell_start + 1
           rismt%hgz(iirz + jgxy, iiq) = hwei(irz, iiq) * rismt%hgz(iirz + jgxy, iiq)
         END DO
+!$omp end parallel do
         !
+!$omp parallel do default(shared) private(irz, iirz)
         DO irz = rismt%lfft%izright_gedge, rismt%lfft%izcell_end
           iirz = irz - rismt%lfft%izcell_start + 1
           rismt%hgz(iirz + jgxy, iiq) = hwei(irz, iiq) * rismt%hgz(iirz + jgxy, iiq)
         END DO
+!$omp end parallel do
         !
       END DO
+      !
+!$omp parallel do default(shared) private(irz)
+      DO irz = 1, rismt%lfft%izleft_gedge
+        rismt%hg0(irz, iiq) = hwei(irz, iiq) * rismt%hg0(irz, iiq)
+      END DO
+!$omp end parallel do
+      !
+!$omp parallel do default(shared) private(irz)
+      DO irz = rismt%lfft%izright_gedge, rismt%lfft%nrz
+        rismt%hg0(irz, iiq) = hwei(irz, iiq) * rismt%hg0(irz, iiq)
+      END DO
+!$omp end parallel do
       !
     END IF
     !
@@ -388,7 +404,7 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
     END IF
   END DO
   !
-  ! ... renormalize hgz, hsgz, hlgz
+  ! ... renormalize hg0, hsgz, hlgz
   DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
     iiq   = iq - rismt%mp_site%isite_start + 1
     iv    = iuniq_to_isite(1, iq)
@@ -426,17 +442,17 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
           !
         ELSE
           ! ... unit-cell
-          DO irz = rismt%lfft%izcell_start, rismt%lfft%izleft_gedge
-            iirz = irz - rismt%lfft%izcell_start + 1
-            rismt%hgz(iirz, iiq) = rismt%hgz(iirz, iiq) &
-                               & + CMPLX(hwei(irz, iiq) * hr0, 0.0_DP, kind=DP)
+!$omp parallel do default(shared) private(irz)
+          DO irz = 1, rismt%lfft%izleft_gedge
+            rismt%hg0(irz, iiq) = rismt%hg0(irz, iiq) + hwei(irz, iiq) * hr0
           END DO
+!$omp end parallel do
           !
-          DO irz = rismt%lfft%izright_gedge, rismt%lfft%izcell_end
-            iirz = irz - rismt%lfft%izcell_start + 1
-            rismt%hgz(iirz, iiq) = rismt%hgz(iirz, iiq) &
-                               & + CMPLX(hwei(irz, iiq) * hr0, 0.0_DP, kind=DP)
+!$omp parallel do default(shared) private(irz)
+          DO irz = rismt%lfft%izright_gedge, rismt%lfft%nrz
+            rismt%hg0(irz, iiq) = rismt%hg0(irz, iiq) + hwei(irz, iiq) * hr0
           END DO
+!$omp end parallel do
           !
         END IF
         !
@@ -489,7 +505,7 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
   !
   CALL mp_sum(vqrho, rismt%mp_site%inter_sitg_comm)
   !
-  ! ... renormalize hgz, hsgz, hlgz
+  ! ... renormalize hg0, hsgz, hlgz
   IF (rismt%lfft%gxystart > 1) THEN
     !
     IF (ABS(charge - charge0) > eps8) THEN
@@ -529,17 +545,17 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
           !
         ELSE
           ! ... unit-cell
+!$omp parallel do default(shared) private(irz)
           DO irz = rismt%lfft%izcell_start, rismt%lfft%izleft_gedge
-            iirz = irz - rismt%lfft%izcell_start + 1
-            rismt%hgz(iirz, iiq) = rismt%hgz(iirz, iiq) &
-                               & + CMPLX(hwei(irz, iiq) * hr2, 0.0_DP, kind=DP)
+            rismt%hg0(irz, iiq) = rismt%hg0(irz, iiq) + hwei(irz, iiq) * hr2
           END DO
+!$omp end parallel do
           !
+!$omp parallel do default(shared) private(irz)
           DO irz = rismt%lfft%izright_gedge, rismt%lfft%izcell_end
-            iirz = irz - rismt%lfft%izcell_start + 1
-            rismt%hgz(iirz, iiq) = rismt%hgz(iirz, iiq) &
-                               & + CMPLX(hwei(irz, iiq) * hr1, 0.0_DP, kind=DP)
+            rismt%hg0(irz, iiq) = rismt%hg0(irz, iiq) + hwei(irz, iiq) * hr1
           END DO
+!$omp end parallel do
           !
         END IF
         !

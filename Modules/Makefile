@@ -168,10 +168,11 @@ allocate_fft_3drism.o \
 chempot.o \
 chempot_lauerism.o \
 closure.o \
+corrdipole_laue.o \
 correctat0_vv.o \
+corrgxy0_laue.o \
 cryst_to_car_2d.o \
 data_structure_3drism.o \
-dipole_lauerism.o \
 do_1drism.o \
 do_3drism.o \
 do_lauerism.o \
@@ -185,6 +186,7 @@ eqn_laueshort.o \
 eqn_lauevoid.o \
 err_rism.o \
 guess_3drism.o \
+gxy0_lauerism.o \
 init_1drism.o \
 init_3drism.o \
 input_1drism.o \

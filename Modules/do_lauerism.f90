@@ -54,18 +54,23 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   INTEGER                  :: iter
   INTEGER                  :: ngrid
   INTEGER                  :: nsite
+  INTEGER                  :: nr
+  INTEGER                  :: nrr
+  INTEGER                  :: nrl
+  INTEGER                  :: nrtot
   LOGICAL                  :: lconv
   REAL(DP)                 :: rmscurr
   REAL(DP)                 :: rmssave
   INTEGER                  :: rmswarn
+  REAL(DP),    ALLOCATABLE :: hr  (:,:)
+  REAL(DP),    ALLOCATABLE :: gr  (:,:)
+  REAL(DP),    ALLOCATABLE :: usr (:,:)
+  REAL(DP),    ALLOCATABLE :: csr (:,:)
   REAL(DP),    ALLOCATABLE :: dcsr(:,:)
-  COMPLEX(DP), ALLOCATABLE :: aux(:)
   TYPE(mdiis_type)         :: mdiist
   ! if mdiist is an automatic variable,
   ! pointers in mdiis_type may not work well.
   SAVE                     :: mdiist
-  REAL(DP)                 :: csr_ (1, 1)
-  REAL(DP)                 :: dcsr_(1, 1)
 #if defined (__DEBUG_RISM)
   CHARACTER(LEN=5)         :: str
 #endif
@@ -103,15 +108,30 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     RETURN
   END IF
   !
-  ! ... allocate memory
-  IF (rismt%nr * rismt%nsite > 0) THEN
-    ALLOCATE(dcsr(rismt%nr, rismt%nsite))
-  END IF
-  IF (rismt%cfft%dfftt%nnr > 0) THEN
-    ALLOCATE(aux(rismt%cfft%dfftt%nnr))
+  ! ... set dimensions of effective R-space
+  nr = rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2 &
+   & * rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1)
+  !
+  IF (rismt%lfft%gxystart > 1) THEN
+    nrr = MAX(0, izright_end0 - izcell_end   )
+    nrl = MAX(0, izcell_start - izleft_start0)
+  ELSE
+    nrr = 0
+    nrl = 0
   END IF
   !
-  CALL allocate_mdiis(mdiist, nbox, rismt%nr * rismt%nsite, eta, MDIIS_EXT)
+  nrtot = nr + nrr + nrl
+  !
+  ! ... allocate memory
+  IF (nrtot * rismt%nsite > 0) THEN
+    ALLOCATE(hr(  nrtot, rismt%nsite))
+    ALLOCATE(gr(  nrtot, rismt%nsite))
+    ALLOCATE(usr( nrtot, rismt%nsite))
+    ALLOCATE(csr( nrtot, rismt%nsite))
+    ALLOCATE(dcsr(nrtot, rismt%nsite))
+  END IF
+  !
+  CALL allocate_mdiis(mdiist, nbox, nr * rismt%nsite, eta, MDIIS_EXT)
   !
   ! ... reset conditions
   lconv       = .FALSE.
@@ -136,7 +156,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
 #endif
   !
   ! ... Cs(r) + Cd(z) -> Csd(r)
-  CALL dipole_lauerism(rismt, .FALSE., ierr)
+  CALL corrdipole_laue(rismt, .FALSE., ierr)
   !
   ! ... Laue-RISM eq. of long-range around the expanded cell
   CALL eqn_lauelong(rismt, lboth, ierr)
@@ -186,7 +206,6 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     !
     ! ... Residual: G(r) -> dCs(r)
     CALL make_dcsr()
-    CALL modify_edge_dcsr()
     !
     ! ... clean date out of physical range
     CALL clean_out_of_range(ngrid)
@@ -262,7 +281,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     !
     ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
     ! ... also perform: Cs(r) + Cd(z) -> Csd(r)
-    CALL dipole_lauerism(rismt, .TRUE., ierr)
+    CALL corrdipole_laue(rismt, .TRUE., ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
     END IF
@@ -348,11 +367,12 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   ! ... deallocate memory
 100 CONTINUE
   !
-  IF (rismt%nr * rismt%nsite > 0) THEN
+  IF (nrtot * rismt%nsite > 0) THEN
+    DEALLOCATE(hr)
+    DEALLOCATE(gr)
+    DEALLOCATE(usr)
+    DEALLOCATE(csr)
     DEALLOCATE(dcsr)
-  END IF
-  IF (rismt%cfft%dfftt%nnr > 0) THEN
-    DEALLOCATE(aux)
   END IF
   !
   CALL deallocate_mdiis(mdiist)
@@ -597,73 +617,5 @@ CONTAINS
     END DO
     !
   END SUBROUTINE make_dcsr
-  !
-  SUBROUTINE modify_edge_dcsr()
-    IMPLICIT NONE
-    INTEGER  :: ir
-    INTEGER  :: idx
-    INTEGER  :: idx0
-    INTEGER  :: i3min
-    INTEGER  :: i3max
-    INTEGER  :: i1, i2, i3
-    INTEGER  :: iz
-    REAL(DP) :: erf0
-    !
-    REAL(DP), PARAMETER :: ERF_SCALE = 4.0_DP
-    !
-    REAL(DP), EXTERNAL :: qe_erf
-    !
-    IF (rismt%nsite < 1) THEN
-      RETURN
-    END IF
-    !
-    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
-       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
-    !
-    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
-    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
-    !
-!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz, erf0)
-    DO ir = 1, rismt%cfft%dfftt%nnr
-      !
-      idx = idx0 + ir - 1
-      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
-      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
-        CYCLE
-      END IF
-      !
-      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
-      i2  = idx / rismt%cfft%dfftt%nr1x
-      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
-        CYCLE
-      END IF
-      !
-      idx = idx - rismt%cfft%dfftt%nr1x * i2
-      i1  = idx
-      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
-        CYCLE
-      END IF
-      !
-      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
-        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
-      ELSE
-        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
-      END IF
-      iz = iz + rismt%lfft%izcell_start
-      !
-      IF (rismt%lfft%xright) THEN
-        erf0 = qe_erf(DBLE(rismt%lfft%izright_end - iz + 1) / ERF_SCALE)
-        dcsr(ir, :) = dcsr(ir, :) * (erf0 * erf0)
-      END IF
-      !
-      IF (rismt%lfft%xleft) THEN
-        erf0 = qe_erf(DBLE(iz - rismt%lfft%izleft_start + 1) / ERF_SCALE)
-        dcsr(ir, :) = dcsr(ir, :) * (erf0 * erf0)
-      END IF
-      !
-    END DO
-!$omp end parallel do
-    !
-  END SUBROUTINE modify_edge_dcsr
   !
 END SUBROUTINE do_lauerism

@@ -8,15 +8,15 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------------------
-SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
+SUBROUTINE corrdipole_laue(rismt, lextract, ierr)
   !---------------------------------------------------------------------------
   !
-  ! ... extract dipole parts of direct correlations, in Laue-RISM calculation.
+  ! ... sum (and extract) dipole parts of direct correlations, in Laue-RISM calculation.
   ! ...
   ! ... Variables:
   ! ...   lextract: if .TRUE.  extract dipole parts of direct correlations
   ! ...                        and sum Cs(r) + Cd(z),
-  ! ...             if .FALSE. not extract dipole parts of direct correlation
+  ! ...             if .FALSE. not extract dipole parts of direct correlations
   ! ...                        but sum Cs(r) + Cd(z)
   !
   USE cell_base, ONLY : alat
@@ -46,7 +46,6 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
   REAL(DP)              :: zedge
   REAL(DP)              :: vline0
   REAL(DP)              :: vline1
-  REAL(DP), ALLOCATABLE :: cs0(:)
   REAL(DP), ALLOCATABLE :: cd0(:)
   !
   ! ... check data type
@@ -100,7 +99,7 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
   !
   ! ... set some variables
   IF (rismt%lfft%xright) THEN
-    izsolv = rismt%lfft%izright_start
+    izsolv = rismt%lfft%izright_start0
     !
     IF (rismt%lfft%gxystart > 1) THEN
       vline0 = AIMAG(rismt%vleft(1))
@@ -108,7 +107,7 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
     END IF
     !
   ELSE !IF (rismt%lfft%xleft) THEN
-    izsolv = rismt%lfft%izleft_end
+    izsolv = rismt%lfft%izleft_end0
     !
     IF (rismt%lfft%gxystart > 1) THEN
       vline0 = AIMAG(rismt%vright(1))
@@ -123,14 +122,9 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
   !
   ! ... allocate memory
   IF (rismt%nsite > 0) THEN
-    ALLOCATE(cs0(rismt%nsite))
     ALLOCATE(cd0(rismt%nsite))
-    cs0 = 0.0_DP
     cd0 = 0.0_DP
   END IF
-  !
-  ! ... average of short-range direct correlations, at the edge
-  CALL average_short_range(izsolv)
   !
   ! ... calculate amplitudes of dipole parts,
   ! ... which is included in short-range direct correlations
@@ -142,7 +136,7 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
     qv    = solVs(isolV)%charge(iatom)
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      cd0(iiq) = cs0(iiq) &                              ! short-range
+      cd0(iiq) = rismt%csg0(izsolv, iiq)              &  ! short-range
              & - beta * qv * DBLE(rismt%vlgz(izsolv)) &  ! long-range
              & + beta * qv * (vline1 * zedge + vline0)   ! from void-region
     END IF
@@ -166,7 +160,6 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
   !
   ! ... deallocate memoery
   IF (rismt%nsite > 0) THEN
-    DEALLOCATE(cs0)
     DEALLOCATE(cd0)
   END IF
   !
@@ -175,92 +168,8 @@ SUBROUTINE dipole_lauerism(rismt, lextract, ierr)
   !
 CONTAINS
   !
-  SUBROUTINE average_short_range(iz0)
-    IMPLICIT NONE
-    !
-    INTEGER, INTENT(IN) :: iz0
-    !
-    INTEGER :: ir
-    INTEGER :: idx
-    INTEGER :: idx0
-    INTEGER :: i3min
-    INTEGER :: i3max
-    INTEGER :: i1, i2, i3
-    INTEGER :: iz
-#if defined(__OPENMP)
-    REAL(DP), ALLOCATABLE :: cs1(:)
-#endif
-    !
-    IF (rismt%nsite < 1) THEN
-      RETURN
-    END IF
-    !
-    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
-       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
-    !
-    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
-    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
-    !
-!$omp parallel default(shared) private(ir, idx, i1, i2, i3, iz, cs1)
-#if defined(__OPENMP)
-    ALLOCATE(cs1(rismt%nsite))
-    cs1 = 0.0_DP
-#endif
-!$omp do
-    DO ir = 1, rismt%cfft%dfftt%nnr
-      !
-      idx = idx0 + ir - 1
-      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
-      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
-        CYCLE
-      END IF
-      !
-      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
-      i2  = idx / rismt%cfft%dfftt%nr1x
-      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
-        CYCLE
-      END IF
-      !
-      idx = idx - rismt%cfft%dfftt%nr1x * i2
-      i1  = idx
-      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
-        CYCLE
-      END IF
-      !
-      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
-        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
-      ELSE
-        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
-      END IF
-      iz = iz + rismt%lfft%izcell_start
-      !
-      IF (iz == iz0) THEN
-#if defined(__OPENMP)
-        cs1(:) = cs1(:) + rismt%csr(ir, :)
-#else
-        cs0(:) = cs0(:) + rismt%csr(ir, :)
-#endif
-      END IF
-      !
-    END DO
-!$omp end do
-#if defined(__OPENMP)
-!$omp critical
-    cs0 = cs0 + cs1
-!$omp end critical
-    DEALLOCATE(cs1)
-#endif
-!$omp end parallel
-    !
-    CALL mp_sum(cs0, rismt%mp_site%intra_sitg_comm)
-    !
-    cs0 = cs0 / DBLE(rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2)
-    !
-  END SUBROUTINE average_short_range
-  !
   SUBROUTINE update_short_range(modify_csr)
     IMPLICIT NONE
-    !
     LOGICAL, INTENT(IN) :: modify_csr
     !
     INTEGER :: ir
@@ -308,7 +217,7 @@ CONTAINS
       ELSE
         iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
       END IF
-      iz = iz + rismt%lfft%izcell_start + 1
+      iz = iz + rismt%lfft%izcell_start
       !
       IF (iz > rismt%lfft%izright_end .OR. iz < rismt%lfft%izleft_start) THEN
         CYCLE
@@ -332,4 +241,4 @@ CONTAINS
     !
   END SUBROUTINE update_short_range
   !
-END SUBROUTINE dipole_lauerism
+END SUBROUTINE corrdipole_laue

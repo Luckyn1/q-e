@@ -125,7 +125,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       izend1 = rismt%lfft%nrz
     ELSE
       izsta1 = rismt%lfft%izright_start0
-      izend1 = rismt%lfft%izcell_end0
+      izend1 = rismt%lfft%izcell_end
     END IF
     !
     ssign = -1.0_DP
@@ -138,7 +138,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       izsta1 = 1
       izend1 = rismt%lfft%izleft_gedge
     ELSE
-      izsta1 = rismt%lfft%izcell_start0
+      izsta1 = rismt%lfft%izcell_start
       izend1 = rismt%lfft%izleft_end0
     END IF
     !
@@ -291,11 +291,11 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
 !$omp end parallel do
           END IF
         ELSE
-          ! ... add h1 -> hsg0
+          ! ... add h1 -> hg0
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izsta1, izend1
             izint1 = iz1 - izsta1 + 1
-            rismt%hsg0(iz1, iiq1) = rismt%hsg0(iz1, iiq1) + h1(izint1)
+            rismt%hg0(iz1, iiq1) = rismt%hg0(iz1, iiq1) + h1(izint1)
           END DO
 !$omp end parallel do
         END IF

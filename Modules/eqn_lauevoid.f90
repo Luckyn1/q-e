@@ -104,7 +104,7 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
       izend = rismt%lfft%nrz
     ELSE
       izsta = rismt%lfft%izright_start0
-      izend = rismt%lfft%izcell_end0
+      izend = rismt%lfft%izcell_end
     END IF
     !
     izsolv = rismt%lfft%izright_start0
@@ -123,7 +123,7 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
       izsta = 1
       izend = rismt%lfft%izleft_gedge
     ELSE
-      izsta = rismt%lfft%izcell_start0
+      izsta = rismt%lfft%izcell_start
       izend = rismt%lfft%izleft_end0
     END IF
     !
@@ -227,11 +227,11 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
         END IF
         !
       ELSE
-        ! ... add h1 -> hgz
+        ! ... add h1 -> hg0
 !$omp parallel do default(shared) private(iz, izint)
         DO iz = izsta, izend
           izint = iz - izsta + 1
-          rismt%hsg0(iz, iiq1) = rismt%hsg0(iz, iiq1) + h1(izint)
+          rismt%hg0(iz, iiq1) = rismt%hg0(iz, iiq1) + h1(izint)
         END DO
 !$omp end parallel do
       END IF

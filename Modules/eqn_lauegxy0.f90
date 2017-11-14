@@ -130,10 +130,10 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, long, ierr)
     ALLOCATE(hs1(nzint1))
   END IF
   !
-  ! ... initialize hsg0
+  ! ... initialize hg0
   IF (.NOT. expand) THEN
     IF (rismt%nrzl * rismt%nsite) > 0) THEN
-      rismt%hsg0 = 0.0_DP
+      rismt%hg0 = 0.0_DP
     END IF
   END IF
   !
@@ -263,31 +263,31 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, long, ierr)
         END IF
         !
       ELSE
-        ! ... copy hs1 -> hsg0 (unit-cell)
+        ! ... copy hs1 -> hg0 (unit-cell)
         IF (rismt%nrzl > 0) THEN
-          rismt%hsg0(:, iiq1) = -1.0_DP
+          rismt%hg0(:, iiq1) = -1.0_DP
         END IF
         !
         DO iz1 = 1, (izleft1_sta - 1)
-          rismt%hsg0(iz1, iiq1) = 0.0_DP
+          rismt%hg0(iz1, iiq1) = 0.0_DP
         END DO
         !
         DO iz1 = (izright1_end + 1), rismt%lfft%nrz
-          rismt%hsg0(iz1, iiq1) = 0.0_DP
+          rismt%hg0(iz1, iiq1) = 0.0_DP
         END DO
         !
         IF (long) THEN
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izleft1_sta, izleft1_end
             izint1 = iz1 - izleft1_sta + 1
-            rismt%hsg0(iz1, iiq1) = DBLE(rismt%hlgz(iz1, iiq1)) + hs1(izint1)
+            rismt%hg0(iz1, iiq1) = DBLE(rismt%hlgz(iz1, iiq1)) + hs1(izint1)
           END DO
 !$omp end parallel do
           !
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izright1_sta, izright1_end
             izint1 = nzleft1 + iz1 - izright1_sta + 1
-            rismt%hsg0(iz1, iiq1) = DBLE(rismt%hlgz(iz1, iiq1)) + hs1(izint1)
+            rismt%hg0(iz1, iiq1) = DBLE(rismt%hlgz(iz1, iiq1)) + hs1(izint1)
           END DO
 !$omp end parallel do
           !
@@ -295,14 +295,14 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, long, ierr)
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izleft1_sta, izleft1_end
             izint1 = iz1 - izleft1_sta + 1
-            rismt%hsg0(iz1, iiq1) = hs1(izint1)
+            rismt%hg0(iz1, iiq1) = hs1(izint1)
           END DO
 !$omp end parallel do
           !
 !$omp parallel do default(shared) private(iz1, izint1)
           DO iz1 = izright1_sta, izright1_end
             izint1 = nzleft1 + iz1 - izright1_sta + 1
-            rismt%hsg0(iz1, iiq1) = hs1(izint1)
+            rismt%hg0(iz1, iiq1) = hs1(izint1)
           END DO
 !$omp end parallel do
         END IF
@@ -313,10 +313,10 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, long, ierr)
     !
   END DO
   !
-  ! ... share hsg0, for R-space calculation
+  ! ... share hg0, for R-space calculation
   IF (.NOT. expand) THEN
     IF (rismt%nrzl * rismt%nsite) > 0) THEN
-      CALL mp_sum(rismt%hsg0, rismt%mp_site%intra_sitg_comm)
+      CALL mp_sum(rismt%hg0, rismt%mp_site%intra_sitg_comm)
     END IF
   END IF
   !
