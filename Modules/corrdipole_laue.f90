@@ -88,6 +88,10 @@ SUBROUTINE corrdipole_laue(rismt, lextract, ierr)
       rismt%csdr = 0.0_DP
     END IF
     !
+    IF (rismt%nrzl * rismt%nsite > 0) THEN
+      rismt%csdg0 = 0.0_DP
+    END IF
+    !
     CALL update_short_range(.FALSE.)
     !
     ierr = IERR_RISM_NULL
@@ -156,6 +160,10 @@ SUBROUTINE corrdipole_laue(rismt, lextract, ierr)
     rismt%csdr = 0.0_DP
   END IF
   !
+  IF (rismt%nrzl * rismt%nsite > 0) THEN
+    rismt%csdg0 = 0.0_DP
+  END IF
+  !
   CALL update_short_range(.TRUE.)
   !
   ! ... deallocate memoery
@@ -185,6 +193,7 @@ CONTAINS
       RETURN
     END IF
     !
+    ! ... update R-space
     idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
        & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
     !
@@ -228,12 +237,29 @@ CONTAINS
       !
       IF (modify_csr) THEN
         DO isite = 1, rismt%nsite
-          rismt%csr(ir, isite) = rismt%csr(ir, isite) - cd0(isite) * rismt%cdz(iz)
+          rismt%csr(ir, isite) = rismt%csr(ir, isite) - rismt%cda(isite) * rismt%cdz(iz)
         END DO
       END IF
       !
       DO isite = 1, rismt%nsite
         rismt%csdr(ir, isite) = rismt%csr(ir, isite) + rismt%cda(isite) * rismt%cdz(iz)
+      END DO
+      !
+    END DO
+!$omp end parallel do
+    !
+    ! ... update Gxy=0 term
+!$omp parallel do default(shared) private(iz, isite)
+    DO iz = 1, rismt%nrzl
+      !
+      IF (modify_csr) THEN
+        DO isite = 1, rismt%nsite
+          rismt%csg0(iz, isite) = rismt%csg0(iz, isite) - rismt%cda(isite) * rismt%cdz(iz)
+        END DO
+      END IF
+      !
+      DO isite = 1, rismt%nsite
+        rismt%csdg0(iz, isite) = rismt%csg0(iz, isite) + rismt%cda(isite) * rismt%cdz(iz)
       END DO
       !
     END DO

@@ -74,43 +74,44 @@ MODULE rism
     INTEGER              :: ngxy         ! number of meshes on XY-plane in G-space (for Laue-RISM)
     !
     ! ... data to calculate RISM
-    REAL(DP),    POINTER :: csr (:,:)    ! short-range direct correlations in R-space
-    REAL(DP),    POINTER :: csg (:,:)    ! short-range direct correlations in G-space
-    COMPLEX(DP), POINTER :: csgz(:,:)    ! short-range direct correlations in G-space or Laue-rep. (complex)
-    REAL(DP),    POINTER :: csg0(:,:)    ! short-range direct correlations when Gxy = 0 (Laue-RISM)
-    REAL(DP),    POINTER :: csdr(:,:)    ! short-range and dipole parts of direct correlations in R-space (Laue-RISM)
-    REAL(DP),    POINTER :: cda (:)      ! dipole-parts of direct correlations in Laue-rep. (amplitude)
-    REAL(DP),    POINTER :: cdz (:)      ! dipole-parts of direct correlations in Laue-rep. (step function)
-    REAL(DP),    POINTER :: uljr(:,:)    ! Lennard-Jones potential functions in R-space
-    REAL(DP),    POINTER :: uwr (:,:)    ! repulsive-wall potential functions in R-space (Laue-RISM)
-    REAL(DP),    POINTER :: usr (:,:)    ! short-range potential functions in R-space
-    REAL(DP),    POINTER :: usg0(:,:)    ! short-range potential functions when Gxy = 0 (Laue-RISM)
-    REAL(DP),    POINTER :: vsr (:)      ! short-range coulomb potential in R-space
-    REAL(DP),    POINTER :: ulr (:,:)    ! long-range potential functions in R-space
-    REAL(DP),    POINTER :: vlr (:)      ! long-range coulomb potential in R-space
-    REAL(DP),    POINTER :: ulg (:,:)    ! long-range potential functions in G-space
-    COMPLEX(DP), POINTER :: ulgz(:,:)    ! long-range potential functions in G-space (complex)
-    COMPLEX(DP), POINTER :: vlgz(:)      ! long-range coulomb potential in G-space or Laue-rep. (complex)
+    REAL(DP),    POINTER :: csr  (:,:)   ! short-range direct correlations in R-space
+    REAL(DP),    POINTER :: csg  (:,:)   ! short-range direct correlations in G-space
+    COMPLEX(DP), POINTER :: csgz (:,:)   ! short-range direct correlations in G-space or Laue-rep. (complex)
+    REAL(DP),    POINTER :: csg0 (:,:)   ! short-range direct correlations when Gxy = 0 (Laue-RISM)
+    REAL(DP),    POINTER :: csdr (:,:)   ! short-range + dipole of direct correlations in R-space (Laue-RISM)
+    REAL(DP),    POINTER :: csdg0(:,:)   ! short-range + dipole of direct correlations when Gxy = 0 (Laue-RISM)
+    REAL(DP),    POINTER :: cda  (:)     ! dipole-parts of direct correlations in Laue-rep. (amplitude)
+    REAL(DP),    POINTER :: cdz  (:)     ! dipole-parts of direct correlations in Laue-rep. (step function)
+    REAL(DP),    POINTER :: uljr (:,:)   ! Lennard-Jones potential functions in R-space
+    REAL(DP),    POINTER :: uwr  (:,:)   ! repulsive-wall potential functions in R-space (Laue-RISM)
+    REAL(DP),    POINTER :: usr  (:,:)   ! short-range potential functions in R-space
+    REAL(DP),    POINTER :: usg0 (:,:)   ! short-range potential functions when Gxy = 0 (Laue-RISM)
+    REAL(DP),    POINTER :: vsr  (:)     ! short-range coulomb potential in R-space
+    REAL(DP),    POINTER :: ulr  (:,:)   ! long-range potential functions in R-space
+    REAL(DP),    POINTER :: vlr  (:)     ! long-range coulomb potential in R-space
+    REAL(DP),    POINTER :: ulg  (:,:)   ! long-range potential functions in G-space
+    COMPLEX(DP), POINTER :: ulgz (:,:)   ! long-range potential functions in G-space (complex)
+    COMPLEX(DP), POINTER :: vlgz (:)     ! long-range coulomb potential in G-space or Laue-rep. (complex)
     COMPLEX(DP), POINTER :: vright(:)    ! long-range coulomb potential coefficient for z > zright (Laue-RISM)
-    COMPLEX(DP), POINTER :: vleft(:)     ! long-range coulomb potential coefficient for z < zleft  (Laue-RISM)
+    COMPLEX(DP), POINTER :: vleft (:)    ! long-range coulomb potential coefficient for z < zleft  (Laue-RISM)
     LOGICAL,     POINTER :: do_vright(:) ! to consider vright or not (Laue-RISM)
-    LOGICAL,     POINTER :: do_vleft(:)  ! to consider vleft  or not (Laue-RISM)
-    REAL(DP),    POINTER :: hr  (:,:)    ! total correlations in R-space
-    REAL(DP),    POINTER :: hg  (:,:)    ! total correlations in G-space
-    COMPLEX(DP), POINTER :: hgz (:,:)    ! total correlations in G-space or Laue-rep. (complex)
-    REAL(DP),    POINTER :: hg0 (:,:)    ! total correlations when Gxy = 0 (Laue-RISM)
-    COMPLEX(DP), POINTER :: hsgz(:,:)    ! short-range total correlations in Laue-rep. (w/ dipole parts) (complex)
-    COMPLEX(DP), POINTER :: hlgz(:,:)    ! long-range total correlations in Laue-rep. (complex)
-    REAL(DP),    POINTER :: hdz (:,:,:)  ! dipole-parts of total correlations in Laue-rep. (integrated intermediate)
-    REAL(DP),    POINTER :: gr  (:,:)    ! distribution functions in R-space
-    REAL(DP),    POINTER :: gg0 (:,:)    ! distribution functions when Gxy = 0 (Laue-RISM)
-    REAL(DP),    POINTER :: wg  (:,:)    ! intra-molecular correlations in G-space
-    REAL(DP),    POINTER :: xgs (:,:,:)  ! inter-site susceptibility in G-shell or Laue-rep.
-    REAL(DP),    POINTER :: xgs0(:,:,:)  ! integrated xgs       (Laue-RISM).
-    REAL(DP),    POINTER :: xgs1(:,:,:)  ! integrated (z * xgs) (Laue-RISM).
-    REAL(DP),    POINTER :: ygs (:,:,:)  ! ygs is left-hand version of xgs (Laue-RISM).
-    REAL(DP),    POINTER :: ygs0(:,:,:)  ! ygs0 is left-hand version of xgs0 (Laue-RISM).
-    REAL(DP),    POINTER :: ygs1(:,:,:)  ! ygs1 is left-hand version of xgs1 (Laue-RISM).
+    LOGICAL,     POINTER :: do_vleft (:) ! to consider vleft  or not (Laue-RISM)
+    REAL(DP),    POINTER :: hr   (:,:)   ! total correlations in R-space
+    REAL(DP),    POINTER :: hg   (:,:)   ! total correlations in G-space
+    COMPLEX(DP), POINTER :: hgz  (:,:)   ! total correlations in G-space or Laue-rep. (complex)
+    REAL(DP),    POINTER :: hg0  (:,:)   ! total correlations when Gxy = 0 (Laue-RISM)
+    COMPLEX(DP), POINTER :: hsgz (:,:)   ! short-range total correlations in Laue-rep. (w/ dipole parts) (complex)
+    COMPLEX(DP), POINTER :: hlgz (:,:)   ! long-range total correlations in Laue-rep. (complex)
+    REAL(DP),    POINTER :: hdz  (:,:,:) ! dipole-parts of total correlations in Laue-rep. (integrated intermediate)
+    REAL(DP),    POINTER :: gr   (:,:)   ! distribution functions in R-space
+    REAL(DP),    POINTER :: gg0  (:,:)   ! distribution functions when Gxy = 0 (Laue-RISM)
+    REAL(DP),    POINTER :: wg   (:,:)   ! intra-molecular correlations in G-space
+    REAL(DP),    POINTER :: xgs  (:,:,:) ! inter-site susceptibility in G-shell or Laue-rep.
+    REAL(DP),    POINTER :: xgs0 (:,:,:) ! integrated xgs       (Laue-RISM).
+    REAL(DP),    POINTER :: xgs1 (:,:,:) ! integrated (z * xgs) (Laue-RISM).
+    REAL(DP),    POINTER :: ygs  (:,:,:) ! ygs is left-hand version of xgs (Laue-RISM).
+    REAL(DP),    POINTER :: ygs0 (:,:,:) ! ygs0 is left-hand version of xgs0 (Laue-RISM).
+    REAL(DP),    POINTER :: ygs1 (:,:,:) ! ygs1 is left-hand version of xgs1 (Laue-RISM).
     !
     ! ... results from RISM
     REAL(DP),    POINTER :: nsol(:)      ! solvent's number for each site
@@ -560,10 +561,11 @@ CONTAINS
         ALLOCATE(rismt%hdz(nrzl, nsite, nsite_t))
       END IF
       IF ((nrzl * nsite) > 0) THEN
-        ALLOCATE(rismt%usg0(nrzl, nsite))
-        ALLOCATE(rismt%csg0(nrzl, nsite))
-        ALLOCATE(rismt%hg0( nrzl, nsite))
-        ALLOCATE(rismt%gg0( nrzl, nsite))
+        ALLOCATE(rismt%usg0( nrzl, nsite))
+        ALLOCATE(rismt%csg0( nrzl, nsite))
+        ALLOCATE(rismt%csdg0(nrzl, nsite))
+        ALLOCATE(rismt%hg0(  nrzl, nsite))
+        ALLOCATE(rismt%gg0(  nrzl, nsite))
       END IF
     END IF
     !
@@ -819,6 +821,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%csgz))      DEALLOCATE(rismt%csgz)
     IF (ASSOCIATED(rismt%csg0))      DEALLOCATE(rismt%csg0)
     IF (ASSOCIATED(rismt%csdr))      DEALLOCATE(rismt%csdr)
+    IF (ASSOCIATED(rismt%csdg0))     DEALLOCATE(rismt%csdg0)
     IF (ASSOCIATED(rismt%cda))       DEALLOCATE(rismt%cda)
     IF (ASSOCIATED(rismt%cdz))       DEALLOCATE(rismt%cdz)
     IF (ASSOCIATED(rismt%uljr))      DEALLOCATE(rismt%uljr)
@@ -880,6 +883,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%csgz))     rismt%csgz     = C_ZERO
     IF (ASSOCIATED(rismt%csg0))     rismt%csg0     = R_ZERO
     IF (ASSOCIATED(rismt%csdr))     rismt%csdr     = R_ZERO
+    IF (ASSOCIATED(rismt%csdg0))    rismt%csdg0    = R_ZERO
     IF (ASSOCIATED(rismt%cda))      rismt%cda      = R_ZERO
     IF (ASSOCIATED(rismt%hr ))      rismt%hr       = R_ZERO
     IF (ASSOCIATED(rismt%hg ))      rismt%hg       = R_ZERO

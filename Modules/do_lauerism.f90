@@ -282,6 +282,12 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       CALL update_by_mdiis(mdiist, csr_, dcsr_, rismt%intra_comm)
     END IF
     !
+    ! ... extract Gxy=0 term: Cs(r) -> Cs(gxy=0,z)
+    CALL corrgxy0_laue(rismt, .TRUE., rismt%csr, rismt%csg0, ierr)
+    IF (ierr /= IERR_RISM_NULL) THEN
+      GOTO 100
+    END IF
+    !
     ! ... extract dipole part: Cs(r) -> Cs(r), Cd(z)
     ! ... also perform: Cs(r) + Cd(z) -> Csd(r)
     CALL corrdipole_laue(rismt, .TRUE., ierr)
@@ -532,6 +538,7 @@ CONTAINS
       RETURN
     END IF
     !
+    ! ... for R-space
     idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
        & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
     !
@@ -572,6 +579,21 @@ CONTAINS
       !
       IF (rismt%lfft%izleft_gedge < iz .AND. iz <= rismt%lfft%izleft_end) THEN
         rismt%gr(ir, :) = 0.0_DP
+      END IF
+      !
+    END DO
+!$omp end parallel do
+    !
+    ! ... for Gxy=0 term
+!$omp parallel do default(shared) private(iz)
+    DO iz = 1, rismt%lfft%nrz
+      !
+      IF (rismt%lfft%izright_start <= iz .AND. iz < rismt%lfft%izright_gedge) THEN
+        rismt%gg0(iz, :) = 0.0_DP
+      END IF
+      !
+      IF (rismt%lfft%izleft_gedge < iz .AND. iz <= rismt%lfft%izleft_end) THEN
+        rismt%gg0(iz, :) = 0.0_DP
       END IF
       !
     END DO
