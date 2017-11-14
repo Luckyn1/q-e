@@ -84,6 +84,7 @@ MODULE rism
     REAL(DP),    POINTER :: uljr(:,:)    ! Lennard-Jones potential functions in R-space
     REAL(DP),    POINTER :: uwr (:,:)    ! repulsive-wall potential functions in R-space (Laue-RISM)
     REAL(DP),    POINTER :: usr (:,:)    ! short-range potential functions in R-space
+    REAL(DP),    POINTER :: usg0(:,:)    ! short-range potential functions when Gxy = 0 (Laue-RISM)
     REAL(DP),    POINTER :: vsr (:)      ! short-range coulomb potential in R-space
     REAL(DP),    POINTER :: ulr (:,:)    ! long-range potential functions in R-space
     REAL(DP),    POINTER :: vlr (:)      ! long-range coulomb potential in R-space
@@ -559,6 +560,7 @@ CONTAINS
         ALLOCATE(rismt%hdz(nrzl, nsite, nsite_t))
       END IF
       IF ((nrzl * nsite) > 0) THEN
+        ALLOCATE(rismt%usg0(nrzl, nsite))
         ALLOCATE(rismt%csg0(nrzl, nsite))
         ALLOCATE(rismt%hg0( nrzl, nsite))
         ALLOCATE(rismt%gg0( nrzl, nsite))
@@ -822,6 +824,7 @@ CONTAINS
     IF (ASSOCIATED(rismt%uljr))      DEALLOCATE(rismt%uljr)
     IF (ASSOCIATED(rismt%uwr))       DEALLOCATE(rismt%uwr)
     IF (ASSOCIATED(rismt%usr))       DEALLOCATE(rismt%usr)
+    IF (ASSOCIATED(rismt%usg0))      DEALLOCATE(rismt%usg0)
     IF (ASSOCIATED(rismt%vsr))       DEALLOCATE(rismt%vsr)
     IF (ASSOCIATED(rismt%ulr))       DEALLOCATE(rismt%ulr)
     IF (ASSOCIATED(rismt%vlr))       DEALLOCATE(rismt%vlr)
