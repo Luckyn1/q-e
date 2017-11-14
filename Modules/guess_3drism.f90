@@ -188,6 +188,9 @@ SUBROUTINE guess_3drism(rismt, ierr)
     END IF
     !
     CALL corrgxy0_laue(rismt, .TRUE., rismt%csr, rismt%csg0, ierr)
+    IF (ierr /= IERR_RISM_NULL) THEN
+      RETURN
+    END IF
   END IF
   !
   ! ... normally done
