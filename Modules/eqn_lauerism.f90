@@ -392,6 +392,16 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
     RETURN
   END IF
   !
+  ! ... set zero to hgz at Gxy = 0
+  IF (rismt%lfft%gxystart > 1) THEN
+    !
+    DO iq1 = rismt%mp_site%isite_start, rismt%mp_site%isite_end
+      iiq1 = iq1 - rismt%mp_site%isite_start + 1
+      rismt%hgz(1:rismt%nrzs, iiq1) = C_ZERO
+    END DO
+    !
+  END IF
+  !
   ! ... normally done
   ierr = IERR_RISM_NULL
   !
