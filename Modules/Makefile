@@ -186,7 +186,6 @@ eqn_laueshort.o \
 eqn_lauevoid.o \
 err_rism.o \
 guess_3drism.o \
-gxy0_lauerism.o \
 init_1drism.o \
 init_3drism.o \
 input_1drism.o \
