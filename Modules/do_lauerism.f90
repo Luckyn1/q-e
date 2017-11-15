@@ -54,17 +54,21 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   INTEGER                  :: iter
   INTEGER                  :: ngrid
   INTEGER                  :: nsite
+  INTEGER                  :: ntot
+  INTEGER                  :: nright
+  INTEGER                  :: nleft
   LOGICAL                  :: lconv
   REAL(DP)                 :: rmscurr
   REAL(DP)                 :: rmssave
   INTEGER                  :: rmswarn
-  REAL(DP),    ALLOCATABLE :: dcsr(:,:)
+  REAL(DP),    ALLOCATABLE :: cst (:,:)
+  REAL(DP),    ALLOCATABLE :: dcst(:,:)
   TYPE(mdiis_type)         :: mdiist
   ! if mdiist is an automatic variable,
   ! pointers in mdiis_type may not work well.
   SAVE                     :: mdiist
-  REAL(DP)                 :: csr_ (1, 1)
-  REAL(DP)                 :: dcsr_(1, 1)
+  REAL(DP)                 :: cst_ (1, 1)
+  REAL(DP)                 :: dcst_(1, 1)
 #if defined (__DEBUG_RISM)
   CHARACTER(LEN=5)         :: str
 #endif
@@ -103,29 +107,23 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   END IF
   !
   ! ... set dimensions of effective R-space
-  nr = rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2 &
-   & * rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1)
-  !
   IF (rismt%lfft%gxystart > 1) THEN
-    nrr = MAX(0, izright_end0 - izcell_end   )
-    nrl = MAX(0, izcell_start - izleft_start0)
+    nright = MAX(0, rismt%lfft%izright_end0 - rismt%lfft%izcell_end   )
+    nleft  = MAX(0, rismt%lfft%izcell_start - rismt%lfft%izleft_start0)
   ELSE
-    nrr = 0
-    nrl = 0
+    nright = 0
+    nleft  = 0
   END IF
   !
-  nrtot = nr + nrr + nrl
+  ntot = rismt%cfft%dfftt%nnr + nright + nleft
   !
   ! ... allocate memory
-  IF (nrtot * rismt%nsite > 0) THEN
-    ALLOCATE(hr(  nrtot, rismt%nsite))
-    ALLOCATE(gr(  nrtot, rismt%nsite))
-    ALLOCATE(usr( nrtot, rismt%nsite))
-    ALLOCATE(csr( nrtot, rismt%nsite))
-    ALLOCATE(dcsr(nrtot, rismt%nsite))
+  IF (ntot * rismt%nsite > 0) THEN
+    ALLOCATE(cst( ntot, rismt%nsite))
+    ALLOCATE(dcst(ntot, rismt%nsite))
   END IF
   !
-  CALL allocate_mdiis(mdiist, nbox, nr * rismt%nsite, eta, MDIIS_EXT)
+  CALL allocate_mdiis(mdiist, nbox, ntot * rismt%nsite, eta, MDIIS_EXT)
   !
   ! ... reset conditions
   lconv       = .FALSE.
@@ -208,7 +206,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     CALL barrier_gr()
     !
     ! ... Residual: G(r) -> dCs(r)
-    CALL make_dcsr()
+    CALL prepare_cst_dcst()
     !
     ! ... clean date out of physical range
     CALL clean_out_of_range(ngrid)
@@ -217,12 +215,12 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     ! ... calculate RMS
     nsite = get_nsite_in_solVs()
     !
-    IF (rismt%nr * rismt%nsite > 0) THEN
-      CALL rms_residual(ngrid * nsite, rismt%nr * rismt%nsite, &
-                      & dcsr, rmscurr, rismt%intra_comm)
+    IF (ntot * rismt%nsite > 0) THEN
+      CALL rms_residual(ngrid * nsite, rismt%ntot * rismt%nsite, &
+                      & dcst, rmscurr, rismt%intra_comm)
     ELSE
-      CALL rms_residual(ngrid * nsite, rismt%nr * rismt%nsite, &
-                      & dcsr_, rmscurr, rismt%intra_comm)
+      CALL rms_residual(ngrid * nsite, rismt%ntot * rismt%nsite, &
+                      & dcst_, rmscurr, rismt%intra_comm)
     END IF
     !
     IF (rmscurr < rmsconv) THEN
@@ -274,13 +272,13 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     END IF
     !
     ! ... MDIIS: dCs(r) -> Cs(r)
-    IF (rismt%nr * rismt%nsite > 0) THEN
-      ! ... optimize with Cs(r) + Cd(z)
-      CALL update_by_mdiis(mdiist, rismt%csdr, dcsr, rismt%intra_comm)
-      rismt%csr = rismt%csdr
+    IF (ntot * rismt%nsite > 0) THEN
+      CALL update_by_mdiis(mdiist, cst, dcst, rismt%intra_comm)
     ELSE
-      CALL update_by_mdiis(mdiist, csr_, dcsr_, rismt%intra_comm)
+      CALL update_by_mdiis(mdiist, cst_, dcst_, rismt%intra_comm)
     END IF
+    !
+    CALL restore_cst()
     !
     ! ... extract Gxy=0 term: Cs(r) -> Cs(gxy=0,z)
     CALL corrgxy0_laue(rismt, .TRUE., rismt%csr, rismt%csg0, ierr)
@@ -376,12 +374,9 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   ! ... deallocate memory
 100 CONTINUE
   !
-  IF (nrtot * rismt%nsite > 0) THEN
-    DEALLOCATE(hr)
-    DEALLOCATE(gr)
-    DEALLOCATE(usr)
-    DEALLOCATE(csr)
-    DEALLOCATE(dcsr)
+  IF (ntot * rismt%nsite > 0) THEN
+    DEALLOCATE(cst)
+    DEALLOCATE(dcst)
   END IF
   !
   CALL deallocate_mdiis(mdiist)
@@ -437,6 +432,7 @@ CONTAINS
     INTEGER :: iz
     INTEGER :: mgrid
     !
+    ! ... for R-space
     mgrid = 0
     !
     idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
@@ -456,7 +452,8 @@ CONTAINS
           rismt%csdr(ir, :) = 0.0_DP
           rismt%hr  (ir, :) = 0.0_DP
           rismt%gr  (ir, :) = 0.0_DP
-          dcsr      (ir, :) = 0.0_DP
+          cst       (ir, :) = 0.0_DP
+          dcst      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
@@ -469,7 +466,8 @@ CONTAINS
           rismt%csdr(ir, :) = 0.0_DP
           rismt%hr  (ir, :) = 0.0_DP
           rismt%gr  (ir, :) = 0.0_DP
-          dcsr      (ir, :) = 0.0_DP
+          cst       (ir, :) = 0.0_DP
+          dcst      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
@@ -482,7 +480,8 @@ CONTAINS
           rismt%csdr(ir, :) = 0.0_DP
           rismt%hr  (ir, :) = 0.0_DP
           rismt%gr  (ir, :) = 0.0_DP
-          dcsr      (ir, :) = 0.0_DP
+          cst       (ir, :) = 0.0_DP
+          dcst      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
@@ -494,23 +493,25 @@ CONTAINS
       END IF
       iz = iz + rismt%lfft%izcell_start
       !
-      IF (iz > rismt%lfft%izright_end .OR. iz < rismt%lfft%izleft_start) THEN
+      IF (iz > rismt%lfft%izright_end0 .OR. iz < rismt%lfft%izleft_start0) THEN
         IF (rismt%nsite > 0) THEN
           rismt%csr (ir, :) = 0.0_DP
           rismt%csdr(ir, :) = 0.0_DP
           rismt%hr  (ir, :) = -1.0_DP
           rismt%gr  (ir, :) = 0.0_DP
-          dcsr      (ir, :) = 0.0_DP
+          cst       (ir, :) = 0.0_DP
+          dcst      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
-      IF (iz < rismt%lfft%izright_start .AND. iz > rismt%lfft%izleft_end) THEN
+      IF (iz < rismt%lfft%izright_start0 .AND. iz > rismt%lfft%izleft_end0) THEN
         IF (rismt%nsite > 0) THEN
           rismt%csr (ir, :) = 0.0_DP
           rismt%csdr(ir, :) = 0.0_DP
           rismt%hr  (ir, :) = -1.0_DP
           rismt%gr  (ir, :) = 0.0_DP
-          dcsr      (ir, :) = 0.0_DP
+          cst       (ir, :) = 0.0_DP
+          dcst      (ir, :) = 0.0_DP
         END IF
         CYCLE
       END IF
@@ -520,7 +521,33 @@ CONTAINS
     END DO
 !$omp end parallel do
     !
-    ngrid = mgrid
+    ! ... for Gxy=0 term
+!$omp parallel do default(shared) private(iz)
+    DO iz = 1, rismt%lfft%nrz
+      !
+      IF (iz > rismt%lfft%izright_end0 .OR. iz < rismt%lfft%izleft_start0) THEN
+        IF (rismt%nsite > 0) THEN
+          rismt%csg0 (iz, :) = 0.0_DP
+          rismt%csdg0(iz, :) = 0.0_DP
+          rismt%hg0  (iz, :) = -1.0_DP
+          rismt%gg0  (iz, :) = 0.0_DP
+        END IF
+        CYCLE
+      END IF
+      IF (iz < rismt%lfft%izright_start0 .AND. iz > rismt%lfft%izleft_end0) THEN
+        IF (rismt%nsite > 0) THEN
+          rismt%csg0 (iz, :) = 0.0_DP
+          rismt%csdg0(iz, :) = 0.0_DP
+          rismt%hg0  (iz, :) = -1.0_DP
+          rismt%gg0  (iz, :) = 0.0_DP
+        END IF
+        CYCLE
+      END IF
+      !
+    END DO
+!$omp end parallel do
+    !
+    ngrid = mgrid + nright + nleft
     !
   END SUBROUTINE clean_out_of_range
   !
@@ -573,11 +600,8 @@ CONTAINS
       END IF
       iz = iz + rismt%lfft%izcell_start
       !
-      IF (rismt%lfft%izright_start <= iz .AND. iz < rismt%lfft%izright_gedge) THEN
-        rismt%gr(ir, :) = 0.0_DP
-      END IF
-      !
-      IF (rismt%lfft%izleft_gedge < iz .AND. iz <= rismt%lfft%izleft_end) THEN
+      IF ((rismt%lfft%izright_start <= iz .AND. iz <  rismt%lfft%izright_gedge) .OR. &
+        & (rismt%lfft%izleft_gedge  <  iz .AND. iz <= rismt%lfft%izleft_end)) THEN
         rismt%gr(ir, :) = 0.0_DP
       END IF
       !
@@ -588,11 +612,8 @@ CONTAINS
 !$omp parallel do default(shared) private(iz)
     DO iz = 1, rismt%lfft%nrz
       !
-      IF (rismt%lfft%izright_start <= iz .AND. iz < rismt%lfft%izright_gedge) THEN
-        rismt%gg0(iz, :) = 0.0_DP
-      END IF
-      !
-      IF (rismt%lfft%izleft_gedge < iz .AND. iz <= rismt%lfft%izleft_end) THEN
+      IF ((rismt%lfft%izright_start <= iz .AND. iz <  rismt%lfft%izright_gedge) .OR. &
+        & (rismt%lfft%izleft_gedge  <  iz .AND. iz <= rismt%lfft%izleft_end)) THEN
         rismt%gg0(iz, :) = 0.0_DP
       END IF
       !
@@ -601,7 +622,7 @@ CONTAINS
     !
   END SUBROUTINE barrier_gr
   !
-  SUBROUTINE make_dcsr()
+  SUBROUTINE prepare_cst_dcst()
     IMPLICIT NONE
     INTEGER  :: iq
     INTEGER  :: iiq
@@ -609,10 +630,15 @@ CONTAINS
     INTEGER  :: nv
     INTEGER  :: isolV
     INTEGER  :: natom
+    INTEGER  :: nr
+    INTEGER  :: itsta, itend
+    INTEGER  :: izsta, izend
     REAL(DP) :: rhov
     REAL(DP) :: rhov1
     REAL(DP) :: rhov2
     REAL(DP) :: rhovt
+    REAL(DP) :: vscale
+    REAL(DP) :: zscale
     !
     rhovt = 0.0_DP
     DO isolV = 1, nsolV
@@ -627,20 +653,95 @@ CONTAINS
       CALL errore('do_lauerism', 'rhovt is not positive', 1)
     END IF
     !
+    nr = rismt%cfft%dfftt%nnr
+    !
     DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
-      iiq   = iq - rismt%mp_site%isite_start + 1
-      iv    = iuniq_to_isite(1, iq)
-      nv    = iuniq_to_nsite(iq)
-      isolV = isite_to_isolV(iv)
-      rhov1 = solVs(isolV)%density
-      rhov2 = solVs(isolV)%subdensity
-      rhov  = 0.5_DP * (rhov1 + rhov2) * SQRT(DBLE(nv))
+      iiq    = iq - rismt%mp_site%isite_start + 1
+      iv     = iuniq_to_isite(1, iq)
+      nv     = iuniq_to_nsite(iq)
+      isolV  = isite_to_isolV(iv)
+      rhov1  = solVs(isolV)%density
+      rhov2  = solVs(isolV)%subdensity
+      rhov   = 0.5_DP * (rhov1 + rhov2)
+      vscale = SQRT(DBLE(nv))
+      zscale = SQRT(DBLE(rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2))
       !
-      IF (rismt%nr > 0) THEN
-        dcsr(:, iiq) = (rhov / rhovt) * (rismt%gr(:, iiq) - rismt%hr(:, iiq) - 1.0_DP)
+      IF (nr > 0) THEN
+        !cst( 1:nr, iiq) = vscale * rismt%csr(1:nr, iiq)
+        cst( 1:nr, iiq) = vscale * rismt%csdr(1:nr, iiq)
+        dcst(1:nr, iiq) = vscale * (rhov / rhovt) &
+                      & * (rismt%gr(1:nr, iiq) - rismt%hr(1:nr, iiq) - 1.0_DP)
+      END IF
+      !
+      IF (nright > 0) THEN
+        itsta = nr + 1
+        itend = nr + nright
+        izsta = rismt%lfft%izcell_end + 1
+        izend = rismt%lfft%izright_end0
+        !
+        !cst( itsta:itend, iiq) = vscale * zscale * rismt%csg0(izsta:izend, iiq)
+        cst( itsta:itend, iiq) = vscale * zscale * rismt%csdg0(izsta:izend, iiq)
+        dcst(itsta:itend, iiq) = vscale * zscale * (rhov / rhovt) &
+                             & * (rismt%gg0(izsta:izend, iiq) - rismt%hg0(izsta:izend, iiq) - 1.0_DP)
+      END IF
+      !
+      IF (nleft > 0) THEN
+        itsta = nr + nright + 1
+        itend = nr + nright + nleft
+        izsta = rismt%lfft%izleft_start0
+        izend = rismt%lfft%izcell_start - 1
+        !
+        !cst( itsta:itend, iiq) = vscale * zscale * rismt%csg0(izsta:izend, iiq)
+        cst( itsta:itend, iiq) = vscale * zscale * rismt%csdg0(izsta:izend, iiq)
+        dcst(itsta:itend, iiq) = vscale * zscale * (rhov / rhovt) &
+                             & * (rismt%gg0(izsta:izend, iiq) - rismt%hg0(izsta:izend, iiq) - 1.0_DP)
       END IF
     END DO
     !
-  END SUBROUTINE make_dcsr
+  END SUBROUTINE prepare_cst_dcst
+  !
+  SUBROUTINE restore_cst()
+    IMPLICIT NONE
+    INTEGER  :: iq
+    INTEGER  :: iiq
+    INTEGER  :: nv
+    INTEGER  :: nr
+    INTEGER  :: itsta, itend
+    INTEGER  :: izsta, izend
+    REAL(DP) :: vscale
+    REAL(DP) :: zscale
+    !
+    nr = rismt%cfft%dfftt%nnr
+    !
+    DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
+      iiq    = iq - rismt%mp_site%isite_start + 1
+      nv     = iuniq_to_nsite(iq)
+      vscale = SQRT(DBLE(nv))
+      zscale = SQRT(DBLE(rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2))
+      !
+      IF (nr > 0) THEN
+        rismt%csr(1:nr, iiq) = cst(1:nr, iiq) / vscale
+      END IF
+      !
+      IF (nright > 0) THEN
+        itsta = nr + 1
+        itend = nr + nright
+        izsta = rismt%lfft%izcell_end + 1
+        izend = rismt%lfft%izright_end0
+        !
+        rismt%csg0(izsta:izend, iiq) = cst(itsta:itend, iiq) / vscale / zscale
+      END IF
+      !
+      IF (nleft > 0) THEN
+        itsta = nr + nright + 1
+        itend = nr + nright + nleft
+        izsta = rismt%lfft%izleft_start0
+        izend = rismt%lfft%izcell_start - 1
+        !
+        rismt%csg0(izsta:izend, iiq) = cst(itsta:itend, iiq) / vscale / zscale
+      END IF
+    END DO
+    !
+  END SUBROUTINE restore_cst
   !
 END SUBROUTINE do_lauerism
