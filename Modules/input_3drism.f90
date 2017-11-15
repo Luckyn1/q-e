@@ -157,13 +157,21 @@ SUBROUTINE iosys_3drism(laue, linit)
     ELSE IF (laue_expand_right > 0.0_DP) THEN
       IF (laue_buffer_right < 0.0_DP) THEN
         laue_buffer_right      = BUFFER_DEF
+      END IF
+      IF (laue_buffer_right_solu < 0.0_DP) THEN
         laue_buffer_right_solu = BUFFER_SOLU_DEF
+      END IF
+      IF (laue_buffer_right_solv < 0.0_DP) THEN
         laue_buffer_right_solv = BUFFER_SOLV_DEF * laue_expand_right
       END IF
     ELSE IF (laue_expand_left > 0.0_DP) THEN
       IF (laue_buffer_left < 0.0_DP) THEN
         laue_buffer_left      = BUFFER_DEF
+      END IF
+      IF (laue_buffer_left_solu < 0.0_DP) THEN
         laue_buffer_left_solu = BUFFER_SOLU_DEF
+      END IF
+      IF (laue_buffer_left_solv < 0.0_DP) THEN
         laue_buffer_left_solv = BUFFER_SOLV_DEF * laue_expand_left
       END IF
     END IF
