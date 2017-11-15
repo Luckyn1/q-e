@@ -132,7 +132,7 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, long, ierr)
   !
   ! ... initialize hg0
   IF (.NOT. expand) THEN
-    IF (rismt%nrzl * rismt%nsite) > 0) THEN
+    IF (rismt%nrzl * rismt%nsite > 0) THEN
       rismt%hg0 = 0.0_DP
     END IF
   END IF
@@ -315,7 +315,7 @@ SUBROUTINE eqn_lauegxy0(rismt, lboth, expand, long, ierr)
   !
   ! ... share hg0, for R-space calculation
   IF (.NOT. expand) THEN
-    IF (rismt%nrzl * rismt%nsite) > 0) THEN
+    IF (rismt%nrzl * rismt%nsite > 0) THEN
       CALL mp_sum(rismt%hg0, rismt%mp_site%intra_sitg_comm)
     END IF
   END IF
