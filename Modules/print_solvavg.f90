@@ -1010,10 +1010,10 @@ CONTAINS
         !
         DO igxy = 1, rismt%ngxy
           jgxy = (igxy - 1) * rismt%nrzl
-          DO iz = 1, rismt%lfft%izleft_end
+          DO iz = 1, rismt%lfft%izleft_gedge
             rhol(iz + jgxy) = rhol(iz + jgxy) * rhov_left
           END DO
-          DO iz = rismt%lfft%izright_start, rismt%lfft%nrz
+          DO iz = rismt%lfft%izright_gedge, rismt%lfft%nrz
             rhol(iz + jgxy) = rhol(iz + jgxy) * rhov_right
           END DO
         END DO
@@ -1276,7 +1276,6 @@ CONTAINS
     CHARACTER(LEN=LEN_SATOM) :: satom
     INTEGER                  :: owner_group_id
     INTEGER                  :: iz
-    INTEGER                  :: iiz
     INTEGER                  :: izsta
     INTEGER                  :: izend
     INTEGER                  :: izsol
@@ -1487,21 +1486,19 @@ CONTAINS
             !
           ELSE IF (rismt%lfft%xright) THEN
             izsta = 1
-            izend = rismt%lfft%izright_start - 1
-            izsol = rismt%lfft%izright_start
+            izend = rismt%lfft%izright_start0 - 1
+            izsol = rismt%lfft%izright_start0
             voppo = DBLE(rismt%vleft(1))
             !
           ELSE !IF (rismt%lfft%xleft) THEN
-            izsta = rismt%lfft%izleft_end + 1
+            izsta = rismt%lfft%izleft_end0 + 1
             izend = rismt%lfft%nrz
-            izsol = rismt%lfft%izleft_end
+            izsol = rismt%lfft%izleft_end0
             voppo = DBLE(rismt%vright(1))
           END IF
           !
           IF (izsta <= izend) THEN
-            iiz = izsol - rismt%lfft%izcell_start + 1
-            c2  = DBLE(rismt%csgz(iiz, iiq)) &
-              & + rismt%cda(iiq) * rismt%cdzs(iiz) &
+            c2  = rismt%csdg0(izsol, iiq)) &
               & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !
@@ -1573,21 +1570,19 @@ CONTAINS
             !
           ELSE IF (rismt%lfft%xright) THEN
             izsta = 1
-            izend = rismt%lfft%izright_start - 1
-            izsol = rismt%lfft%izright_start
+            izend = rismt%lfft%izright_start0 - 1
+            izsol = rismt%lfft%izright_start0
             voppo = DBLE(rismt%vleft(1))
             !
           ELSE !IF (rismt%lfft%xleft) THEN
-            izsta = rismt%lfft%izleft_end + 1
+            izsta = rismt%lfft%izleft_end0 + 1
             izend = rismt%lfft%nrz
-            izsol = rismt%lfft%izleft_end
+            izsol = rismt%lfft%izleft_end0
             voppo = DBLE(rismt%vright(1))
           END IF
           !
           IF (izsta <= izend) THEN
-            iiz = izsol - rismt%lfft%izcell_start + 1
-            c2  = DBLE(rismt%csgz(iiz, iiq)) &
-              & + rismt%cda(iiq) * rismt%cdzs(iiz) &
+            c2  = rismt%csdg0(izsol, iiq)) &
               & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !

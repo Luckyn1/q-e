@@ -165,8 +165,7 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
     qv2    = solVs(isolV2)%charge(iatom2)
     !
     IF (rismt%lfft%gxystart > 1) THEN
-      c2(iiq2) = rismt%csg0(izsolv, iiq2) &
-             & + rismt%cda(iiq2) * rismt%cdz(izsolv) &
+      c2(iiq2) = rismt%csdg0(izsolv, iiq2) &
              & - beta * qv2 * DBLE(rismt%vlgz(izsolv))
       d2(iiq2) = -beta * qv2 * voppo
     ELSE
