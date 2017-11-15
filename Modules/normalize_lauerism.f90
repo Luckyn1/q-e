@@ -546,13 +546,13 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
         ELSE
           ! ... unit-cell
 !$omp parallel do default(shared) private(irz)
-          DO irz = rismt%lfft%izcell_start, rismt%lfft%izleft_gedge
+          DO irz = 1, rismt%lfft%izleft_gedge
             rismt%hg0(irz, iiq) = rismt%hg0(irz, iiq) + hwei(irz, iiq) * hr2
           END DO
 !$omp end parallel do
           !
 !$omp parallel do default(shared) private(irz)
-          DO irz = rismt%lfft%izright_gedge, rismt%lfft%izcell_end
+          DO irz = rismt%lfft%izright_gedge, rismt%lfft%nrz
             rismt%hg0(irz, iiq) = rismt%hg0(irz, iiq) + hwei(irz, iiq) * hr1
           END DO
 !$omp end parallel do
