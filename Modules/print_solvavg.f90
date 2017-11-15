@@ -1083,7 +1083,6 @@ CONTAINS
     !
     INTEGER                  :: nq
     INTEGER                  :: iq
-    INTEGER                  :: iiq
     INTEGER                  :: iv
     INTEGER                  :: isolV
     INTEGER                  :: iatom
@@ -1178,15 +1177,14 @@ CONTAINS
       !
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
-        iiq  = iq - rismt%mp_site%isite_start + 1
-        !
-        rhol = rismt%hsgz(:, iiq) + rismt%hlgz(:, iiq)
+        rhol = rismt%hsgz(:, rismt%mp_site%isite_start + 1) &
+           & + rismt%hlgz(:, rismt%mp_site%isite_start + 1)
         !
         DO igxy = 1, rismt%ngxy
           jgxy  = (igxy - 1) * rismt%nrzl
           izsta = MAX(rismt%lfft%izleft_end0    + 1, rismt%lfft%izcell_start)
           izend = MIN(rismt%lfft%izright_start0 - 1, rismt%lfft%izcell_end  )
-          rhol((izsta + jgxy):(izend + jgxy), iiq) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
+          rhol((izsta + jgxy):(izend + jgxy)) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
         END DO
       ELSE
         owner_group_id = 0
