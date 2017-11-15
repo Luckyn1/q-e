@@ -614,11 +614,11 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE(lauefft_type), INTENT(IN)  :: lauefft0
-    REAL(DP),           INTENT(IN)  :: cr(1:*)    ! R-space,   dimension(nnr)
-    COMPLEX(DP),        INTENT(OUT) :: cl(1:*)    ! Laue-rep., dimension(nrz*ngxy)
-    INTEGER,            INTENT(IN)  :: nrz        ! leading dimension of Z
-    INTEGER,            INTENT(IN)  :: irz_start  ! starting index of Z
-    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask     ! mask of i3-axis
+    REAL(DP),           INTENT(IN)  :: cr(1:*)      ! R-space,   dimension(nnr)
+    COMPLEX(DP),        INTENT(OUT) :: cl(1:*)      ! Laue-rep., dimension(nrz*ngxy)
+    INTEGER,            INTENT(IN)  :: nrz          ! leading dimension of Z
+    INTEGER,            INTENT(IN)  :: irz_start    ! starting index of Z
+    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask(1:*)  ! mask of i3-axis
     !
     INTEGER                  :: ir
     INTEGER                  :: irz
@@ -710,11 +710,11 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE(lauefft_type), INTENT(IN)  :: lauefft0
-    COMPLEX(DP),        INTENT(IN)  :: cl(1:*)    ! Laue-rep., dimension(nrz*ngxy)
-    INTEGER,            INTENT(IN)  :: nrz        ! leading dimension of Z
-    INTEGER,            INTENT(IN)  :: irz_start  ! starting index of Z
-    REAL(DP),           INTENT(OUT) :: cr(1:*)    ! R-space,   dimension(nnr)
-    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask     ! mask of i3-axis
+    COMPLEX(DP),        INTENT(IN)  :: cl(1:*)      ! Laue-rep., dimension(nrz*ngxy)
+    INTEGER,            INTENT(IN)  :: nrz          ! leading dimension of Z
+    INTEGER,            INTENT(IN)  :: irz_start    ! starting index of Z
+    REAL(DP),           INTENT(OUT) :: cr(1:*)      ! R-space,   dimension(nnr)
+    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask(1:*)  ! mask of i3-axis
     !
     INTEGER                  :: ir
     INTEGER                  :: irz
