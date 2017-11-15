@@ -265,7 +265,7 @@ SUBROUTINE chempot_laue_GF_x(rismt, isite, rate, qv, beta, usol)
     usol_ = 0.0_DP
 !$omp parallel do default(shared) private(iz, csr, clr, cr, hr) reduction(+:usol_)
     DO iz = rismt%lfft%izright_gedge, rismt%lfft%nrz
-      csr = rismt%csdgz(iz, isite)
+      csr = rismt%csdg0(iz, isite)
       clr = -beta * qv * DBLE(rismt%vlgz(iz))
       cr  = csr + clr
       hr  = DBLE(rismt%hsgz(iz, isite) + rismt%hlgz(iz, isite))
