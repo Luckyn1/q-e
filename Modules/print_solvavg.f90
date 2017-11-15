@@ -1177,14 +1177,19 @@ CONTAINS
       !
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
-        rhol = rismt%hsgz(:, rismt%mp_site%isite_start + 1) &
-           & + rismt%hlgz(:, rismt%mp_site%isite_start + 1)
+        rhol = rismt%hsgz(:, iq - rismt%mp_site%isite_start + 1) &
+           & + rismt%hlgz(:, iq - rismt%mp_site%isite_start + 1)
         !
-        DO igxy = 1, rismt%ngxy
+        izsta = MAX(rismt%lfft%izleft_gedge  + 1, rismt%lfft%izcell_start)
+        izend = MIN(rismt%lfft%izright_gedge - 1, rismt%lfft%izcell_end  )
+        !
+        IF (rismt%lfft%gxystart > 1) THEN
+          rhol(izsta:izend) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
+        END DO
+        !
+        DO igxy = rismt%lfft%gxystart, rismt%lfft%ngxy
           jgxy  = (igxy - 1) * rismt%nrzl
-          izsta = MAX(rismt%lfft%izleft_end0    + 1, rismt%lfft%izcell_start)
-          izend = MIN(rismt%lfft%izright_start0 - 1, rismt%lfft%izcell_end  )
-          rhol((izsta + jgxy):(izend + jgxy)) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
+          rhol((izsta + jgxy):(izend + jgxy)) = CMPLX(0.0_DP, 0.0_DP, kind=DP)
         END DO
       ELSE
         owner_group_id = 0

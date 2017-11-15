@@ -204,6 +204,9 @@ SUBROUTINE set_lauefft_offset_x(lauefft0, wright, wleft)
       CALL errore(' set_lauefft_offset_x ', ' izright_start > izright_end ', 1)
     END IF
     !
+    ! ... update offset barrier
+    lauefft0%izright_gedge = MAX(lauefft0%izright_gedge, lauefft0%izright_start)
+    !
     ! ... update offset for Gxy = 0
     lauefft0%izright_start0 = MIN(lauefft0%izright_start0, lauefft0%izright_start)
   END IF
@@ -226,6 +229,9 @@ SUBROUTINE set_lauefft_offset_x(lauefft0, wright, wleft)
     IF (lauefft0%izleft_start > lauefft0%izleft_end) THEN
       CALL errore(' set_lauefft_offset_x ', ' izleft_start > izleft_end ', 1)
     END IF
+    !
+    ! ... update offset barrier
+    lauefft0%izleft_gedge = MIN(lauefft0%izleft_gedge, lauefft0%izleft_end)
     !
     ! ... update offset for Gxy = 0
     lauefft0%izleft_end0 = MAX(lauefft0%izleft_end0, lauefft0%izleft_end)
