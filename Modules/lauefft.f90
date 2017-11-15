@@ -606,7 +606,7 @@ CONTAINS
   END SUBROUTINE inv_lauefft_1z_exp
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE fw_lauefft_2xy(lauefft0, cr, cl, nrz, irz_start)
+  SUBROUTINE fw_lauefft_2xy(lauefft0, cr, cl, nrz, irz_start, i3mask)
     !--------------------------------------------------------------------------
     !
     ! ... FFT X,Y,Z -> Gx,Gy,Z
@@ -618,6 +618,7 @@ CONTAINS
     COMPLEX(DP),        INTENT(OUT) :: cl(1:*)    ! Laue-rep., dimension(nrz*ngxy)
     INTEGER,            INTENT(IN)  :: nrz        ! leading dimension of Z
     INTEGER,            INTENT(IN)  :: irz_start  ! starting index of Z
+    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask     ! mask of i3-axis
     !
     INTEGER                  :: ir
     INTEGER                  :: irz
@@ -630,7 +631,9 @@ CONTAINS
     INTEGER                  :: n1, nx1
     INTEGER                  :: n2, nx2
     INTEGER                  :: n3, nx3
+    INTEGER                  :: i3min, i3max
     INTEGER                  :: planes(lauefft0%dfft%nr1x)
+    LOGICAL                  :: do_fft
     COMPLEX(DP), ALLOCATABLE :: cinp(:)
     COMPLEX(DP), ALLOCATABLE :: cout(:)
     !
@@ -652,9 +655,19 @@ CONTAINS
     !
     me_p = lauefft0%dfft%mype + 1
     !
-    planes = lauefft0%dfft%iplp
+    do_fft = .TRUE.
     !
-    CALL cft_2xy(cinp, lauefft0%dfft%npp(me_p), n1, n2, nx1, nx2, -1, planes)
+    IF (PRESENT(i3mask)) THEN
+      i3min = lauefft0%dfft%ipp(me_p + 1)
+      i3max = lauefft0%dfft%npp(me_p + 1) + i3min
+      !
+      do_fft = .NOT. ALL(mask((i3min + 1):i3max))
+    END IF
+    !
+    IF (do_fft) THEN
+      planes = lauefft0%dfft%iplp
+      CALL cft_2xy(cinp, lauefft0%dfft%npp(me_p), n1, n2, nx1, nx2, -1, planes)
+    END IF
     !
 #if defined (__MPI) && !defined (__USE_3D_FFT)
     CALL fft_scatter(lauefft0%dfft, &
@@ -689,7 +702,7 @@ CONTAINS
   END SUBROUTINE fw_lauefft_2xy
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE inv_lauefft_2xy(lauefft0, cl, nrz, irz_start, cr)
+  SUBROUTINE inv_lauefft_2xy(lauefft0, cl, nrz, irz_start, cr, i3mask)
     !--------------------------------------------------------------------------
     !
     ! ... FFT Gx,Gy,Z -> X,Y,Z
@@ -701,6 +714,7 @@ CONTAINS
     INTEGER,            INTENT(IN)  :: nrz        ! leading dimension of Z
     INTEGER,            INTENT(IN)  :: irz_start  ! starting index of Z
     REAL(DP),           INTENT(OUT) :: cr(1:*)    ! R-space,   dimension(nnr)
+    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask     ! mask of i3-axis
     !
     INTEGER                  :: ir
     INTEGER                  :: irz
@@ -713,7 +727,9 @@ CONTAINS
     INTEGER                  :: n1, nx1
     INTEGER                  :: n2, nx2
     INTEGER                  :: n3, nx3
+    INTEGER                  :: i3min, i3max
     INTEGER                  :: planes(lauefft0%dfft%nr1x)
+    LOGICAL                  :: do_fft
     COMPLEX(DP), ALLOCATABLE :: cinp(:)
     COMPLEX(DP), ALLOCATABLE :: cout(:)
     !
@@ -764,10 +780,6 @@ CONTAINS
       END DO
     END IF
     !
-    me_p = lauefft0%dfft%mype + 1
-    !
-    planes = lauefft0%dfft%iplp
-    !
 #if defined (__MPI) && !defined (__USE_3D_FFT)
     CALL fft_scatter(lauefft0%dfft, &
     & cinp, nx3, lauefft0%dfft%nnr, cout, lauefft0%dfft%nsp, lauefft0%dfft%npp, +1)
@@ -775,7 +787,21 @@ CONTAINS
     cout = cinp
 #endif
     !
-    CALL cft_2xy(cout, lauefft0%dfft%npp(me_p), n1, n2, nx1, nx2, +1, planes)
+    me_p = lauefft0%dfft%mype + 1
+    !
+    do_fft = .TRUE.
+    !
+    IF (PRESENT(i3mask)) THEN
+      i3min = lauefft0%dfft%ipp(me_p + 1)
+      i3max = lauefft0%dfft%npp(me_p + 1) + i3min
+      !
+      do_fft = .NOT. ALL(mask((i3min + 1):i3max))
+    END IF
+    !
+    IF (do_fft) THEN
+      planes = lauefft0%dfft%iplp
+      CALL cft_2xy(cout, lauefft0%dfft%npp(me_p), n1, n2, nx1, nx2, +1, planes)
+    END IF
     !
 !$omp parallel do default(shared) private(ir)
     DO ir = 1, lauefft0%dfft%nnr
