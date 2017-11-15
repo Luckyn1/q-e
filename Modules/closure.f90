@@ -39,7 +39,9 @@ SUBROUTINE closure(rismt, ierr)
   !
   mr = rismt%nr * rismt%nsite
   !
-  IF (rismt%itype == ITYPE_LAUERISM) THEN
+  IF (rismt%itype /= ITYPE_LAUERISM) THEN
+    lr = 0
+  ELSE
     lr = rismt%nrzl * rismt%nsite
   END IF
   !

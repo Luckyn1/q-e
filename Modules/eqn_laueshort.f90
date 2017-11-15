@@ -22,9 +22,9 @@ SUBROUTINE eqn_laueshort(rismt, lboth, lgxy0, ierr)
   ! ... this subroutine will be performed when RISM's equation will be converged.
   ! ...
   !
-  USE err_rism,  ONLY : IERR_RISM_NULL
-  USE kinds,     ONLY : DP
-  USE rism,      ONLY : rism_type
+  USE err_rism, ONLY : IERR_RISM_NULL
+  USE kinds,    ONLY : DP
+  USE rism,     ONLY : rism_type
   !
   IMPLICIT NONE
   !
