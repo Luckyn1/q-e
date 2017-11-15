@@ -112,11 +112,11 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
     !
     IF (rismt%lfft%gxystart > 1) THEN
       voppo = DBLE(rismt%vleft(1)) / alat
-      vsign = -1.0_DP
     ELSE
       voppo = 0.0_DP
-      vsign = 0.0_DP
     END IF
+    !
+    vsign = -1.0_DP
     !
   ELSE !IF (rismt%lfft%xleft) THEN
     IF (expand) THEN
@@ -132,11 +132,11 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
     !
     IF (rismt%lfft%gxystart > 1) THEN
       voppo = DBLE(rismt%vright(1)) / alat
-      vsign = +1.0_DP
     ELSE
       voppo = 0.0_DP
-      vsign = 0.0_DP
     END IF
+    !
+    vsign = +1.0_DP
   END IF
   !
   ! ... count integral points along Z
