@@ -17,10 +17,10 @@ SUBROUTINE corrgxy0_laue(rismt, lextract, ar, ag0, ierr)
   ! ...   lextract: if .TRUE.  extract Gxy=0 terms of correlations
   ! ...             if .FALSE. sum A(r) + A(gxy=0,z)
   !
-  USE err_rism,  ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
-  USE kinds,     ONLY : DP
-  USE mp,        ONLY : mp_sum
-  USE rism,      ONLY : rism_type, ITYPE_LAUERISM
+  USE err_rism, ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
+  USE kinds,    ONLY : DP
+  USE mp,       ONLY : mp_sum
+  USE rism,     ONLY : rism_type, ITYPE_LAUERISM
   !
   IMPLICIT NONE
   !
@@ -49,12 +49,12 @@ SUBROUTINE corrgxy0_laue(rismt, lextract, ar, ag0, ierr)
   IF (lextract) THEN
     !
     ! ... extract Gxy=0 terms
-    CALL extract_gxy0()
+    CALL extract_gxy0(ar, ag0)
     !
   ELSE
     !
     ! ... sum A(r) + A(gxy=0,z)
-    CALL sum_gxy0()
+    CALL sum_gxy0(ar, ag0)
     !
   END IF
   !
@@ -63,8 +63,11 @@ SUBROUTINE corrgxy0_laue(rismt, lextract, ar, ag0, ierr)
   !
 CONTAINS
   !
-  SUBROUTINE extract_gxy0()
+  SUBROUTINE extract_gxy0(ar, ag0)
     IMPLICIT NONE
+    REAL(DP), INTENT(IN)  :: ar(:, :)
+    REAL(DP), INTENT(OUT) :: ag0(:, :)
+    !
     INTEGER               :: ir
     INTEGER               :: idx
     INTEGER               :: idx0
@@ -158,8 +161,11 @@ CONTAINS
     !
   END SUBROUTINE extract_gxy0
   !
-  SUBROUTINE sum_gxy0()
+  SUBROUTINE sum_gxy0(ar, ag0)
     IMPLICIT NONE
+    REAL(DP), INTENT(INOUT) :: ar(:, :)
+    REAL(DP), INTENT(IN)    :: ag0(:, :)
+    !
     INTEGER :: ir
     INTEGER :: idx
     INTEGER :: idx0
