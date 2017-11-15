@@ -337,17 +337,17 @@ SUBROUTINE set_lauefft_gxy0domain_x(lauefft0, wright1, wright2, wleft1, wleft2)
   END IF
   !
   ! ... set offset of right
-  nright1 = 0
-  IF (wright1 /= 0.0_DP) THEN
-    nright1 = NINT(wright1 / lauefft0%zstep)
-  END IF
-  !
-  nright2 = 0
-  IF (wright2 /= 0.0_DP) THEN
-    nright2 = NINT(wright2 / lauefft0%zstep)
-  END IF
-  !
   IF (lauefft0%xright) THEN
+    nright1 = 0
+    IF (wright1 /= 0.0_DP) THEN
+      nright1 = NINT(wright1 / lauefft0%zstep)
+    END IF
+    !
+    nright2 = 0
+    IF (wright2 /= 0.0_DP) THEN
+      nright2 = NINT(wright2 / lauefft0%zstep)
+    END IF
+    !
     lauefft0%izright_start0 = MAX(lauefft0%izright_start - nright1, lauefft0%izcell_start)
     lauefft0%izright_end0   = MIN(lauefft0%izright_end   + nright2, lauefft0%nrz)
     !
@@ -360,17 +360,17 @@ SUBROUTINE set_lauefft_gxy0domain_x(lauefft0, wright1, wright2, wleft1, wleft2)
   END IF
   !
   ! ... set offset of left
-  nleft1 = 0
-  IF (wleft1 /= 0.0_DP) THEN
-    nleft1 = NINT(wleft1 / lauefft0%zstep)
-  END IF
-  !
-  nleft2 = 0
-  IF (wleft2 /= 0.0_DP) THEN
-    nleft2 = NINT(wleft2 / lauefft0%zstep)
-  END IF
-  !
   IF (lauefft0%xleft) THEN
+    nleft1 = 0
+    IF (wleft1 /= 0.0_DP) THEN
+      nleft1 = NINT(wleft1 / lauefft0%zstep)
+    END IF
+    !
+    nleft2 = 0
+    IF (wleft2 /= 0.0_DP) THEN
+      nleft2 = NINT(wleft2 / lauefft0%zstep)
+    END IF
+    !
     lauefft0%izleft_start0 = MAX(lauefft0%izleft_start - nleft1, 1)
     lauefft0%izleft_end0   = MIN(lauefft0%izleft_end   + nleft2, lauefft0%izcell_end)
     !
