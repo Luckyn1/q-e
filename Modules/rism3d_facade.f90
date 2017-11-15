@@ -60,7 +60,11 @@ MODULE rism3d_facade
   REAL(DP)               :: starting_r     = 0.0_DP   ! starting position of right (in alat, for Laue-RISM)
   REAL(DP)               :: starting_l     = 0.0_DP   ! starting position of left (in alat, for Laue-RISM)
   REAL(DP)               :: buffer_r       = -1.0_DP  ! buffering length of right (in alat, for Laue-RISM)
+  REAL(DP)               :: buffer_ru      = -1.0_DP  ! additional buffer of right-solute (in alat, for Laue-RISM)
+  REAL(DP)               :: buffer_rv      = -1.0_DP  ! additional buffer of right-solvent (in alat, for Laue-RISM)
   REAL(DP)               :: buffer_l       = -1.0_DP  ! buffering length of left (in alat, for Laue-RISM)
+  REAL(DP)               :: buffer_lu      = -1.0_DP  ! additional buffer of left-solute (in alat, for Laue-RISM)
+  REAL(DP)               :: buffer_lv      = -1.0_DP  ! additional buffer of left-solvent (in alat, for Laue-RISM)
   LOGICAL                :: both_hands     = .FALSE.  ! apply both-hands calculation, or not (for Laue-RISM)
   INTEGER                :: ireference     = 0        ! reference type of potential (for Laue-RISM)
   !
@@ -91,7 +95,11 @@ MODULE rism3d_facade
   PUBLIC :: starting_r
   PUBLIC :: starting_l
   PUBLIC :: buffer_r
+  PUBLIC :: buffer_ru
+  PUBLIC :: buffer_rv
   PUBLIC :: buffer_l
+  PUBLIC :: buffer_lu
+  PUBLIC :: buffer_lv
   PUBLIC :: both_hands
   PUBLIC :: ireference
   !

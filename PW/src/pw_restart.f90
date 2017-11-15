@@ -163,9 +163,9 @@ MODULE pw_restart
       USE tsvdw_module,         ONLY : vdw_isolated
       USE solvmol,              ONLY : nsolV, solVs
       USE rism3d_facade,        ONLY : lrism3d, ecutsolv, qsol, laue_nfit, expand_r, expand_l, &
-                                       starting_r, starting_l, buffer_r, buffer_l, both_hands, &
+                                       starting_r, starting_l, buffer_r, buffer_ru, buffer_rv, &
+                                       buffer_l, buffer_lu, buffer_lv, both_hands, &
                                        ireference, rism3d_is_laue, rism3d_write_to_restart
-
       !
       IMPLICIT NONE
       !
@@ -499,9 +499,9 @@ MODULE pw_restart
          !
          CALL qexml_write_3drism( lrism3d, ecutsolv/e2, 'Hartree', &
                                   rism3d_is_laue(), qsol, laue_nfit, &
-                                  starting_r, expand_r, buffer_r, &
-                                  starting_l, expand_l, buffer_l, 'alat', &
-                                  both_hands, ireference, &
+                                  starting_r, expand_r, buffer_r, buffer_ru, buffer_rv, &
+                                  starting_l, expand_l, buffer_l, buffer_lu, buffer_lv, &
+                                  'alat', both_hands, ireference, &
                                   nsolV, molfile, pseudo_dir, solvrho1, solvrho2, 'Bohr^-3', &
                                   dirname, l3drism_binary )
          !
@@ -1323,7 +1323,7 @@ MODULE pw_restart
       USE solvmol,          ONLY : nsolV
       USE rism3d_facade,    ONLY : lrism3d, ecutsolv, laue_nfit, &
                                    expand_r, expand_l, starting_r, starting_l, &
-                                   buffer_r, buffer_l, both_hands, rism3d_set_laue
+                                   both_hands, rism3d_set_laue
       USE mp_pools,         ONLY : kunit
       USE mp_global,        ONLY : nproc_file, nproc_pool_file, &
                                    nproc_image_file, ntask_groups_file, &
@@ -1410,8 +1410,6 @@ MODULE pw_restart
             expand_l   = -1.0_DP
             starting_r = 0.0_DP
             starting_l = 0.0_DP
-            buffer_r   = -1.0_DP
-            buffer_l   = -1.0_DP
             both_hands = .FALSE.
          ENDIF
          !
@@ -1469,8 +1467,6 @@ MODULE pw_restart
       CALL mp_bcast( expand_l,   ionode_id, intra_image_comm )
       CALL mp_bcast( starting_r, ionode_id, intra_image_comm )
       CALL mp_bcast( starting_l, ionode_id, intra_image_comm )
-      CALL mp_bcast( buffer_r,   ionode_id, intra_image_comm )
-      CALL mp_bcast( buffer_l,   ionode_id, intra_image_comm )
       CALL mp_bcast( both_hands, ionode_id, intra_image_comm )
       CALL mp_bcast( nsolV,      ionode_id, intra_image_comm )
       CALL mp_bcast( kunit,      ionode_id, intra_image_comm )
@@ -2886,8 +2882,9 @@ MODULE pw_restart
       !
       USE solvmol,       ONLY : nsolV, solVs
       USE rism3d_facade, ONLY : lrism3d, ecutsolv, qsol, laue_nfit, expand_r, expand_l, &
-                                starting_r, starting_l, buffer_r, buffer_l, &
-                                both_hands, ireference, rism3d_set_laue
+                                starting_r, starting_l, buffer_r, buffer_ru, buffer_rv, &
+                                buffer_l, buffer_lu, buffer_lv, both_hands, ireference, &
+                                rism3d_set_laue
       USE io_files,      ONLY : molfile, pseudo_dir, pseudo_dir_cur
       !
       IMPLICIT NONE
@@ -2924,10 +2921,12 @@ MODULE pw_restart
          !
          CALL qexml_read_3drism( LRISM3D=lrism3d, ECUTSOLV=ecutsolv, &
                                  LAUE=lauerism, LAUE_CHARGE=qsol, LAUE_NFIT=laue_nfit, &
-                                 LAUE_RIGHT_START=starting_r, &
-                                 LAUE_RIGHT_EXPAND=expand_r, LAUE_RIGHT_BUFFER=buffer_r, &
-                                 LAUE_LEFT_START=starting_l, &
-                                 LAUE_LEFT_EXPAND=expand_l, LAUE_LEFT_BUFFER=buffer_l, &
+                                 LAUE_RIGHT_START=starting_r, LAUE_RIGHT_EXPAND=expand_r, &
+                                 LAUE_RIGHT_BUFFER=buffer_r, &
+                                 LAUE_RIGHT_BUFFER_U=buffer_ru, LAUE_RIGHT_BUFFER_V=buffer_rv, &
+                                 LAUE_LEFT_START=starting_l, LAUE_LEFT_EXPAND=expand_l, &
+                                 LAUE_LEFT_BUFFER=buffer_l, &
+                                 LAUE_LEFT_BUFFER_U=buffer_lu, LAUE_RIGHT_LEFT_V=buffer_lv, &
                                  LAUE_BOTH_HANDS=both_hands, LAUE_POT_REF=ireference, &
                                  NMOL=nsolV, MOLFILE=molfile, MOLEC_DIR=molec_dir, &
                                  DENS1=solvrho1, DENS2=solvrho2, FOUND=found, IERR=ierr )
@@ -2952,7 +2951,11 @@ MODULE pw_restart
             starting_r = 0.0_DP
             starting_l = 0.0_DP
             buffer_r   = -1.0_DP
+            buffer_ru  = -1.0_DP
+            buffer_rv  = -1.0_DP
             buffer_l   = -1.0_DP
+            buffer_lu  = -1.0_DP
+            buffer_lv  = -1.0_DP
             both_hands = .FALSE.
             ireference = 0
          END IF
@@ -2970,7 +2973,11 @@ MODULE pw_restart
       CALL mp_bcast( starting_r, ionode_id, intra_image_comm )
       CALL mp_bcast( starting_l, ionode_id, intra_image_comm )
       CALL mp_bcast( buffer_r,   ionode_id, intra_image_comm )
+      CALL mp_bcast( buffer_ru,  ionode_id, intra_image_comm )
+      CALL mp_bcast( buffer_rv,  ionode_id, intra_image_comm )
       CALL mp_bcast( buffer_l,   ionode_id, intra_image_comm )
+      CALL mp_bcast( buffer_lu,  ionode_id, intra_image_comm )
+      CALL mp_bcast( buffer_lv,  ionode_id, intra_image_comm )
       CALL mp_bcast( both_hands, ionode_id, intra_image_comm )
       CALL mp_bcast( ireference, ionode_id, intra_image_comm )
       CALL mp_bcast( nsolV,      ionode_id, intra_image_comm )

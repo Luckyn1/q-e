@@ -750,66 +750,70 @@ MODULE read_namelists_module
        CHARACTER(LEN=2) :: prog   ! ... specify the calling program
        !
        !
-       nsolv           = 0
+       nsolv                  = 0
        !
        ! ... ( 'hnc' | 'kh' )
        !
-       closure         = 'kh'
-       tempv           = 300.0_DP
-       permittivity    = 0.0_DP
-       ecutsolv        = 0.0_DP
+       closure                = 'kh'
+       tempv                  = 300.0_DP
+       permittivity           = 0.0_DP
+       ecutsolv               = 0.0_DP
        !
        ! ... ( 'none' | 'uff' | 'clayff' | 'opls-aa' )
        !
-       solute_lj       = 'uff'
-       solute_epsilon  = -1.0_DP
-       solute_sigma    = -1.0_DP
-       rmax_lj         = 5.0_DP
-       rmax1d          = 1000.0_DP
+       solute_lj              = 'uff'
+       solute_epsilon         = -1.0_DP
+       solute_sigma           = -1.0_DP
+       rmax_lj                = 5.0_DP
+       rmax1d                 = 1000.0_DP
        !
        ! ... ( 'zero' | 'file' | 'fix' )
        !
-       starting1d      = 'zero'
+       starting1d             = 'zero'
        !
        ! ... ( 'zero' | 'file' )
        !
-       starting3d      = 'zero'
-       smear1d               = 2.0_DP
-       smear3d               = 2.0_DP
-       rism1d_maxstep        = 50000
-       rism3d_maxstep        = 5000
-       rism1d_conv_thr       = 1.0E-8_DP
-       rism3d_conv_thr       = -1.0_DP  ! will initialize at iosys_3drism
-       mdiis1d_size          = 20
-       mdiis3d_size          = 10
-       mdiis1d_step          = -1.0_DP  ! will initialize at iosys_1drism
-       mdiis3d_step          = -1.0_DP  ! will initialize at iosys_3drism
-       rism1d_bond_width     = 0.0_DP
-       rism1d_nproc          = 128
-       rism1d_nproc_switch   = 16
-       rism3d_conv_level     = -1.0_DP  ! will initialize at iosys_3drism
-       rism3d_planar_average = .FALSE.
-       laue_nfit             = 4
-       laue_expand_right     = -1.0_DP
-       laue_expand_left      = -1.0_DP
-       laue_starting_right   = 0.0_DP
-       laue_starting_left    = 0.0_DP
-       laue_buffer_right     = -1.0_DP  ! will initialize at iosys_3drism
-       laue_buffer_left      = -1.0_DP  ! will initialize at iosys_3drism
-       laue_both_hands       = .FALSE.
+       starting3d             = 'zero'
+       smear1d                = 2.0_DP
+       smear3d                = 2.0_DP
+       rism1d_maxstep         = 50000
+       rism3d_maxstep         = 5000
+       rism1d_conv_thr        = 1.0E-8_DP
+       rism3d_conv_thr        = -1.0_DP  ! will initialize at iosys_3drism
+       mdiis1d_size           = 20
+       mdiis3d_size           = 10
+       mdiis1d_step           = -1.0_DP  ! will initialize at iosys_1drism
+       mdiis3d_step           = -1.0_DP  ! will initialize at iosys_3drism
+       rism1d_bond_width      = 0.0_DP
+       rism1d_nproc           = 128
+       rism1d_nproc_switch    = 16
+       rism3d_conv_level      = -1.0_DP  ! will initialize at iosys_3drism
+       rism3d_planar_average  = .FALSE.
+       laue_nfit              = 4
+       laue_expand_right      = -1.0_DP
+       laue_expand_left       = -1.0_DP
+       laue_starting_right    = 0.0_DP
+       laue_starting_left     = 0.0_DP
+       laue_buffer_right      = -1.0_DP  ! will initialize at iosys_3drism
+       laue_buffer_right_solu = -1.0_DP  ! will initialize at iosys_3drism
+       laue_buffer_right_solv = -1.0_DP  ! will initialize at iosys_3drism
+       laue_buffer_left       = -1.0_DP  ! will initialize at iosys_3drism
+       laue_buffer_left_solu  = -1.0_DP  ! will initialize at iosys_3drism
+       laue_buffer_left_solv  = -1.0_DP  ! will initialize at iosys_3drism
+       laue_both_hands        = .FALSE.
        !
        ! ... ( 'none' | 'average' | 'right' | 'left' )
        !
-       laue_reference        = 'none'   ! will initialize at iosys_3drism
+       laue_reference         = 'none'   ! will initialize at iosys_3drism
        !
        ! ... ( 'none' | 'auto' | 'manual' )
        !
-       laue_wall             = 'auto'
-       laue_wall_z           = 0.0_DP
-       laue_wall_rho         = 0.01_DP
-       laue_wall_epsilon     = 0.1_DP
-       laue_wall_sigma       = 4.0_DP
-       laue_wall_lj6         = .FALSE.
+       laue_wall              = 'auto'
+       laue_wall_z            = 0.0_DP
+       laue_wall_rho          = 0.01_DP
+       laue_wall_epsilon      = 0.1_DP
+       laue_wall_sigma        = 4.0_DP
+       laue_wall_lj6          = .FALSE.
        !
        RETURN
        !
@@ -1441,48 +1445,52 @@ MODULE read_namelists_module
        !
        IMPLICIT NONE
        !
-       CALL mp_bcast( nsolv,                 ionode_id, intra_image_comm )
-       CALL mp_bcast( closure,               ionode_id, intra_image_comm )
-       CALL mp_bcast( tempv,                 ionode_id, intra_image_comm )
-       CALL mp_bcast( permittivity,          ionode_id, intra_image_comm )
-       CALL mp_bcast( ecutsolv,              ionode_id, intra_image_comm )
-       CALL mp_bcast( solute_lj,             ionode_id, intra_image_comm )
-       CALL mp_bcast( solute_epsilon,        ionode_id, intra_image_comm )
-       CALL mp_bcast( solute_sigma,          ionode_id, intra_image_comm )
-       CALL mp_bcast( rmax_lj,               ionode_id, intra_image_comm )
-       CALL mp_bcast( rmax1d,                ionode_id, intra_image_comm )
-       CALL mp_bcast( starting1d,            ionode_id, intra_image_comm )
-       CALL mp_bcast( starting3d,            ionode_id, intra_image_comm )
-       CALL mp_bcast( smear1d,               ionode_id, intra_image_comm )
-       CALL mp_bcast( smear3d,               ionode_id, intra_image_comm )
-       CALL mp_bcast( rism1d_maxstep,        ionode_id, intra_image_comm )
-       CALL mp_bcast( rism3d_maxstep,        ionode_id, intra_image_comm )
-       CALL mp_bcast( rism1d_conv_thr,       ionode_id, intra_image_comm )
-       CALL mp_bcast( rism3d_conv_thr,       ionode_id, intra_image_comm )
-       CALL mp_bcast( mdiis1d_size,          ionode_id, intra_image_comm )
-       CALL mp_bcast( mdiis3d_size,          ionode_id, intra_image_comm )
-       CALL mp_bcast( mdiis1d_step,          ionode_id, intra_image_comm )
-       CALL mp_bcast( mdiis3d_step,          ionode_id, intra_image_comm )
-       CALL mp_bcast( rism1d_bond_width,     ionode_id, intra_image_comm )
-       CALL mp_bcast( rism1d_nproc,          ionode_id, intra_image_comm )
-       CALL mp_bcast( rism1d_nproc_switch,   ionode_id, intra_image_comm )
-       CALL mp_bcast( rism3d_conv_level,     ionode_id, intra_image_comm )
-       CALL mp_bcast( rism3d_planar_average, ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_nfit,             ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_expand_right,     ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_expand_left,      ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_starting_right,   ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_starting_left,    ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_buffer_right,     ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_buffer_left,      ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_both_hands,       ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_reference,        ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_wall,             ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_wall_z,           ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_wall_rho,         ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_wall_epsilon,     ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_wall_sigma,       ionode_id, intra_image_comm )
-       CALL mp_bcast( laue_wall_lj6,         ionode_id, intra_image_comm )
+       CALL mp_bcast( nsolv,                  ionode_id, intra_image_comm )
+       CALL mp_bcast( closure,                ionode_id, intra_image_comm )
+       CALL mp_bcast( tempv,                  ionode_id, intra_image_comm )
+       CALL mp_bcast( permittivity,           ionode_id, intra_image_comm )
+       CALL mp_bcast( ecutsolv,               ionode_id, intra_image_comm )
+       CALL mp_bcast( solute_lj,              ionode_id, intra_image_comm )
+       CALL mp_bcast( solute_epsilon,         ionode_id, intra_image_comm )
+       CALL mp_bcast( solute_sigma,           ionode_id, intra_image_comm )
+       CALL mp_bcast( rmax_lj,                ionode_id, intra_image_comm )
+       CALL mp_bcast( rmax1d,                 ionode_id, intra_image_comm )
+       CALL mp_bcast( starting1d,             ionode_id, intra_image_comm )
+       CALL mp_bcast( starting3d,             ionode_id, intra_image_comm )
+       CALL mp_bcast( smear1d,                ionode_id, intra_image_comm )
+       CALL mp_bcast( smear3d,                ionode_id, intra_image_comm )
+       CALL mp_bcast( rism1d_maxstep,         ionode_id, intra_image_comm )
+       CALL mp_bcast( rism3d_maxstep,         ionode_id, intra_image_comm )
+       CALL mp_bcast( rism1d_conv_thr,        ionode_id, intra_image_comm )
+       CALL mp_bcast( rism3d_conv_thr,        ionode_id, intra_image_comm )
+       CALL mp_bcast( mdiis1d_size,           ionode_id, intra_image_comm )
+       CALL mp_bcast( mdiis3d_size,           ionode_id, intra_image_comm )
+       CALL mp_bcast( mdiis1d_step,           ionode_id, intra_image_comm )
+       CALL mp_bcast( mdiis3d_step,           ionode_id, intra_image_comm )
+       CALL mp_bcast( rism1d_bond_width,      ionode_id, intra_image_comm )
+       CALL mp_bcast( rism1d_nproc,           ionode_id, intra_image_comm )
+       CALL mp_bcast( rism1d_nproc_switch,    ionode_id, intra_image_comm )
+       CALL mp_bcast( rism3d_conv_level,      ionode_id, intra_image_comm )
+       CALL mp_bcast( rism3d_planar_average,  ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_nfit,              ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_expand_right,      ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_expand_left,       ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_starting_right,    ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_starting_left,     ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_buffer_right,      ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_buffer_right_solu, ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_buffer_right_solv, ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_buffer_left,       ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_buffer_left_solu,  ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_buffer_left_solv,  ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_both_hands,        ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_reference,         ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_wall,              ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_wall_z,            ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_wall_rho,          ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_wall_epsilon,      ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_wall_sigma,        ionode_id, intra_image_comm )
+       CALL mp_bcast( laue_wall_lj6,          ionode_id, intra_image_comm )
        !
        RETURN
        !

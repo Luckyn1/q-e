@@ -23,7 +23,8 @@ SUBROUTINE iosys_3drism(laue, linit)
   USE rism3d_facade,    ONLY : starting_corr, niter, epsv, starting_epsv, mdiis_size, mdiis_step, &
                              & ecutsolv_ => ecutsolv, rism3t, rism3d_initialize, &
                              & conv_level, planar_average, laue_nfit_ => laue_nfit, &
-                             & expand_r, expand_l, starting_r, starting_l, buffer_r, buffer_l, &
+                             & expand_r, expand_l, starting_r, starting_l, &
+                             & buffer_r, buffer_ru, buffer_rv, buffer_l, buffer_lu, buffer_lv, &
                              & both_hands, ireference, IREFERENCE_NULL, IREFERENCE_AVERAGE, &
                              & IREFERENCE_RIGHT, IREFERENCE_LEFT
   USE solute,           ONLY : rmax_lj_ => rmax_lj, allocate_solU, set_solU_LJ_param, &
@@ -46,7 +47,8 @@ SUBROUTINE iosys_3drism(laue, linit)
                                rism3d_conv_level, rism3d_planar_average, &
                                laue_nfit, laue_expand_right, laue_expand_left, &
                                laue_starting_right, laue_starting_left, &
-                               laue_buffer_right, laue_buffer_left, &
+                               laue_buffer_right, laue_buffer_right_solu, laue_buffer_right_solv, &
+                               laue_buffer_left, laue_buffer_left_solu, laue_buffer_left_solv, &
                                laue_both_hands, laue_reference, &
                                laue_wall, laue_wall_z, laue_wall_rho, &
                                laue_wall_epsilon, laue_wall_sigma, laue_wall_lj6
@@ -67,6 +69,8 @@ SUBROUTINE iosys_3drism(laue, linit)
   REAL(DP), PARAMETER :: CONV_LEVEL_NORMAL = 0.1_DP
   REAL(DP), PARAMETER :: CONV_LEVEL_GCSCF  = 0.3_DP
   REAL(DP), PARAMETER :: BUFFER_DEF        = 8.0_DP
+  REAL(DP), PARAMETER :: BUFFER_SOLU_DEF   = 24.0_DP
+  REAL(DP), PARAMETER :: BUFFER_SOLV_DEF   = 0.5_DP
   REAL(DP), PARAMETER :: WALL_THR          = 1.0E-10_DP
   !
   ! ... check starting condition.
@@ -152,11 +156,15 @@ SUBROUTINE iosys_3drism(laue, linit)
       ! NOP
     ELSE IF (laue_expand_right > 0.0_DP) THEN
       IF (laue_buffer_right < 0.0_DP) THEN
-        laue_buffer_right = BUFFER_DEF
+        laue_buffer_right      = BUFFER_DEF
+        laue_buffer_right_solu = BUFFER_SOLU_DEF
+        laue_buffer_right_solv = BUFFER_SOLV_DEF * laue_expand_right
       END IF
     ELSE IF (laue_expand_left > 0.0_DP) THEN
       IF (laue_buffer_left < 0.0_DP) THEN
-        laue_buffer_left = BUFFER_DEF
+        laue_buffer_left      = BUFFER_DEF
+        laue_buffer_left_solu = BUFFER_SOLU_DEF
+        laue_buffer_left_solv = BUFFER_SOLV_DEF * laue_expand_left
       END IF
     END IF
   END IF
@@ -184,7 +192,11 @@ SUBROUTINE iosys_3drism(laue, linit)
   starting_r     = laue_starting_right
   starting_l     = laue_starting_left
   buffer_r       = laue_buffer_right
+  buffer_ru      = laue_buffer_right_solu
+  buffer_rv      = laue_buffer_right_solv
   buffer_l       = laue_buffer_left
+  buffer_lu      = laue_buffer_left_solu
+  buffer_lv      = laue_buffer_left_solv
   both_hands     = laue_both_hands
   rmax_lj_       = rmax_lj
   !
@@ -219,8 +231,24 @@ SUBROUTINE iosys_3drism(laue, linit)
     buffer_r = buffer_r / alat
   END IF
   !
+  IF (buffer_ru > 0.0_DP) THEN
+    buffer_ru = buffer_ru / alat
+  END IF
+  !
+  IF (buffer_rv > 0.0_DP) THEN
+    buffer_rv = buffer_rv / alat
+  END IF
+  !
   IF (buffer_l > 0.0_DP) THEN
     buffer_l = buffer_l / alat
+  END IF
+  !
+  IF (buffer_lu > 0.0_DP) THEN
+    buffer_lu = buffer_lu / alat
+  END IF
+  !
+  IF (buffer_lv > 0.0_DP) THEN
+    buffer_lv = buffer_lv / alat
   END IF
   !
   ! ... initialize solute

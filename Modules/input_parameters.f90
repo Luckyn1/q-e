@@ -1584,8 +1584,24 @@ MODULE input_parameters
         REAL(DP) :: laue_buffer_right = -1.0_DP
           ! buffering length on right-hand side in Laue-RISM calculation (in bohr)
 
+        REAL(DP) :: laue_buffer_right_solu = -1.0_DP
+          ! additional buffering length on right-hand side
+          ! of solute-ward in Laue-RISM calculation (in bohr)
+
+        REAL(DP) :: laue_buffer_right_solv = -1.0_DP
+          ! additional buffering length on right-hand side
+          ! of solvent-ward in Laue-RISM calculation (in bohr)
+
         REAL(DP) :: laue_buffer_left = -1.0_DP
           ! buffering length on left-hand side in Laue-RISM calculation (in bohr)
+
+        REAL(DP) :: laue_buffer_left_solu = -1.0_DP
+          ! additional buffering length on left-hand side
+          ! of solute-ward in Laue-RISM calculation (in bohr)
+
+        REAL(DP) :: laue_buffer_left_solv = -1.0_DP
+          ! additional buffering length on left-hand side
+          ! of solvent-ward in Laue-RISM calculation (in bohr)
 
         LOGICAL :: laue_both_hands = .FALSE.
           ! use both-hands method in Laue-RISM calculation, or not
@@ -1637,9 +1653,10 @@ MODULE input_parameters
                           rism3d_conv_level, rism3d_planar_average, &
                           laue_nfit, laue_expand_right, laue_expand_left, &
                           laue_starting_right, laue_starting_left, &
-                          laue_buffer_right, laue_buffer_left, laue_both_hands, laue_reference, &
-                          laue_wall, laue_wall_z, laue_wall_rho, laue_wall_epsilon, laue_wall_sigma, &
-                          laue_wall_lj6
+                          laue_buffer_right, laue_buffer_right_solu, laue_buffer_right_solv, &
+                          laue_buffer_left, laue_buffer_left_solu, laue_buffer_left_solv, &
+                          laue_both_hands, laue_reference, laue_wall, laue_wall_z, laue_wall_rho, &
+                          laue_wall_epsilon, laue_wall_sigma, laue_wall_lj6
 !  END manual
 ! ----------------------------------------------------------------------
 
