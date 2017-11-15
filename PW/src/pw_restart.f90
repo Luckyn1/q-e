@@ -2926,7 +2926,7 @@ MODULE pw_restart
                                  LAUE_RIGHT_BUFFER_U=buffer_ru, LAUE_RIGHT_BUFFER_V=buffer_rv, &
                                  LAUE_LEFT_START=starting_l, LAUE_LEFT_EXPAND=expand_l, &
                                  LAUE_LEFT_BUFFER=buffer_l, &
-                                 LAUE_LEFT_BUFFER_U=buffer_lu, LAUE_RIGHT_LEFT_V=buffer_lv, &
+                                 LAUE_LEFT_BUFFER_U=buffer_lu, LAUE_LEFT_BUFFER_V=buffer_lv, &
                                  LAUE_BOTH_HANDS=both_hands, LAUE_POT_REF=ireference, &
                                  NMOL=nsolV, MOLFILE=molfile, MOLEC_DIR=molec_dir, &
                                  DENS1=solvrho1, DENS2=solvrho2, FOUND=found, IERR=ierr )
