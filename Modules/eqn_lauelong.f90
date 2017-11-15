@@ -32,22 +32,22 @@ SUBROUTINE eqn_lauelong(rismt, lboth, ierr)
   LOGICAL,         INTENT(IN)    :: lboth  ! both-hands calculation, or not
   INTEGER,         INTENT(OUT)   :: ierr
   !
-  INTEGER                  :: nq
-  INTEGER                  :: iq1
-  INTEGER                  :: iiq1
-  INTEGER                  :: igxy_sta
-  INTEGER                  :: igxy_end
-  INTEGER                  :: igxy_len
-  INTEGER                  :: izright_sta
-  INTEGER                  :: izright_end
-  INTEGER                  :: izleft_sta
-  INTEGER                  :: izleft_end
-  REAL(DP),    ALLOCATABLE :: xz(:)
-  REAL(DP),    ALLOCATABLE :: xgz(:)
-  REAL(DP),    ALLOCATABLE :: xgzt(:,:)
-  REAL(DP),    ALLOCATABLE :: yz(:)
-  REAL(DP),    ALLOCATABLE :: ygz(:)
-  REAL(DP),    ALLOCATABLE :: ygzt(:,:)
+  INTEGER               :: nq
+  INTEGER               :: iq1
+  INTEGER               :: iiq1
+  INTEGER               :: igxy_sta
+  INTEGER               :: igxy_end
+  INTEGER               :: igxy_len
+  INTEGER               :: izright_sta
+  INTEGER               :: izright_end
+  INTEGER               :: izleft_sta
+  INTEGER               :: izleft_end
+  REAL(DP), ALLOCATABLE :: xz(:)
+  REAL(DP), ALLOCATABLE :: xgz(:)
+  REAL(DP), ALLOCATABLE :: xgzt(:,:)
+  REAL(DP), ALLOCATABLE :: yz(:)
+  REAL(DP), ALLOCATABLE :: ygz(:)
+  REAL(DP), ALLOCATABLE :: ygzt(:,:)
   !
   ! ... number of sites in solvents
   nq = get_nuniq_in_solVs()
