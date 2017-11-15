@@ -72,6 +72,7 @@ CONTAINS
     INTEGER               :: i3max
     INTEGER               :: i1, i2, i3
     INTEGER               :: iz
+    INTEGER               :: iiz
     INTEGER               :: isite
     REAL(DP), ALLOCATABLE :: bg0(:,:)
 #if defined(__OPENMP)
