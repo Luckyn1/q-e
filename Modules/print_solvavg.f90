@@ -1228,7 +1228,9 @@ CONTAINS
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
         rhos = rismt%hgz(:, iq - rismt%mp_site%isite_start + 1)
+        rhos(1:rismt%nrzs) = CMPLX(0.0_DP, 0.0_DP, kind=DP)
         ! ... for Gxy = 0
+        rhol = CMPLX(0.0_DP, 0.0_DP, kind=DP)
         rhol(1:rismt%nrzl) = &
         & CMPLX(rismt%hg0(:, iq - rismt%mp_site%isite_start + 1), 0.0_DP, kind=DP)
       ELSE
@@ -1350,7 +1352,9 @@ CONTAINS
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
         rhos = rismt%csgz(:, iq - rismt%mp_site%isite_start + 1)
+        rhos(1:rismt%nrzs) = CMPLX(0.0_DP, 0.0_DP, kind=DP)
         ! ... for Gxy = 0
+        rhol = CMPLX(0.0_DP, 0.0_DP, kind=DP)
         rhol(1:rismt%nrzl) = &
         & CMPLX(rismt%csg0(:, iq - rismt%mp_site%isite_start + 1), 0.0_DP, kind=DP)
       ELSE
@@ -1438,7 +1442,9 @@ CONTAINS
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
         rhos = rismt%csgz(:, iq - rismt%mp_site%isite_start + 1)
+        rhos(1:rismt%nrzs) = CMPLX(0.0_DP, 0.0_DP, kind=DP)
         ! ... for Gxy = 0
+        rhol = CMPLX(0.0_DP, 0.0_DP, kind=DP)
         rhol(1:rismt%nrzl) = &
         & CMPLX(rismt%csdg0(:, iq - rismt%mp_site%isite_start + 1), 0.0_DP, kind=DP)
       ELSE
