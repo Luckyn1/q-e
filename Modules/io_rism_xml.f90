@@ -494,10 +494,10 @@ CONTAINS
       file_base = TRIM(dirname) // '/3d-rism_csuv_0' // TRIM(ext)
       !
       IF (rismt%nsite > 0) THEN
-        CALL read_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite,
+        CALL read_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite, &
                            & rismt%csg0, file_base)
       ELSE
-        CALL read_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite,
+        CALL read_lauegxy0_x(rismt, rismt%nrzl, rismt%nsite, &
                            & rdummy, file_base)
       END IF
       !
