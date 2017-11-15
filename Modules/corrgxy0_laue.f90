@@ -46,7 +46,7 @@ SUBROUTINE corrgxy0_laue(rismt, lextract, ar, ag0, ierr)
     RETURN
   END IF
   !
-  IF (.NOT. lextract) THEN
+  IF (lextract) THEN
     !
     ! ... extract Gxy=0 terms
     CALL extract_gxy0()
