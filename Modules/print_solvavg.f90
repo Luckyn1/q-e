@@ -1083,9 +1083,14 @@ CONTAINS
     !
     INTEGER                  :: nq
     INTEGER                  :: iq
+    INTEGER                  :: iiq
     INTEGER                  :: iv
     INTEGER                  :: isolV
     INTEGER                  :: iatom
+    INTEGER                  :: igxy
+    INTEGER                  :: jgxy
+    INTEGER                  :: izsta
+    INTEGER                  :: izend
     CHARACTER(LEN=LEN_SATOM) :: satom
     INTEGER                  :: owner_group_id
     REAL(DP),    ALLOCATABLE :: rhor(:)
@@ -1173,8 +1178,16 @@ CONTAINS
       !
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
-        rhol = rismt%hsgz(:, iq - rismt%mp_site%isite_start + 1) &
-           & + rismt%hlgz(:, iq - rismt%mp_site%isite_start + 1)
+        iiq  = iq - rismt%mp_site%isite_start + 1
+        !
+        rhol = rismt%hsgz(:, iiq) + rismt%hlgz(:, iiq)
+        !
+        DO igxy = 1, rismt%ngxy
+          jgxy  = (igyx - 1) * rismt%nrzl
+          izsta = MAX(rismt%lfft%izleft_end0    + 1, rismt%lfft%izcell_start)
+          izend = MIN(rismt%lfft%izright_start0 - 1, rismt%lfft%izcell_end  )
+          rhol((izsta + jgxy):(izend + jgxy), iiq) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
+        END DO
       ELSE
         owner_group_id = 0
         rhol = CMPLX(0.0_DP, 0.0_DP, kind=DP)

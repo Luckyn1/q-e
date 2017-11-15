@@ -499,7 +499,7 @@ CONTAINS
         IF (rismt%nsite > 0) THEN
           rismt%csr (ir, :) = 0.0_DP
           rismt%csdr(ir, :) = 0.0_DP
-          rismt%hr  (ir, :) = -1.0_DP
+          rismt%hr  (ir, :) = 0.0_DP
           rismt%gr  (ir, :) = 0.0_DP
           cst       (ir, :) = 0.0_DP
           dcst      (ir, :) = 0.0_DP
