@@ -314,7 +314,7 @@ SUBROUTINE set_lauefft_offset0_x(lauefft0, wright1, wright2, wleft1, wleft2)
     IF (lauefft0%xright) THEN
       lauefft0%izleft_end0 = lauefft0%izcell_start + lauefft0%dfft%nr3 / 2 - 1
     ELSE
-      lauefft0%izleft_end0 = lauefft0%izcell_end0 - lauefft0%dfft%nr3 / 2
+      lauefft0%izleft_end0 = lauefft0%izcell_end - lauefft0%dfft%nr3 / 2
     END IF
     lauefft0%izleft_end0 = lauefft0%izleft_end0 + nleft1
     lauefft0%izleft_end0 = MIN(lauefft0%izleft_end0, lauefft0%izcell_end)
