@@ -532,7 +532,7 @@ CONTAINS
         IF (rismt%nsite > 0) THEN
           rismt%csg0 (iz, :) = 0.0_DP
           rismt%csdg0(iz, :) = 0.0_DP
-          rismt%hg0  (iz, :) = -1.0_DP
+          rismt%hg0  (iz, :) = 0.0_DP
           rismt%gg0  (iz, :) = 0.0_DP
         END IF
         CYCLE

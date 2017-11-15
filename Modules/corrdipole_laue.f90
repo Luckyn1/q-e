@@ -74,7 +74,8 @@ SUBROUTINE corrdipole_laue(rismt, lextract, ierr)
     END IF
     !
     IF (rismt%nr * rismt%nsite > 0) THEN
-      rismt%csdr = rismt%csr
+      rismt%csdr  = rismt%csr
+      rismt%csdg0 = rismt%csg0
     END IF
     !
     ierr = IERR_RISM_NULL
