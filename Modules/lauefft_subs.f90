@@ -116,7 +116,6 @@ SUBROUTINE allocate_lauefft_rz(lauefft0, dzright, dzleft)
     lauefft0%zright = z0 + DBLE(nzright) * hz
     lauefft0%izright_start = lauefft0%izcell_start + lauefft0%dfft%nr3 / 2
     lauefft0%izright_end   = lauefft0%izcell_end
-    lauefft0%izright_gedge = lauefft0%izright_start
     IF (lauefft0%izright_start > lauefft0%izright_end) THEN
       CALL errore(' allocate_lauefft_rz ', ' izright_start > izright_end ', 1)
     END IF
@@ -126,7 +125,6 @@ SUBROUTINE allocate_lauefft_rz(lauefft0, dzright, dzleft)
     lauefft0%zright        = z0
     lauefft0%izright_start = lauefft0%izcell_end + 1
     lauefft0%izright_end   = lauefft0%izcell_end
-    lauefft0%izright_gedge = lauefft0%izright_start
   END IF
   !
   ! ... set properties of left
@@ -139,7 +137,6 @@ SUBROUTINE allocate_lauefft_rz(lauefft0, dzright, dzleft)
     ELSE
       lauefft0%izleft_end = lauefft0%izcell_end - lauefft0%dfft%nr3 / 2
     END IF
-    lauefft0%izleft_gedge = lauefft0%izleft_end
     IF (lauefft0%izleft_start > lauefft0%izleft_end) THEN
       CALL errore(' allocate_lauefft_rz ', ' izleft_start > izleft_end ', 1)
     END IF
@@ -149,13 +146,16 @@ SUBROUTINE allocate_lauefft_rz(lauefft0, dzright, dzleft)
     lauefft0%zleft        = -z0
     lauefft0%izleft_start = lauefft0%izcell_start
     lauefft0%izleft_end   = lauefft0%izcell_start - 1
-    lauefft0%izleft_gedge = lauefft0%izleft_end
   END IF
   !
   ! ... check expanded cell
   IF ((.NOT. lauefft0%xright) .AND. (.NOT. lauefft0%xleft)) THEN
     CALL errore(' allocate_lauefft_rz ', ' expanded cell is not defined ', 1)
   END IF
+  !
+  ! ... set position of barriers
+  lauefft0%izright_gedge = lauefft0%izright_start
+  lauefft0%izleft_gedge  = lauefft0%izleft_end
   !
   ! ... set domain for Gxy = 0
   lauefft0%izright_start0 = lauefft0%izright_start
