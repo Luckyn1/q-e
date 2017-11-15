@@ -217,7 +217,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     !
     IF (ntot * rismt%nsite > 0) THEN
       CALL rms_residual(ngrid * nsite, rismt%ntot * rismt%nsite, &
-                      & dcst, rmscurr, rismt%intra_comm)
+                      & dcst,  rmscurr, rismt%intra_comm)
     ELSE
       CALL rms_residual(ngrid * nsite, rismt%ntot * rismt%nsite, &
                       & dcst_, rmscurr, rismt%intra_comm)
@@ -273,7 +273,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     !
     ! ... MDIIS: dCs(r) -> Cs(r)
     IF (ntot * rismt%nsite > 0) THEN
-      CALL update_by_mdiis(mdiist, cst, dcst, rismt%intra_comm)
+      CALL update_by_mdiis(mdiist, cst,  dcst,  rismt%intra_comm)
     ELSE
       CALL update_by_mdiis(mdiist, cst_, dcst_, rismt%intra_comm)
     END IF

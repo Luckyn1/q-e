@@ -50,6 +50,7 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
   REAL(DP)                 :: rmscurr
   REAL(DP)                 :: rmssave
   INTEGER                  :: rmswarn
+  REAL(DP),    ALLOCATABLE :: csr (:,:)
   REAL(DP),    ALLOCATABLE :: dcsr(:,:)
   COMPLEX(DP), ALLOCATABLE :: aux(:)
   TYPE(mdiis_type)         :: mdiist
@@ -88,14 +89,15 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
   END IF
   !
   ! ... allocate memory
-  IF (rismt%nr * rismt%nsite > 0) THEN
-    ALLOCATE(dcsr(rismt%nr, rismt%nsite))
+  IF (rismt%cfft%dfftt%nnr * rismt%nsite > 0) THEN
+    ALLOCATE(csr( rismt%cfft%dfftt%nnr, rismt%nsite))
+    ALLOCATE(dcsr(rismt%cfft%dfftt%nnr, rismt%nsite))
   END IF
   IF (rismt%cfft%dfftt%nnr > 0) THEN
     ALLOCATE(aux(rismt%cfft%dfftt%nnr))
   END IF
   !
-  CALL allocate_mdiis(mdiist, nbox, rismt%nr * rismt%nsite, eta, MDIIS_EXT)
+  CALL allocate_mdiis(mdiist, nbox, rismt%cfft%dfftt%nnr * rismt%nsite, eta, MDIIS_EXT)
   !
   ! ... reset conditions
   lconv       = .FALSE.
@@ -145,7 +147,7 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     END IF
     !
     ! ... Residual: G(r) -> dCs(r)
-    CALL make_dcsr()
+    CALL prepare_csr_dcsr()
     !
     ! ... clean date out of physical range
     CALL clean_out_of_range()
@@ -156,7 +158,7 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     !
     IF (rismt%nr * rismt%nsite > 0) THEN
       CALL rms_residual(ngrid * nsite, rismt%nr * rismt%nsite, &
-                      & dcsr, rmscurr, rismt%intra_comm)
+                      & dcsr,  rmscurr, rismt%intra_comm)
     ELSE
       CALL rms_residual(ngrid * nsite, rismt%nr * rismt%nsite, &
                       & dcsr_, rmscurr, rismt%intra_comm)
@@ -206,10 +208,12 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     !
     ! ... MDIIS: dCs(r) -> Cs(r)
     IF (rismt%nr * rismt%nsite > 0) THEN
-      CALL update_by_mdiis(mdiist, rismt%csr, dcsr, rismt%intra_comm)
+      CALL update_by_mdiis(mdiist, csr,  dcsr_, rismt%intra_comm)
     ELSE
       CALL update_by_mdiis(mdiist, csr_, dcsr_, rismt%intra_comm)
     END IF
+    !
+    CALL restore_csr()
     !
   ! ... end 3D-RISM iteration
   END DO
@@ -273,7 +277,8 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
   ! ... deallocate memory
 100 CONTINUE
   !
-  IF (rismt%nr * rismt%nsite > 0) THEN
+  IF (rismt%cfft%dfftt%nnr * rismt%nsite > 0) THEN
+    DEALLOCATE(csr)
     DEALLOCATE(dcsr)
   END IF
   IF (rismt%cfft%dfftt%nnr > 0) THEN
@@ -384,6 +389,7 @@ CONTAINS
         rismt%csr(ir, :) = 0.0_DP
         rismt%hr (ir, :) = 0.0_DP
         rismt%gr (ir, :) = 0.0_DP
+        csr      (ir, :) = 0.0_DP
         dcsr     (ir, :) = 0.0_DP
         CYCLE
       END IF
@@ -394,6 +400,7 @@ CONTAINS
         rismt%csr(ir, :) = 0.0_DP
         rismt%hr (ir, :) = 0.0_DP
         rismt%gr (ir, :) = 0.0_DP
+        csr      (ir, :) = 0.0_DP
         dcsr     (ir, :) = 0.0_DP
         CYCLE
       END IF
@@ -404,6 +411,7 @@ CONTAINS
         rismt%csr(ir, :) = 0.0_DP
         rismt%hr (ir, :) = 0.0_DP
         rismt%gr (ir, :) = 0.0_DP
+        csr      (ir, :) = 0.0_DP
         dcsr     (ir, :) = 0.0_DP
         CYCLE
       END IF
@@ -413,7 +421,7 @@ CONTAINS
     !
   END SUBROUTINE clean_out_of_range
   !
-  SUBROUTINE make_dcsr()
+  SUBROUTINE prepare_csr_dcsr()
     IMPLICIT NONE
     INTEGER  :: iq
     INTEGER  :: iiq
@@ -421,8 +429,10 @@ CONTAINS
     INTEGER  :: nv
     INTEGER  :: isolV
     INTEGER  :: natom
+    INTEGER  :: nr
     REAL(DP) :: rhov
     REAL(DP) :: rhovt
+    REAL(DP) :: vscale
     !
     rhovt = 0.0_DP
     DO isolV = 1, nsolV
@@ -435,18 +445,45 @@ CONTAINS
       CALL errore('do_3drism', 'rhovt is not positive', 1)
     END IF
     !
+    nr = rismt%cfft%dfftt%nnr
+    !
     DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
-      iiq   = iq - rismt%mp_site%isite_start + 1
-      iv    = iuniq_to_isite(1, iq)
-      nv    = iuniq_to_nsite(iq)
-      isolV = isite_to_isolV(iv)
-      rhov  = solVs(isolV)%density * SQRT(DBLE(nv))
+      iiq    = iq - rismt%mp_site%isite_start + 1
+      iv     = iuniq_to_isite(1, iq)
+      nv     = iuniq_to_nsite(iq)
+      isolV  = isite_to_isolV(iv)
+      rhov   = solVs(isolV)%density
+      vscale = SQRT(DBLE(nv))
       !
-      IF (rismt%nr > 0) THEN
-        dcsr(:, iiq) = (rhov / rhovt) * (rismt%gr(:, iiq) - rismt%hr(:, iiq) - 1.0_DP)
+      IF (nr > 0) THEN
+        csr( 1:nr, iiq) = vscale * rismt%csr(1:nr, iiq)
+        dcsr(1:nr, iiq) = vscale * (rhov / rhovt) &
+                      & * (rismt%gr(1:nr, iiq) - rismt%hr(1:nr, iiq) - 1.0_DP)
       END IF
     END DO
     !
-  END SUBROUTINE make_dcsr
+  END SUBROUTINE prepare_csr_dcsr
+  !
+  SUBROUTINE restore_csr()
+    IMPLICIT NONE
+    INTEGER  :: iq
+    INTEGER  :: iiq
+    INTEGER  :: nv
+    INTEGER  :: nr
+    REAL(DP) :: vscale
+    !
+    nr = rismt%cfft%dfftt%nnr
+    !
+    DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
+      iiq    = iq - rismt%mp_site%isite_start + 1
+      nv     = iuniq_to_nsite(iq)
+      vscale = SQRT(DBLE(nv))
+      !
+      IF (nr > 0) THEN
+        rismt%csr(1:nr, iiq) = csr(1:nr, iiq) / vscale
+      END IF
+    END DO
+    !
+  END SUBROUTINE restore_csr
   !
 END SUBROUTINE do_3drism
