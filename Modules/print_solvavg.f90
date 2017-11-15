@@ -1498,7 +1498,7 @@ CONTAINS
           END IF
           !
           IF (izsta <= izend) THEN
-            c2  = rismt%csdg0(izsol, iiq)) &
+            c2  = rismt%csdg0(izsol, iiq) &
               & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !
@@ -1582,7 +1582,7 @@ CONTAINS
           END IF
           !
           IF (izsta <= izend) THEN
-            c2  = rismt%csdg0(izsol, iiq)) &
+            c2  = rismt%csdg0(izsol, iiq) &
               & - beta * qv * DBLE(rismt%vlgz(izsol))
             d2  = -beta * qv * voppo
             !
