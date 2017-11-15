@@ -1185,7 +1185,7 @@ CONTAINS
         !
         IF (rismt%lfft%gxystart > 1) THEN
           rhol(izsta:izend) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
-        END DO
+        END IF
         !
         DO igxy = rismt%lfft%gxystart, rismt%lfft%ngxy
           jgxy  = (igxy - 1) * rismt%nrzl
