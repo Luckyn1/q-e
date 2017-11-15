@@ -30,7 +30,7 @@ SUBROUTINE eqn_laueshort(rismt, lboth, lgxy0, ierr)
   !
   TYPE(rism_type), INTENT(INOUT) :: rismt
   LOGICAL,         INTENT(IN)    :: lboth  ! both-hands calculation, or not
-  LOGICAL,         INTENT(IN)    :: lgxy   ! only for Gxy=0, or not
+  LOGICAL,         INTENT(IN)    :: lgxy0  ! only for Gxy=0, or not
   INTEGER,         INTENT(OUT)   :: ierr
   !
   ! ... Laue-RISM equation of short-range (Gxy /= 0)
