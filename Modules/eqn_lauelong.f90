@@ -33,6 +33,8 @@ SUBROUTINE eqn_lauelong(rismt, lboth, ierr)
   INTEGER,         INTENT(OUT)   :: ierr
   !
   INTEGER                  :: nq
+  INTEGER                  :: iq1
+  INTEGER                  :: iiq1
   INTEGER                  :: igxy_sta
   INTEGER                  :: igxy_end
   INTEGER                  :: igxy_len
