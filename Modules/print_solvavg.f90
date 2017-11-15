@@ -1183,7 +1183,7 @@ CONTAINS
         rhol = rismt%hsgz(:, iiq) + rismt%hlgz(:, iiq)
         !
         DO igxy = 1, rismt%ngxy
-          jgxy  = (igyx - 1) * rismt%nrzl
+          jgxy  = (igxy - 1) * rismt%nrzl
           izsta = MAX(rismt%lfft%izleft_end0    + 1, rismt%lfft%izcell_start)
           izend = MIN(rismt%lfft%izright_start0 - 1, rismt%lfft%izcell_end  )
           rhol((izsta + jgxy):(izend + jgxy), iiq) = CMPLX(-1.0_DP, 0.0_DP, kind=DP)
