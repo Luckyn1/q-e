@@ -216,10 +216,10 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     nsite = get_nsite_in_solVs()
     !
     IF (ntot * rismt%nsite > 0) THEN
-      CALL rms_residual(ngrid * nsite, rismt%ntot * rismt%nsite, &
+      CALL rms_residual(ngrid * nsite, ntot * rismt%nsite, &
                       & dcst,  rmscurr, rismt%intra_comm)
     ELSE
-      CALL rms_residual(ngrid * nsite, rismt%ntot * rismt%nsite, &
+      CALL rms_residual(ngrid * nsite, ntot * rismt%nsite, &
                       & dcst_, rmscurr, rismt%intra_comm)
     END IF
     !
