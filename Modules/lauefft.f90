@@ -661,7 +661,7 @@ CONTAINS
       i3min = lauefft0%dfft%ipp(me_p + 1)
       i3max = lauefft0%dfft%npp(me_p + 1) + i3min
       !
-      do_fft = .NOT. ALL(mask((i3min + 1):i3max))
+      do_fft = .NOT. ALL(i3mask((i3min + 1):i3max))
     END IF
     !
     IF (do_fft) THEN
@@ -795,7 +795,7 @@ CONTAINS
       i3min = lauefft0%dfft%ipp(me_p + 1)
       i3max = lauefft0%dfft%npp(me_p + 1) + i3min
       !
-      do_fft = .NOT. ALL(mask((i3min + 1):i3max))
+      do_fft = .NOT. ALL(i3mask((i3min + 1):i3max))
     END IF
     !
     IF (do_fft) THEN
