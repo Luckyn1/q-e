@@ -702,6 +702,7 @@ rism1d_facade.o : mp.o
 rism1d_facade.o : mp_images.o
 rism1d_facade.o : rism.o
 rism1d_facade.o : solvmol.o
+rism3d_facade.o : cell_base.o
 rism3d_facade.o : constants.o
 rism3d_facade.o : control_flags.o
 rism3d_facade.o : err_rism.o

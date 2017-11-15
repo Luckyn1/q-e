@@ -112,8 +112,8 @@ MODULE lauefft
   PUBLIC :: allocate_lauefft
   PUBLIC :: deallocate_lauefft
   PUBLIC :: set_lauefft_offset
+  PUBLIC :: set_lauefft_offset0
   PUBLIC :: set_lauefft_barrier
-  PUBLIC :: set_lauefft_gxy0domain
   PUBLIC :: fw_lauefft_1z
   PUBLIC :: inv_lauefft_1z
   PUBLIC :: fw_lauefft_1z_exp
@@ -258,6 +258,30 @@ CONTAINS
   END SUBROUTINE set_lauefft_offset
   !
   !--------------------------------------------------------------------------
+  SUBROUTINE set_lauefft_offset0(lauefft0, wright1, wright2, wleft1, wleft2)
+    !--------------------------------------------------------------------------
+    !
+    ! ... set offsets from z=0, for Gxy = 0.
+    ! ...
+    ! ... Variables:
+    ! ...   wright1: offset of solute-side on right-hand side (in alat units)
+    ! ...   wright2: offset of solvent-side on right-hand side (in alat units)
+    ! ...   wleft1:  offset of solute-side on left-hand side (in alat units)
+    ! ...   wleft2:  offset of solvent-side on left-hand side (in alat units)
+    !
+    IMPLICIT NONE
+    !
+    TYPE(lauefft_type), INTENT(INOUT) :: lauefft0
+    REAL(DP),           INTENT(IN)    :: wright1
+    REAL(DP),           INTENT(IN)    :: wright2
+    REAL(DP),           INTENT(IN)    :: wleft1
+    REAL(DP),           INTENT(IN)    :: wleft2
+    !
+    CALL set_lauefft_offset0_x(lauefft0, wright1, wright2, wleft1, wleft2)
+    !
+  END SUBROUTINE set_lauefft_offset0
+  !
+  !--------------------------------------------------------------------------
   SUBROUTINE set_lauefft_barrier(lauefft0, wright, wleft)
     !--------------------------------------------------------------------------
     !
@@ -276,30 +300,6 @@ CONTAINS
     CALL set_lauefft_barrier_x(lauefft0, wright, wleft)
     !
   END SUBROUTINE set_lauefft_barrier
-  !
-  !--------------------------------------------------------------------------
-  SUBROUTINE set_lauefft_gxy0domain(lauefft0, wright1, wright2, wleft1, wleft2)
-    !--------------------------------------------------------------------------
-    !
-    ! ... set additional domain of cs(z) = 0, for Gxy = 0 .
-    ! ...
-    ! ... Variables:
-    ! ...   wright1: offset of solute-side on right-hand side (in alat units)
-    ! ...   wright2: offset of solvent-side on right-hand side (in alat units)
-    ! ...   wleft1:  offset of solute-side on left-hand side (in alat units)
-    ! ...   wleft2:  offset of solvent-side on left-hand side (in alat units)
-    !
-    IMPLICIT NONE
-    !
-    TYPE(lauefft_type), INTENT(INOUT) :: lauefft0
-    REAL(DP),           INTENT(IN)    :: wright1
-    REAL(DP),           INTENT(IN)    :: wright2
-    REAL(DP),           INTENT(IN)    :: wleft1
-    REAL(DP),           INTENT(IN)    :: wleft2
-    !
-    CALL set_lauefft_gxy0domain_x(lauefft0, wright1, wright2, wleft1, wleft2)
-    !
-  END SUBROUTINE set_lauefft_gxy0domain
   !
   !--------------------------------------------------------------------------
   SUBROUTINE fw_lauefft_1z(lauefft0, cl, nrz, irz_start, cg)

@@ -16,7 +16,7 @@ MODULE rism
   USE fft_custom, ONLY : fft_cus, deallocate_fft_custom
   USE kinds,      ONLY : DP
   USE lauefft,    ONLY : lauefft_type, allocate_lauefft, deallocate_lauefft, &
-                       & set_lauefft_offset, set_lauefft_barrier
+                       & set_lauefft_offset, set_lauefft_offset0, set_lauefft_barrier
   USE mp_rism,    ONLY : mp_rism_site, mp_rism_task, mp_set_index_rism_site, &
                        & mp_set_index_rism_task, mp_start_rism_task_and_site, &
                        & mp_start_rism_task_on_site, mp_end_rism
@@ -307,7 +307,8 @@ CONTAINS
   !
   !--------------------------------------------------------------------------
   SUBROUTINE allocate_lauerism(rismt, nv, ecutv, nfit, &
-                             & dzright, dzleft, zright1, zleft1, zright2, zleft2, &
+                             & dzright, dzleft, zright, zleft, &
+                             & zrightu, zrightv, zleftu, zleftv, zrightb, zleftb, &
                              & lboth, itask_comm, intra_comm)
     !--------------------------------------------------------------------------
     !
@@ -319,10 +320,14 @@ CONTAINS
     ! ...   nfit:       #fitting points for effective solvation potential
     ! ...   dzright:    |zright - z0| (in alat units)
     ! ...   dzleft:     |zleft  + z0| (in alat units)
-    ! ...   zright1:    offset of solvent region on right-hand side (in alat units)
-    ! ...   zleft1:     offset of solvent region on left-hand side (in alat units)
-    ! ...   zright2:    offset of solvent barrier on right-hand side (in alat units)
-    ! ...   zleft2:     offset of solvent barrier on left-hand side (in alat units)
+    ! ...   zright:     offset of solvent region on right-hand side (in alat units)
+    ! ...   zleft:      offset of solvent region on left-hand side (in alat units)
+    ! ...   zrightu:    offset of solvent region on right-hand side for Gxy=0 (in alat units)
+    ! ...   zrightv:    -> solute-side and solvent-side, respectively.
+    ! ...   zleftu:     offset of solvent region on left-hand side for Gxy=0 (in alat units)
+    ! ...   zleftv:     -> solute-side and solvent-side, respectively.
+    ! ...   zrightb:    offset of solvent barrier on right-hand side (in alat units)
+    ! ...   zleftb:     offset of solvent barrier on left-hand side (in alat units)
     ! ...   lboth:      apply both-hands calculation, or not
     ! ...   itask_comm: MPI's communicator for task parallel
     ! ...   intra_comm: MPI's communicator, which is global in Laue-RISM calculation
@@ -335,10 +340,14 @@ CONTAINS
     INTEGER,         INTENT(IN)    :: nfit
     REAL(DP),        INTENT(IN)    :: dzright
     REAL(DP),        INTENT(IN)    :: dzleft
-    REAL(DP),        INTENT(IN)    :: zright1
-    REAL(DP),        INTENT(IN)    :: zleft1
-    REAL(DP),        INTENT(IN)    :: zright2
-    REAL(DP),        INTENT(IN)    :: zleft2
+    REAL(DP),        INTENT(IN)    :: zright
+    REAL(DP),        INTENT(IN)    :: zleft
+    REAL(DP),        INTENT(IN)    :: zrightu
+    REAL(DP),        INTENT(IN)    :: zrightv
+    REAL(DP),        INTENT(IN)    :: zleftu
+    REAL(DP),        INTENT(IN)    :: zleftv
+    REAL(DP),        INTENT(IN)    :: zrightb
+    REAL(DP),        INTENT(IN)    :: zleftb
     LOGICAL,         INTENT(IN)    :: lboth
     INTEGER,         INTENT(IN)    :: itask_comm
     INTEGER,         INTENT(IN)    :: intra_comm
@@ -375,8 +384,9 @@ CONTAINS
     & rismt%cfft%ngmt, rismt%cfft%ig1t, rismt%cfft%ig2t, rismt%cfft%ig3t, rismt%cfft%gt, &
     & rismt%cfft%gcutmt, rismt%mp_task%itask_comm)
     !
-    CALL set_lauefft_offset( rismt%lfft, zright1, zleft1)
-    CALL set_lauefft_barrier(rismt%lfft, zright2, zleft2)
+    CALL set_lauefft_offset( rismt%lfft, zright,  zleft)
+    CALL set_lauefft_offset0(rismt%lfft, zrightu, zrightv, zleftu, zleftv)
+    CALL set_lauefft_barrier(rismt%lfft, zrightb, zleftb)
     !
     ! ... set #fitting points
     rismt%pbc_nfit = nfit

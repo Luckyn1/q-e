@@ -153,15 +153,15 @@ SUBROUTINE allocate_lauefft_rz(lauefft0, dzright, dzleft)
     CALL errore(' allocate_lauefft_rz ', ' expanded cell is not defined ', 1)
   END IF
   !
-  ! ... set position of barriers
-  lauefft0%izright_gedge = lauefft0%izright_start
-  lauefft0%izleft_gedge  = lauefft0%izleft_end
-  !
   ! ... set domain for Gxy = 0
   lauefft0%izright_start0 = lauefft0%izright_start
   lauefft0%izright_end0   = lauefft0%izright_end
   lauefft0%izleft_start0  = lauefft0%izleft_start
   lauefft0%izleft_end0    = lauefft0%izleft_end
+  !
+  ! ... set position of barriers
+  lauefft0%izright_gedge = lauefft0%izright_start
+  lauefft0%izleft_gedge  = lauefft0%izleft_end
   !
 END SUBROUTINE allocate_lauefft_rz
 !
@@ -204,11 +204,11 @@ SUBROUTINE set_lauefft_offset_x(lauefft0, wright, wleft)
       CALL errore(' set_lauefft_offset_x ', ' izright_start > izright_end ', 1)
     END IF
     !
-    ! ... update offset barrier
-    lauefft0%izright_gedge = MAX(lauefft0%izright_gedge, lauefft0%izright_start)
-    !
     ! ... update offset for Gxy = 0
     lauefft0%izright_start0 = MIN(lauefft0%izright_start0, lauefft0%izright_start)
+    !
+    ! ... update offset barrier
+    lauefft0%izright_gedge = MAX(lauefft0%izright_gedge, lauefft0%izright_start)
   END IF
   !
   ! ... set offset of left
@@ -230,11 +230,11 @@ SUBROUTINE set_lauefft_offset_x(lauefft0, wright, wleft)
       CALL errore(' set_lauefft_offset_x ', ' izleft_start > izleft_end ', 1)
     END IF
     !
-    ! ... update offset barrier
-    lauefft0%izleft_gedge = MIN(lauefft0%izleft_gedge, lauefft0%izleft_end)
-    !
     ! ... update offset for Gxy = 0
     lauefft0%izleft_end0 = MAX(lauefft0%izleft_end0, lauefft0%izleft_end)
+    !
+    ! ... update offset barrier
+    lauefft0%izleft_gedge = MIN(lauefft0%izleft_gedge, lauefft0%izleft_end)
   END IF
   !
   IF (lauefft0%izleft_end >= lauefft0%izright_start) THEN
@@ -242,6 +242,99 @@ SUBROUTINE set_lauefft_offset_x(lauefft0, wright, wleft)
   END IF
   !
 END SUBROUTINE set_lauefft_offset_x
+!
+!--------------------------------------------------------------------------
+SUBROUTINE set_lauefft_offset0_x(lauefft0, wright1, wright2, wleft1, wleft2)
+  !--------------------------------------------------------------------------
+  !
+  ! ... set offsets for Gxy = 0,
+  ! ... i.e. set izright_start0 izright_end izleft_start0 and izleft_end0.
+  !
+  USE cell_base, ONLY : at
+  USE kinds,     ONLY : DP
+  USE lauefft,   ONLY : lauefft_type
+  !
+  IMPLICIT NONE
+  !
+  TYPE(lauefft_type), INTENT(INOUT) :: lauefft0
+  REAL(DP),           INTENT(IN)    :: wright1  ! solute-side
+  REAL(DP),           INTENT(IN)    :: wright2  ! solvent-side
+  REAL(DP),           INTENT(IN)    :: wleft1   ! solute-side
+  REAL(DP),           INTENT(IN)    :: wleft2   ! solvent-side
+  !
+  INTEGER :: nright1
+  INTEGER :: nright2
+  INTEGER :: nleft1
+  INTEGER :: nleft2
+  !
+  ! ... check zstep
+  IF (lauefft0%zstep <= 0.0_DP) THEN
+    RETURN
+  END IF
+  !
+  ! ... set offset of right
+  nright1 = 0
+  IF (wright1 /= 0.0_DP) THEN
+    nright1 = NINT(wright1 / lauefft0%zstep)
+  END IF
+  !
+  nright2 = 0
+  IF (wright2 /= 0.0_DP) THEN
+    nright2 = NINT((wright2 - 0.5_DP * at(3, 3)) / lauefft0%zstep)
+  END IF
+  !
+  IF (lauefft0%xright) THEN
+    lauefft0%izright_start0 = lauefft0%izcell_start + lauefft0%dfft%nr3 / 2
+    lauefft0%izright_start0 = lauefft0%izright_start0 + nright1
+    lauefft0%izright_start0 = MAX(lauefft0%izright_start0, lauefft0%izcell_start)
+    !
+    lauefft0%izright_end0 = lauefft0%izcell_end + nright2
+    lauefft0%izright_end0 = MIN(lauefft0%izright_end0, lauefft0%nrz)
+    !
+    IF (lauefft0%izright_start0 > lauefft0%izright_start) THEN
+      CALL errore(' set_lauefft_offset0_x ', ' izright_start0 > izright_start ', 1)
+    END IF
+    IF (lauefft0%izright_end0 < lauefft0%izright_end) THEN
+      CALL errore(' set_lauefft_offset0_x ', ' izright_end0 < izright_end ', 1)
+    END IF
+  END IF
+  !
+  ! ... set offset of left
+  nleft1 = 0
+  IF (wleft1 /= 0.0_DP) THEN
+    nleft1 = NINT(wleft1 / lauefft0%zstep)
+  END IF
+  !
+  nleft2 = 0
+  IF (wleft2 /= 0.0_DP) THEN
+    nleft2 = NINT((wleft2 + 0.5_DP * at(3, 3)) / lauefft0%zstep)
+  END IF
+  !
+  IF (lauefft0%xleft) THEN
+    IF (lauefft0%xright) THEN
+      lauefft0%izleft_end0 = lauefft0%izcell_start + lauefft0%dfft%nr3 / 2 - 1
+    ELSE
+      lauefft0%izleft_end0 = lauefft0%izcell_end0 - lauefft0%dfft%nr3 / 2
+    END IF
+    lauefft0%izleft_end0 = lauefft0%izleft_end0 + nleft1
+    lauefft0%izleft_end0 = MIN(lauefft0%izleft_end0, lauefft0%izcell_end)
+    !
+    lauefft0%izleft_start0 = lauefft0%izcell_start + nleft2
+    lauefft0%izleft_start0 = MAX(lauefft0%izleft_start0, 1)
+    !
+    IF (lauefft0%izleft_start0 > lauefft0%izleft_start) THEN
+      CALL errore(' set_lauefft_offset0_x ', ' izleft_start0 > izleft_start ', 1)
+    END IF
+    IF (lauefft0%izleft_end0 < lauefft0%izleft_end) THEN
+      CALL errore(' set_lauefft_offset0_x ', ' izleft_end0 < izleft_end ', 1)
+    END IF
+  END IF
+  !
+  IF (lauefft0%izleft_end0 >= lauefft0%izright_start0) THEN
+    CALL errore(' set_lauefft_offset0_x ', ' izleft_end0 >= izright_start0 ', 1)
+  END IF
+  !
+END SUBROUTINE set_lauefft_offset0_x
 !
 !--------------------------------------------------------------------------
 SUBROUTINE set_lauefft_barrier_x(lauefft0, wright, wleft)
@@ -308,85 +401,6 @@ SUBROUTINE set_lauefft_barrier_x(lauefft0, wright, wleft)
   END IF
   !
 END SUBROUTINE set_lauefft_barrier_x
-!
-!--------------------------------------------------------------------------
-SUBROUTINE set_lauefft_gxy0domain_x(lauefft0, wright1, wright2, wleft1, wleft2)
-  !--------------------------------------------------------------------------
-  !
-  ! ... set additional domain of cs(z) = 0, for Gxy = 0 .
-  !
-  USE kinds,   ONLY : DP
-  USE lauefft, ONLY : lauefft_type
-  !
-  IMPLICIT NONE
-  !
-  TYPE(lauefft_type), INTENT(INOUT) :: lauefft0
-  REAL(DP),           INTENT(IN)    :: wright1  ! solute-side
-  REAL(DP),           INTENT(IN)    :: wright2  ! solvent-side
-  REAL(DP),           INTENT(IN)    :: wleft1   ! solute-side
-  REAL(DP),           INTENT(IN)    :: wleft2   ! solvent-side
-  !
-  INTEGER :: nright1
-  INTEGER :: nright2
-  INTEGER :: nleft1
-  INTEGER :: nleft2
-  !
-  ! ... check zstep
-  IF (lauefft0%zstep <= 0.0_DP) THEN
-    RETURN
-  END IF
-  !
-  ! ... set offset of right
-  IF (lauefft0%xright) THEN
-    nright1 = 0
-    IF (wright1 /= 0.0_DP) THEN
-      nright1 = NINT(wright1 / lauefft0%zstep)
-    END IF
-    !
-    nright2 = 0
-    IF (wright2 /= 0.0_DP) THEN
-      nright2 = NINT(wright2 / lauefft0%zstep)
-    END IF
-    !
-    lauefft0%izright_start0 = MAX(lauefft0%izright_start - nright1, lauefft0%izcell_start)
-    lauefft0%izright_end0   = MIN(lauefft0%izright_end   + nright2, lauefft0%nrz)
-    !
-    IF (lauefft0%izright_start0 > lauefft0%izright_start) THEN
-      CALL errore(' set_lauefft_gxy0domain_x ', ' izright_start0 > izright_start ', 1)
-    END IF
-    IF (lauefft0%izright_end0 < lauefft0%izright_end) THEN
-      CALL errore(' set_lauefft_gxy0domain_x ', ' izright_end0 < izright_end ', 1)
-    END IF
-  END IF
-  !
-  ! ... set offset of left
-  IF (lauefft0%xleft) THEN
-    nleft1 = 0
-    IF (wleft1 /= 0.0_DP) THEN
-      nleft1 = NINT(wleft1 / lauefft0%zstep)
-    END IF
-    !
-    nleft2 = 0
-    IF (wleft2 /= 0.0_DP) THEN
-      nleft2 = NINT(wleft2 / lauefft0%zstep)
-    END IF
-    !
-    lauefft0%izleft_start0 = MAX(lauefft0%izleft_start - nleft1, 1)
-    lauefft0%izleft_end0   = MIN(lauefft0%izleft_end   + nleft2, lauefft0%izcell_end)
-    !
-    IF (lauefft0%izleft_start0 > lauefft0%izleft_start) THEN
-      CALL errore(' set_lauefft_gxy0domain_x ', ' izleft_start0 > izleft_start ', 1)
-    END IF
-    IF (lauefft0%izleft_end0 < lauefft0%izleft_end) THEN
-      CALL errore(' set_lauefft_gxy0domain_x ', ' izleft_end0 < izleft_end ', 1)
-    END IF
-  END IF
-  !
-  IF (lauefft0%izleft_end0 >= lauefft0%izright_start0) THEN
-    CALL errore(' set_lauefft_gxy0domain_x ', ' izleft_end0 >= izright_start0 ', 1)
-  END IF
-  !
-END SUBROUTINE set_lauefft_gxy0domain_x
 !
 !--------------------------------------------------------------------------
 SUBROUTINE allocate_lauefft_gz(lauefft0, ngmt, ig1t, ig2t, ig3t, gt)

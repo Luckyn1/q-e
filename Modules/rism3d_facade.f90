@@ -14,6 +14,7 @@ MODULE rism3d_facade
   ! ... External codes, which utilize 3D-RISM, can access data and subroutines
   ! ... throught this module. Also, Laue-RISM is avairable.
   !
+  USE cell_base,     ONLY : at
   USE constants,     ONLY : eps8, eps12
   USE control_flags, ONLY : gamma_only
   USE err_rism,      ONLY : stop_by_err_rism, IERR_RISM_NULL, &
@@ -196,10 +197,14 @@ CONTAINS
     !
     LOGICAL  :: laue_
     INTEGER  :: nq
-    REAL(DP) :: starting1_r
-    REAL(DP) :: starting1_l
-    REAL(DP) :: starting2_r
-    REAL(DP) :: starting2_l
+    REAL(DP) :: offset_r
+    REAL(DP) :: offset_l
+    REAL(DP) :: offset_ru
+    REAL(DP) :: offset_rv
+    REAL(DP) :: offset_lu
+    REAL(DP) :: offset_lv
+    REAL(DP) :: offset_rb
+    REAL(DP) :: offset_lb
     !
     IF (.NOT. lrism3d) THEN
       RETURN
@@ -217,12 +222,19 @@ CONTAINS
       CALL allocate_3drism(rism3t, nq, ecutsolv, intra_bgrp_comm, intra_image_comm)
       !
     ELSE
-      starting1_r = starting_r - MAX(0.0_DP, buffer_r)
-      starting1_l = starting_l + MAX(0.0_DP, buffer_l)
-      starting2_r = starting_r
-      starting2_l = starting_l
+      offset_r  = starting_r - MAX(0.0_DP, buffer_r)
+      offset_l  = starting_l + MAX(0.0_DP, buffer_l)
+      offset_ru = starting_r - MAX(0.0_DP, buffer_r) - MAX(0.0_DP, buffer_ru)
+      offset_rv = +0.5_DP * at(3, 3) + MAX(0.0_DP, buffer_rv)
+      offset_lu = starting_l + MAX(0.0_DP, buffer_l) + MAX(0.0_DP, buffer_lu)
+      offset_lv = -0.5_DP * at(3, 3) - MAX(0.0_DP, buffer_lv)
+      offset_rb = starting_r
+      offset_lb = starting_l
+      !
       CALL allocate_lauerism(rism3t, nq, ecutsolv, laue_nfit, expand_r, expand_l, &
-                           & starting1_r, starting1_l, starting2_r, starting2_l, &
+                           & offset_r,  offset_l, &
+                           & offset_ru, offset_rv, offset_lu, offset_lv, &
+                           & offset_rb, offset_lb, &
                            & both_hands, intra_bgrp_comm, intra_image_comm)
     END IF
     !
