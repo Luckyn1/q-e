@@ -196,6 +196,10 @@ SUBROUTINE potential_3drism(rismt, vrs, rhog, ierr)
   !
   ! ... short-range potential (Gxy = 0)
   IF (rismt%itype == ITYPE_LAUERISM) THEN
+    IF (rismt%nrzl * rismt%nsite > 0) THEN
+      rismt%usg0 = 0.0_DP
+    END IF
+    !
     CALL corrgxy0_laue(rismt, .TRUE., rismt%usr, rismt%usg0, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 1
