@@ -293,6 +293,8 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       GOTO 100
     END IF
     !
+    CALL correct_csr()
+    !
   ! ... end Laue-RISM iteration
   END DO
   !
@@ -504,6 +506,7 @@ CONTAINS
         END IF
         CYCLE
       END IF
+      !
       IF (iz < rismt%lfft%izright_start0 .AND. iz > rismt%lfft%izleft_end0) THEN
         IF (rismt%nsite > 0) THEN
           rismt%csr (ir, :) = 0.0_DP
@@ -621,6 +624,65 @@ CONTAINS
 !$omp end parallel do
     !
   END SUBROUTINE barrier_gr
+  !
+  SUBROUTINE correct_csr()
+    IMPLICIT NONE
+    INTEGER  :: ir
+    INTEGER  :: idx
+    INTEGER  :: idx0
+    INTEGER  :: i3min
+    INTEGER  :: i3max
+    INTEGER  :: i1, i2, i3
+    INTEGER  :: iz
+    !
+    IF (rismt%nsite < 1) THEN
+      RETURN
+    END IF
+    !
+    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
+       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    !
+    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
+    !
+!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz)
+    DO ir = 1, rismt%cfft%dfftt%nnr
+      !
+      idx = idx0 + ir - 1
+      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
+      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
+      i2  = idx / rismt%cfft%dfftt%nr1x
+      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - rismt%cfft%dfftt%nr1x * i2
+      i1  = idx
+      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
+        CYCLE
+      END IF
+      !
+      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
+        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
+      ELSE
+        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
+      END IF
+      iz = iz + rismt%lfft%izcell_start
+      !
+      IF ((rismt%lfft%izright_start0 <= iz .AND. iz <  rismt%lfft%izright_start) .OR. &
+        & (rismt%lfft%izleft_end     <  iz .AND. iz <= rismt%lfft%izleft_end0)) THEN
+        rismt%csr (ir, :) = rismt%csg0 (iz, :)
+        rismt%csdr(ir, :) = rismt%csdg0(iz, :)
+      END IF
+      !
+    END DO
+!$omp end parallel do
+    !
+  END SUBROUTINE correct_csr
   !
   SUBROUTINE prepare_cst_dcst()
     IMPLICIT NONE

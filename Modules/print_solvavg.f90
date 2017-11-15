@@ -1228,6 +1228,10 @@ CONTAINS
       IF (rismt%mp_site%isite_start <= iq .AND. iq <= rismt%mp_site%isite_end) THEN
         owner_group_id = my_group_id
         rhos = rismt%hgz(:, iq - rismt%mp_site%isite_start + 1)
+        ! ... for Gxy = 0
+        rhos(1:rismt%cfft%dfftt%n3) = &
+        & CMPLX(rismt%hg0(rismt%lfft%izcell_start:rismt%lfft%izcell_end, &
+        &                 iq - rismt%mp_site%isite_start + 1), 0.0_DP, kind=DP)
       ELSE
         owner_group_id = 0
         rhos = CMPLX(0.0_DP, 0.0_DP, kind=DP)
