@@ -1533,7 +1533,7 @@ CONTAINS
     !
     ! ... allocate memory
     ALLOCATE(sowner(nsite))
-    ALLOCATE(zuv_site(nr1))
+    ALLOCATE(zuv_site(nr3))
     !
     ! ... get process info.
     me_group    = mp_rank(intra_group_comm)
