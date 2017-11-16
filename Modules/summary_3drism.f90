@@ -149,6 +149,12 @@ SUBROUTINE summary_3drism()
   WRITE(stdout, '(5X,"buffer  of left (in bohr)  : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   END IF
+#if defined (__DEBUG_RISM)
+  zstart = rism3t%lfft%zleft + DBLE(rism3t%lfft%izleft_start0) * rism3t%lfft%zstep
+  zend   = rism3t%lfft%zleft + DBLE(rism3t%lfft%izleft_end0  ) * rism3t%lfft%zstep
+  WRITE(stdout, '(5X,"gxy = 0 of left (in bohr)  : [",2F11.6,"]")')    (zstart * alat), &
+    &                                                                  (zend   * alat)
+#endif
   END IF
   IF (rism3t%lfft%xright) THEN
   zstart = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_gedge + 1) * rism3t%lfft%zstep
@@ -161,6 +167,12 @@ SUBROUTINE summary_3drism()
   WRITE(stdout, '(5X,"buffer  of right (in bohr) : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   END IF
+#if defined (__DEBUG_RISM)
+  zstart = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_start0 + 1) * rism3t%lfft%zstep
+  zend   = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_end0   + 1) * rism3t%lfft%zstep
+  WRITE(stdout, '(5X,"gxy = 0 of right (in bohr) : [",2F11.6,"]")')    (zstart * alat), &
+    &                                                                  (zend   * alat)
+#endif
   END IF
   IF (iwall == IWALL_RIGHT) THEN
   WRITE(stdout, '(5X,"repulsive wall (in bohr)   : [",F11.6,A11,"]")') (wall_tau * alat), "+Infinity"
