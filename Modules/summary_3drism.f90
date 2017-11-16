@@ -38,6 +38,9 @@ SUBROUTINE summary_3drism()
   INTEGER                       :: iatom
   REAL(DP)                      :: zstart
   REAL(DP)                      :: zend
+  REAL(DP)                      :: zstep
+  REAL(DP)                      :: zedge1
+  REAL(DP)                      :: zedge2
   CHARACTER(LEN=8), ALLOCATABLE :: asite(:)
   CHARACTER(LEN=3)              :: sclosure
   CHARACTER(LEN=32)             :: sbound
@@ -80,6 +83,9 @@ SUBROUTINE summary_3drism()
       sreference = 'not defined'
     END IF
     !
+    zstep  = rism3t%lfft%zstep
+    zedge1 = rism3t%lfft%zleft
+    zedge2 = rism3t%lfft%zleft + rismt%lfft%zstep
   END IF
   !
   nsite = get_nuniq_in_solVs()
@@ -139,37 +145,37 @@ SUBROUTINE summary_3drism()
   WRITE(stdout, '(5X,"expand-cell (in bohr)      : [",2F11.6,"]")')    (rism3t%lfft%zleft  * alat), &
     &                                                                  (rism3t%lfft%zright * alat)
   IF (rism3t%lfft%xleft) THEN
-  zstart = rism3t%lfft%zleft
-  zend   = rism3t%lfft%zleft + DBLE(rism3t%lfft%izleft_gedge) * rism3t%lfft%zstep
+  zstart = zedge1
+  zend   = zedge2 + zstep * DBLE(rism3t%lfft%izleft_gedge - 1)
   WRITE(stdout, '(5X,"solvent of left (in bohr)  : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   IF (rism3t%lfft%izleft_gedge /= rism3t%lfft%izleft_end) THEN
-  zstart = rism3t%lfft%zleft + DBLE(rism3t%lfft%izleft_gedge) * rism3t%lfft%zstep
-  zend   = rism3t%lfft%zleft + DBLE(rism3t%lfft%izleft_end  ) * rism3t%lfft%zstep
+  zstart = zedge1 + zstep * DBLE(rism3t%lfft%izleft_gedge    )
+  zend   = zedge2 + zstep * DBLE(rism3t%lfft%izleft_end   - 1)
   WRITE(stdout, '(5X,"buffer  of left (in bohr)  : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   END IF
 #if defined (__DEBUG_RISM)
-  zstart = rism3t%lfft%zleft + DBLE(rism3t%lfft%izleft_start0) * rism3t%lfft%zstep
-  zend   = rism3t%lfft%zleft + DBLE(rism3t%lfft%izleft_end0  ) * rism3t%lfft%zstep
+  zstart = zedge1 + zstep * DBLE(rism3t%lfft%izleft_start0 - 1)
+  zend   = zedge2 + zstep * DBLE(rism3t%lfft%izleft_end0   - 1)
   WRITE(stdout, '(5X,"gxy = 0 of left (in bohr)  : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
 #endif
   END IF
   IF (rism3t%lfft%xright) THEN
-  zstart = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_gedge + 1) * rism3t%lfft%zstep
-  zend   = rism3t%lfft%zright
+  zstart = zedge1 + zstep * DBLE(rism3t%lfft%izright_gedge - 1)
+  zend   = zedge2 + zstep * DBLE(rism3t%lfft%nrz           - 1)
   WRITE(stdout, '(5X,"solvent of right (in bohr) : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   IF (rism3t%lfft%izright_start /= rism3t%lfft%izright_gedge) THEN
-  zstart = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_start + 1) * rism3t%lfft%zstep
-  zend   = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_gedge + 1) * rism3t%lfft%zstep
+  zstart = zedge1 + zstep * DBLE(rism3t%lfft%izright_start - 1)
+  zend   = zedge2 + zstep * DBLE(rism3t%lfft%izright_gedge - 2)
   WRITE(stdout, '(5X,"buffer  of right (in bohr) : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   END IF
 #if defined (__DEBUG_RISM)
-  zstart = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_start0 + 1) * rism3t%lfft%zstep
-  zend   = rism3t%lfft%zright - DBLE(rism3t%lfft%nrz - rism3t%lfft%izright_end0   + 1) * rism3t%lfft%zstep
+  zstart = zedge1 + zstep * DBLE(rism3t%lfft%izright_start0 - 1)
+  zend   = zedge2 + zstep * DBLE(rism3t%lfft%izright_end0   - 1)
   WRITE(stdout, '(5X,"gxy = 0 of right (in bohr) : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
 #endif
