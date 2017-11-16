@@ -550,7 +550,7 @@ CONTAINS
     END DO
 !$omp end parallel do
     !
-    ngrid = mgrid + nright + nleft
+    ngrid = mgrid + (nright + nleft) * rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2
     !
   END SUBROUTINE clean_out_of_range
   !
