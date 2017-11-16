@@ -26,7 +26,7 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
   ! ...   expand: use expand-cell(.TRUE.) or unit-cell(.FALSE.)
   !
   USE cell_base,      ONLY : at, alat
-  USE constants,      ONLY : eps8
+  USE constants,      ONLY : eps8, eps12, eps24
   USE err_rism,       ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE
   USE kinds,          ONLY : DP
   USE mp,             ONLY : mp_sum
@@ -417,7 +417,7 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
         rhov2 = solVs(isolV)%subdensity
         vrho  = vol1(iiq) * rhov1 + vol2(iiq) * rhov2
         !
-        IF (ABS(vrho) <= eps8) THEN  ! will not be occurred
+        IF (ABS(vrho) <= eps12) THEN  ! will not be occurred
           CALL errore('normalize_lauerism', 'vrho is zero', 1)
         END IF
         hr0 = (msol(isolV) - nsol(iiq)) / vrho
@@ -510,7 +510,7 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
     !
     IF (ABS(charge - charge0) > eps8) THEN
       !
-      IF (ABS(vqrho) <= eps8) THEN  ! will not be occurred
+      IF (ABS(vqrho) <= eps24) THEN  ! will not be occurred
         CALL errore('normalize_lauerism', 'vqrho is zero', 1)
       END IF
       hr0 = (charge - charge0) / vqrho
