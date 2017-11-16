@@ -187,14 +187,8 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
       GOTO 100
     END IF
     !
-    ! ... FFT: H(gxy/=0,z) -> H(r)
+    ! ... FFT: H(gxy,z) -> H(r)
     CALL fft_hlaue_to_hr()
-    !
-    ! ... add H(gxy=0,z) -> H(r)
-    CALL corrgxy0_laue(rismt, .FALSE., rismt%hr, rismt%hg0, ierr)
-    IF (ierr /= IERR_RISM_NULL) THEN
-      GOTO 100
-    END IF
     !
     ! ... Closure: H(r) -> G(r)
     CALL closure(rismt, ierr)

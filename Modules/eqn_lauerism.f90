@@ -28,6 +28,11 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   LOGICAL,         INTENT(IN)    :: lboth  ! both-hands calculation, or not
   INTEGER,         INTENT(OUT)   :: ierr
   !
+  INTEGER :: iq
+  INTEGER :: iiq
+  INTEGER :: irz
+  INTEGER :: iirz
+  !
   ! ... Laue-RISM equation (Gxy /= 0)
   CALL eqn_lauerism_x(rismt, lboth, ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
@@ -50,6 +55,23 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   CALL eqn_lauevoid(rismt, .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
     RETURN
+  END IF
+  !
+  ! ... set hgz at Gxy = 0
+  IF (rismt%lfft%gxystart > 1) THEN
+    !
+    DO iq = rismt%mp_site%isite_start, rismt%mp_site%isite_end
+      iiq = iq - rismt%mp_site%isite_start + 1
+      !
+!$omp parallel do default(shared) private(irz, iirz)
+      DO irz = rismt%lfft%izcell_start, rismt%lfft%izcell_end
+        iirz = irz - rismt%lfft%izcell_start + 1
+        rismt%hgz(iirz, iiq) = CMPLX(rismt%hg0(irz, iiq), 0.0_DP, kind=DP)
+      END DO
+!$omp end parallel do
+      !
+    END DO
+    !
   END IF
   !
   ! ... normally done
