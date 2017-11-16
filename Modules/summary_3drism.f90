@@ -85,7 +85,7 @@ SUBROUTINE summary_3drism()
     !
     zstep  = rism3t%lfft%zstep
     zedge1 = rism3t%lfft%zleft
-    zedge2 = rism3t%lfft%zleft + rismt%lfft%zstep
+    zedge2 = rism3t%lfft%zleft + rism3t%lfft%zstep
   END IF
   !
   nsite = get_nuniq_in_solVs()
