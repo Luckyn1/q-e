@@ -125,7 +125,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       izend1 = rismt%lfft%nrz
     ELSE
       izsta1 = rismt%lfft%izright_start0
-      izend1 = rismt%lfft%izcell_end
+      izend1 = rismt%lfft%izright_end0
     END IF
     !
     ssign = -1.0_DP
@@ -138,7 +138,7 @@ SUBROUTINE eqn_lauedipole(rismt, expand, prepare, ierr)
       izsta1 = 1
       izend1 = rismt%lfft%izleft_gedge
     ELSE
-      izsta1 = rismt%lfft%izcell_start
+      izsta1 = rismt%lfft%izleft_start0
       izend1 = rismt%lfft%izleft_end0
     END IF
     !
