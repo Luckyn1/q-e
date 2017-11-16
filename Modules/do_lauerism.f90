@@ -729,7 +729,6 @@ CONTAINS
       zscale = SQRT(DBLE(rismt%cfft%dfftt%nr1 * rismt%cfft%dfftt%nr2))
       !
       IF (nr > 0) THEN
-        !cst( 1:nr, iiq) = vscale * rismt%csr(1:nr, iiq)
         cst( 1:nr, iiq) = vscale * rismt%csdr(1:nr, iiq)
         dcst(1:nr, iiq) = vscale * (rhov / rhovt) &
                       & * (rismt%gr(1:nr, iiq) - rismt%hr(1:nr, iiq) - 1.0_DP)
@@ -741,7 +740,6 @@ CONTAINS
         izsta = rismt%lfft%izcell_end + 1
         izend = rismt%lfft%izright_end0
         !
-        !cst( itsta:itend, iiq) = vscale * zscale * rismt%csg0(izsta:izend, iiq)
         cst( itsta:itend, iiq) = vscale * zscale * rismt%csdg0(izsta:izend, iiq)
         dcst(itsta:itend, iiq) = vscale * zscale * (rhov / rhovt) &
                              & * (rismt%gg0(izsta:izend, iiq) - rismt%hg0(izsta:izend, iiq) - 1.0_DP)
@@ -753,7 +751,6 @@ CONTAINS
         izsta = rismt%lfft%izleft_start0
         izend = rismt%lfft%izcell_start - 1
         !
-        !cst( itsta:itend, iiq) = vscale * zscale * rismt%csg0(izsta:izend, iiq)
         cst( itsta:itend, iiq) = vscale * zscale * rismt%csdg0(izsta:izend, iiq)
         dcst(itsta:itend, iiq) = vscale * zscale * (rhov / rhovt) &
                              & * (rismt%gg0(izsta:izend, iiq) - rismt%hg0(izsta:izend, iiq) - 1.0_DP)
