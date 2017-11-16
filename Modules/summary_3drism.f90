@@ -155,11 +155,15 @@ SUBROUTINE summary_3drism()
   WRITE(stdout, '(5X,"buffer  of left (in bohr)  : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   END IF
-#if defined (__DEBUG_RISM)
+#if !defined (__DEBUG_RISM)
+  IF (iverbosity > 0) THEN
+#endif
   zstart = zedge1 + zstep * DBLE(rism3t%lfft%izleft_start0 - 1)
   zend   = zedge2 + zstep * DBLE(rism3t%lfft%izleft_end0   - 1)
   WRITE(stdout, '(5X,"gxy = 0 of left (in bohr)  : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
+#if !defined (__DEBUG_RISM)
+  END IF
 #endif
   END IF
   IF (rism3t%lfft%xright) THEN
@@ -173,11 +177,15 @@ SUBROUTINE summary_3drism()
   WRITE(stdout, '(5X,"buffer  of right (in bohr) : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
   END IF
-#if defined (__DEBUG_RISM)
+#if !defined (__DEBUG_RISM)
+  IF (iverbosity > 0) THEN
+#endif
   zstart = zedge1 + zstep * DBLE(rism3t%lfft%izright_start0 - 1)
   zend   = zedge2 + zstep * DBLE(rism3t%lfft%izright_end0   - 1)
   WRITE(stdout, '(5X,"gxy = 0 of right (in bohr) : [",2F11.6,"]")')    (zstart * alat), &
     &                                                                  (zend   * alat)
+#if !defined (__DEBUG_RISM)
+  END IF
 #endif
   END IF
   IF (iwall == IWALL_RIGHT) THEN
