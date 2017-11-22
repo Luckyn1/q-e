@@ -104,7 +104,7 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
       izend = rismt%lfft%nrz
     ELSE
       izsta = rismt%lfft%izright_start0
-      izend = rismt%lfft%izcell_end
+      izend = rismt%lfft%izright_end0
     END IF
     !
     izsolv = rismt%lfft%izright_start0
@@ -123,7 +123,7 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
       izsta = 1
       izend = rismt%lfft%izleft_gedge
     ELSE
-      izsta = rismt%lfft%izcell_start
+      izsta = rismt%lfft%izleft_start0
       izend = rismt%lfft%izleft_end0
     END IF
     !
