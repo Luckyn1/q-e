@@ -618,7 +618,7 @@ CONTAINS
     COMPLEX(DP),        INTENT(OUT) :: cl(1:*)      ! Laue-rep., dimension(nrz*ngxy)
     INTEGER,            INTENT(IN)  :: nrz          ! leading dimension of Z
     INTEGER,            INTENT(IN)  :: irz_start    ! starting index of Z
-    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask(1:*)  ! mask of i3-axis
+    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask(1:*)  ! mask of i3-axis, dimension(n3)
     !
     INTEGER                  :: ir
     INTEGER                  :: irz
@@ -735,7 +735,7 @@ CONTAINS
     INTEGER,            INTENT(IN)  :: nrz          ! leading dimension of Z
     INTEGER,            INTENT(IN)  :: irz_start    ! starting index of Z
     REAL(DP),           INTENT(OUT) :: cr(1:*)      ! R-space,   dimension(nnr)
-    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask(1:*)  ! mask of i3-axis
+    LOGICAL, OPTIONAL,  INTENT(IN)  :: i3mask(1:*)  ! mask of i3-axis, dimension(n3)
     !
     INTEGER                  :: ir
     INTEGER                  :: irz

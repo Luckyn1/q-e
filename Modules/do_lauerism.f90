@@ -57,6 +57,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   INTEGER                  :: ntot
   INTEGER                  :: nright
   INTEGER                  :: nleft
+  LOGICAL,     ALLOCATABLE :: dofft(:)
   LOGICAL                  :: lconv
   REAL(DP)                 :: rmscurr
   REAL(DP)                 :: rmssave
@@ -118,6 +119,9 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   ntot = rismt%cfft%dfftt%nnr + nright + nleft
   !
   ! ... allocate memory
+  IF (rismt%cfft%nr3 > 0) THEN
+    ALLOCATE(dofft(rismt%cfft%nr3))
+  END IF
   IF (ntot * rismt%nsite > 0) THEN
     ALLOCATE(cst( ntot, rismt%nsite))
     ALLOCATE(dcst(ntot, rismt%nsite))
@@ -130,6 +134,8 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   rismt%avail = .FALSE.
   rmssave     = 1.0E+99_DP
   rmswarn     = 0
+  !
+  CALL setup_dofft()
   !
   ! ... start Laue-RISM iteration
   WRITE(stdout, '()')
@@ -189,6 +195,8 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     !
     ! ... FFT: H(gxy,z) -> H(r)
     CALL fft_hlaue_to_hr()
+    !
+    CALL correct_hr()
     !
     ! ... Closure: H(r) -> G(r)
 #if defined (__DEBUG_RISM)
@@ -402,6 +410,9 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   ! ... deallocate memory
 100 CONTINUE
   !
+  IF (rismt%cfft%nr3 > 0) THEN
+    DEALLOCATE(dofft)
+  END IF
   IF (ntot * rismt%nsite > 0) THEN
     DEALLOCATE(cst)
     DEALLOCATE(dcst)
@@ -410,6 +421,31 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   CALL deallocate_mdiis(mdiist)
   !
 CONTAINS
+  !
+  SUBROUTINE setup_dofft()
+    IMPLICIT NONE
+    INTEGER :: iz
+    INTEGER :: iiz
+    !
+!$omp parallel do default(shared) private(iz)
+    DO iiz = 1, rismt%cfft%nr3
+      !
+      iz = iiz + rismt%lfft%izcell_start - 1
+      !
+      IF (iz >= rismt%lfft%izright_start .AND. iz <= rismt%lfft%izright_end) THEN
+        dofft(iiz) = .TRUE.
+        !
+      ELSE IF (iz >= rismt%lfft%izleft_start .AND. iz <= rismt%lfft%izleft_end) THEN
+        dofft(iiz) = .TRUE.
+        !
+      ELSE
+        dofft(iiz) = .FALSE.
+      END IF
+      !
+    END DO
+!$omp end parallel do
+    !
+  END SUBROUTINE setup_dofft
   !
   SUBROUTINE fft_csr_to_cslaue()
     IMPLICIT NONE
@@ -427,7 +463,8 @@ CONTAINS
       END IF
       !
       IF (rismt%cfft%dfftt%nnr > 0 .AND. (rismt%nrzs * rismt%ngxy) > 0) THEN
-        CALL fw_lauefft_2xy(rismt%lfft, rismt%csr(:, jsite), rismt%csgz(:, jsite), rismt%nrzs, 1)
+        CALL fw_lauefft_2xy(rismt%lfft, &
+           & rismt%csr(:, jsite), rismt%csgz(:, jsite), rismt%nrzs, 1, dofft)
       END IF
     END DO
 #if defined (__DEBUG_RISM)
@@ -453,7 +490,8 @@ CONTAINS
       END IF
       !
       IF (rismt%cfft%dfftt%nnr > 0 .AND. (rismt%nrzs * rismt%ngxy) > 0) THEN
-        CALL inv_lauefft_2xy(rismt%lfft, rismt%hgz(:, jsite), rismt%nrzs, 1, rismt%hr(:, jsite))
+        CALL inv_lauefft_2xy(rismt%lfft, &
+           & rismt%hgz(:, jsite), rismt%nrzs, 1, rismt%hr(:, jsite), dofft)
       END IF
     END DO
 #if defined (__DEBUG_RISM)
@@ -725,6 +763,64 @@ CONTAINS
 !$omp end parallel do
     !
   END SUBROUTINE correct_csr
+  !
+  SUBROUTINE correct_hr()
+    IMPLICIT NONE
+    INTEGER  :: ir
+    INTEGER  :: idx
+    INTEGER  :: idx0
+    INTEGER  :: i3min
+    INTEGER  :: i3max
+    INTEGER  :: i1, i2, i3
+    INTEGER  :: iz
+    !
+    IF (rismt%nsite < 1) THEN
+      RETURN
+    END IF
+    !
+    idx0 = rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x &
+       & * rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    !
+    i3min = rismt%cfft%dfftt%ipp(rismt%cfft%dfftt%mype + 1)
+    i3max = rismt%cfft%dfftt%npp(rismt%cfft%dfftt%mype + 1) + i3min
+    !
+!$omp parallel do default(shared) private(ir, idx, i1, i2, i3, iz)
+    DO ir = 1, rismt%cfft%dfftt%nnr
+      !
+      idx = idx0 + ir - 1
+      i3  = idx / (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x)
+      IF (i3 < i3min .OR. i3 >= i3max .OR. i3 >= rismt%cfft%dfftt%nr3) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - (rismt%cfft%dfftt%nr1x * rismt%cfft%dfftt%nr2x) * i3
+      i2  = idx / rismt%cfft%dfftt%nr1x
+      IF (i2 >= rismt%cfft%dfftt%nr2) THEN
+        CYCLE
+      END IF
+      !
+      idx = idx - rismt%cfft%dfftt%nr1x * i2
+      i1  = idx
+      IF (i1 >= rismt%cfft%dfftt%nr1) THEN
+        CYCLE
+      END IF
+      !
+      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
+        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
+      ELSE
+        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
+      END IF
+      iz = iz + rismt%lfft%izcell_start
+      !
+      IF ((rismt%lfft%izright_start0 <= iz .AND. iz <  rismt%lfft%izright_start) .OR. &
+        & (rismt%lfft%izleft_end     <  iz .AND. iz <= rismt%lfft%izleft_end0)) THEN
+        rismt%hr(ir, :) = rismt%hg0(iz, :)
+      END IF
+      !
+    END DO
+!$omp end parallel do
+    !
+  END SUBROUTINE correct_hr
   !
   SUBROUTINE prepare_cst_dcst()
     IMPLICIT NONE
