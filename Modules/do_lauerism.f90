@@ -426,27 +426,25 @@ CONTAINS
     IMPLICIT NONE
     INTEGER :: i3
     INTEGER :: iz
-    INTEGER :: iiz
     !
-!$omp parallel do default(shared) private(i3, iz, iiz)
+!$omp parallel do default(shared) private(i3, iz)
     DO i3 = 0, (rismt%cfft%dfftt%nr3 - 1)
       !
       IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
-        iiz = i3 + (rismt%cfft%dfftt%nr3 / 2)
+        iz = i3 + (rismt%cfft%dfftt%nr3 / 2)
       ELSE
-        iiz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
+        iz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
       END IF
-      iz  = iiz + rismt%lfft%izcell_start
-      iiz = iiz + 1
+      iz = iz + rismt%lfft%izcell_start
       !
       IF (iz >= rismt%lfft%izright_start .AND. iz <= rismt%lfft%izright_end) THEN
-        nofft(iiz) = .FALSE.
+        nofft(i3 + 1) = .FALSE.
         !
       ELSE IF (iz >= rismt%lfft%izleft_start .AND. iz <= rismt%lfft%izleft_end) THEN
-        nofft(iiz) = .FALSE.
+        nofft(i3 + 1) = .FALSE.
         !
       ELSE
-        nofft(iiz) = .TRUE.
+        nofft(i3 + 1) = .TRUE.
       END IF
       !
     END DO
