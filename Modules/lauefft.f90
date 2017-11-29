@@ -661,8 +661,8 @@ CONTAINS
     !
     IF (PRESENT(i3mask)) THEN
       ! ... 2D-FFT for specified planes
-      i3min = lauefft0%dfft%ipp(me_p + 1)
-      i3max = lauefft0%dfft%npp(me_p + 1) + i3min
+      i3min = lauefft0%dfft%ipp(me_p)
+      i3max = lauefft0%dfft%npp(me_p) + i3min
       i3sta = 0
       i3end = 0
       !
@@ -816,8 +816,8 @@ CONTAINS
     !
     IF (PRESENT(i3mask)) THEN
       ! ... 2D-FFT for specified planes
-      i3min = lauefft0%dfft%ipp(me_p + 1)
-      i3max = lauefft0%dfft%npp(me_p + 1) + i3min
+      i3min = lauefft0%dfft%ipp(me_p)
+      i3max = lauefft0%dfft%npp(me_p) + i3min
       i3sta = 0
       i3end = 0
       !
