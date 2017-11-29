@@ -427,7 +427,7 @@ CONTAINS
     INTEGER :: iz
     INTEGER :: iiz
     !
-!$omp parallel do default(shared) private(iz)
+!$omp parallel do default(shared) private(iz, iiz)
     DO iiz = 1, rismt%cfft%dfftt%nr3
       !
       iz = iiz + rismt%lfft%izcell_start - 1
