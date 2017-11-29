@@ -679,8 +679,8 @@ CONTAINS
         END IF
         !
         IF (do_fft .AND. i3sta < i3end) THEN
-          j3sta = nx1 * nx2 * i3sta + 1
-          j3end = nx1 * nx2 * i3end
+          j3sta = nx1 * nx2 * (i3sta - i3min) + 1
+          j3end = nx1 * nx2 * (i3end - i3min)
           CALL cft_2xy(cinp(j3sta:j3end), i3end - i3sta, n1, n2, nx1, nx2, -1, planes)
         END IF
       END DO
@@ -834,8 +834,8 @@ CONTAINS
         END IF
         !
         IF (do_fft .AND. i3sta < i3end) THEN
-          j3sta = nx1 * nx2 * i3sta + 1
-          j3end = nx1 * nx2 * i3end
+          j3sta = nx1 * nx2 * (i3sta - i3min) + 1
+          j3end = nx1 * nx2 * (i3end - i3min)
           CALL cft_2xy(cout(j3sta:j3end), i3end - i3sta, n1, n2, nx1, nx2, +1, planes)
         END IF
       END DO
