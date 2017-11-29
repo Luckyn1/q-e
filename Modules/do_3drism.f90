@@ -247,16 +247,32 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     FLUSH(stdout)
     !
     ! ... calculate chemical potential
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_chem')
+    !
+#endif
     CALL chempot(rismt, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_chem')
+#endif
     !
     ! ... calculate solvation's charge density, potential and energy
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_solva')
+    !
+#endif
     CALL solvation_3drism(rismt, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_solva')
+#endif
     !
     ! ... print chemical potential
     CALL print_chempot_3drism(rismt, ierr)

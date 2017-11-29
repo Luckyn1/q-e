@@ -84,6 +84,10 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
   REAL(DP),   PARAMETER :: HW_THR   = 1.0E-8_DP
   !
   REAL(DP),   EXTERNAL  :: qe_erfc
+#if defined (__DEBUG_RISM)
+  !
+  CALL start_clock('3DRISM_norm')
+#endif
   !
   ! ... number of sites in solvents
   nq = get_nuniq_in_solVs()
@@ -616,5 +620,9 @@ SUBROUTINE normalize_lauerism(rismt, charge, expand, ierr)
   END IF
   DEALLOCATE(msol)
   DEALLOCATE(qsol)
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('3DRISM_norm')
+#endif
   !
 END SUBROUTINE normalize_lauerism

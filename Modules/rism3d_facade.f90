@@ -730,6 +730,7 @@ CONTAINS
     CALL print_clock('3DRISM_for')
     CALL print_clock('3DRISM_str')
 #if defined (__DEBUG_RISM)
+    !
     CALL print_clock('3DRISM_dft')
     CALL print_clock('3DRISM_eqn')
     CALL print_clock('3DRISM_eqn0')
@@ -737,9 +738,12 @@ CONTAINS
     CALL print_clock('3DRISM_eqnS0')
     CALL print_clock('3DRISM_eqnSx')
     CALL print_clock('3DRISM_eqnL')
+    CALL print_clock('3DRISM_norm')
     CALL print_clock('3DRISM_clos')
     CALL print_clock('3DRISM_fft')
     CALL print_clock('3DRISM_mdiis')
+    CALL print_clock('3DRISM_chem')
+    CALL print_clock('3DRISM_solva')
 #endif
     !
   END SUBROUTINE rism3d_print_clock
