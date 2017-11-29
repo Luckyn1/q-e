@@ -631,7 +631,10 @@ CONTAINS
     INTEGER                  :: n1, nx1
     INTEGER                  :: n2, nx2
     INTEGER                  :: n3, nx3
+    INTEGER                  :: i3
     INTEGER                  :: i3min, i3max
+    INTEGER                  :: i3sta, i3end
+    INTEGER                  :: j3sta, j3end
     INTEGER                  :: planes(lauefft0%dfft%nr1x)
     LOGICAL                  :: do_fft
     COMPLEX(DP), ALLOCATABLE :: cinp(:)
@@ -653,19 +656,37 @@ CONTAINS
     END DO
 !$omp end parallel do
     !
-    me_p = lauefft0%dfft%mype + 1
-    !
-    do_fft = .TRUE.
+    me_p   = lauefft0%dfft%mype + 1
+    planes = lauefft0%dfft%iplp
     !
     IF (PRESENT(i3mask)) THEN
+      ! ... 2D-FFT for specified planes
       i3min = lauefft0%dfft%ipp(me_p + 1)
       i3max = lauefft0%dfft%npp(me_p + 1) + i3min
+      i3sta = 0
+      i3end = 0
       !
-      do_fft = .NOT. ALL(i3mask((i3min + 1):i3max))
-    END IF
-    !
-    IF (do_fft) THEN
-      planes = lauefft0%dfft%iplp
+      DO i3 = (i3min + 1), i3max
+        IF (i3mask(i3)) THEN
+          ista = i3
+        ELSE
+          iend = i3
+        END IF
+        !
+        do_fft = (.NOT. i3mask(i3))
+        IF (i3 < i3max) THEN
+          do_fft = do_fft .AND. i3mask(i3 + 1)
+        END IF
+        !
+        IF (do_fft .AND. ista < iend) THEN
+          j3sta = nx1 * nx2 * ista + 1
+          j3end = nx1 * nx2 * iend
+          CALL cft_2xy(cinp(j3sta:j3end), iend - ista, n1, n2, nx1, nx2, -1, planes)
+        END IF
+      END DO
+      !
+    ELSE
+      ! ... 2D-FFT for all planes
       CALL cft_2xy(cinp, lauefft0%dfft%npp(me_p), n1, n2, nx1, nx2, -1, planes)
     END IF
     !
@@ -727,7 +748,10 @@ CONTAINS
     INTEGER                  :: n1, nx1
     INTEGER                  :: n2, nx2
     INTEGER                  :: n3, nx3
+    INTEGER                  :: i3
     INTEGER                  :: i3min, i3max
+    INTEGER                  :: i3sta, i3end
+    INTEGER                  :: j3sta, j3end
     INTEGER                  :: planes(lauefft0%dfft%nr1x)
     LOGICAL                  :: do_fft
     COMPLEX(DP), ALLOCATABLE :: cinp(:)
@@ -787,19 +811,37 @@ CONTAINS
     cout = cinp
 #endif
     !
-    me_p = lauefft0%dfft%mype + 1
-    !
-    do_fft = .TRUE.
+    me_p   = lauefft0%dfft%mype + 1
+    planes = lauefft0%dfft%iplp
     !
     IF (PRESENT(i3mask)) THEN
+      ! ... 2D-FFT for specified planes
       i3min = lauefft0%dfft%ipp(me_p + 1)
       i3max = lauefft0%dfft%npp(me_p + 1) + i3min
+      i3sta = 0
+      i3end = 0
       !
-      do_fft = .NOT. ALL(i3mask((i3min + 1):i3max))
-    END IF
-    !
-    IF (do_fft) THEN
-      planes = lauefft0%dfft%iplp
+      DO i3 = (i3min + 1), i3max
+        IF (i3mask(i3)) THEN
+          ista = i3
+        ELSE
+          iend = i3
+        END IF
+        !
+        do_fft = (.NOT. i3mask(i3))
+        IF (i3 < i3max) THEN
+          do_fft = do_fft .AND. i3mask(i3 + 1)
+        END IF
+        !
+        IF (do_fft .AND. ista < iend) THEN
+          j3sta = nx1 * nx2 * ista + 1
+          j3end = nx1 * nx2 * iend
+          CALL cft_2xy(cout(j3sta:j3end), iend - ista, n1, n2, nx1, nx2, +1, planes)
+        END IF
+      END DO
+      !
+    ELSE
+      ! ... 2D-FFT for all planes
       CALL cft_2xy(cout, lauefft0%dfft%npp(me_p), n1, n2, nx1, nx2, +1, planes)
     END IF
     !
