@@ -53,6 +53,10 @@ SUBROUTINE potential_3drism(rismt, vrs, rhog, ierr)
   COMPLEX(DP), ALLOCATABLE :: rhogss(:)  ! density(Rho) in G-Space for Smooth-FFT
   COMPLEX(DP), ALLOCATABLE :: aux(:)     ! AUXiliary data for Dense-FFT
   COMPLEX(DP), ALLOCATABLE :: auxs(:)    ! AUXiliary data for Smooth-FFT
+#if defined (__DEBUG_RISM)
+  !
+  CALL start_clock('3DRISM_dft')
+#endif
   !
   ! ... number of sites in solvents
   nq = get_nuniq_in_solVs()
@@ -217,6 +221,10 @@ SUBROUTINE potential_3drism(rismt, vrs, rhog, ierr)
   ! ... deallocate working memory
   ! ...
   CALL deallocate_works()
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('3DRISM_dft')
+#endif
   !
 CONTAINS
   !

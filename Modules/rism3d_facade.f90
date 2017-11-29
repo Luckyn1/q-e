@@ -730,6 +730,7 @@ CONTAINS
     CALL print_clock('3DRISM_for')
     CALL print_clock('3DRISM_str')
 #if defined (__DEBUG_RISM)
+    CALL print_clock('3DRISM_dft')
     CALL print_clock('3DRISM_eqn')
     CALL print_clock('3DRISM_eqn0')
     CALL print_clock('3DRISM_eqnx')
