@@ -49,6 +49,10 @@ SUBROUTINE eqn_1drism(rismt, gmax, lhand, ierr)
   EXTERNAL :: dgemm
   EXTERNAL :: dgetrf
   EXTERNAL :: dgetrs
+#if defined (__DEBUG_RISM)
+  !
+  CALL start_clock('1DRISM_eqn')
+#endif
   !
   ! ... number of sites in solvents
   nv = get_nsite_in_solVs()
@@ -186,5 +190,9 @@ SUBROUTINE eqn_1drism(rismt, gmax, lhand, ierr)
   !
   ! ... merge error code through all processies
   CALL merge_ierr_rism(ierr, rismt%mp_site%inter_sitg_comm)
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('1DRISM_eqn')
+#endif
   !
 END SUBROUTINE eqn_1drism

@@ -158,6 +158,10 @@ SUBROUTINE do_1drism(rismt, maxiter, rmsconv, nbox, eta, gbond, lhand, cool, tit
     END IF
     !
     ! ... Closure: H(r) -> G(r)
+#if defined (__DEBUG_RISM)
+    CALL start_clock('1DRISM_clos')
+    !
+#endif
     IF (rismt%is_intra) THEN
       CALL closure(rismt, ierr)
     ELSE
@@ -167,6 +171,10 @@ SUBROUTINE do_1drism(rismt, maxiter, rmsconv, nbox, eta, gbond, lhand, cool, tit
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('1DRISM_clos')
+#endif
     !
     ! ... Residual: G(r) -> dCs(r) * r
     IF (rismt%is_intra) THEN
@@ -357,6 +365,10 @@ CONTAINS
     INTEGER  :: jr
     REAL(DP) :: r
     !
+#if defined (__DEBUG_RISM)
+    CALL start_clock('1DRISM_mdiis')
+    !
+#endif
     ! ... Cs(r) -> Cs(r) * r
     DO isite = 1, rismt%nsite
       DO ir = 1, rismt%nr
@@ -383,6 +395,11 @@ CONTAINS
         rismt%csr(ir, isite) = csrr(ir, isite) / r
       END DO
     END DO
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('1DRISM_mdiis')
+#endif
+    !
   END SUBROUTINE perform_mdiis
   !
   SUBROUTINE fft_csr_to_csg()
@@ -390,6 +407,10 @@ CONTAINS
     INTEGER :: isite
     INTEGER :: jsite
     !
+#if defined (__DEBUG_RISM)
+    CALL start_clock('1DRISM_fft')
+    !
+#endif
     IF (rismt%rfft%lmpi) THEN
       ! ... Fourier Transform, with BLAS level-3
       CALL fw_mpi_radfft(rismt%rfft, rismt%csr, rismt%csg, rismt%nsite)
@@ -410,6 +431,10 @@ CONTAINS
       & rismt%mp_task%nvec, work, rismt%ng, rismt%csg, -1)
       !
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('1DRISM_fft')
+#endif
     !
   END SUBROUTINE fft_csr_to_csg
   !
@@ -418,6 +443,10 @@ CONTAINS
     INTEGER :: isite
     INTEGER :: jsite
     !
+#if defined (__DEBUG_RISM)
+    CALL start_clock('1DRISM_fft')
+    !
+#endif
     IF (rismt%rfft%lmpi) THEN
       ! ... Fourier Transform, with BLAS level-3
       CALL inv_mpi_radfft(rismt%rfft, rismt%hg, rismt%hr, rismt%nsite)
@@ -438,6 +467,10 @@ CONTAINS
       & rismt%mp_task%nvec, work(1, 1), rismt%nr, rismt%hr(1, 1), -1)
       !
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('1DRISM_fft')
+#endif
     !
   END SUBROUTINE fft_hg_to_hr
   !

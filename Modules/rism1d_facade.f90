@@ -578,6 +578,12 @@ CONTAINS
     !
     CALL print_clock('1DRISM_pre')
     CALL print_clock('1DRISM_run')
+#if defined (__DEBUG_RISM)
+    CALL print_clock('1DRISM_eqn')
+    CALL print_clock('1DRISM_clos')
+    CALL print_clock('1DRISM_fft')
+    CALL print_clock('1DRISM_mdiis')
+#endif
     !
   END SUBROUTINE rism1d_print_clock
   !
