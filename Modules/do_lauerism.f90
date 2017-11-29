@@ -120,7 +120,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   !
   ! ... allocate memory
   IF (rismt%cfft%dfftt%nr3 > 0) THEN
-    ALLOCATE(dofft(rismt%cfft%nr3))
+    ALLOCATE(dofft(rismt%cfft%dfftt%nr3))
   END IF
   IF (ntot * rismt%nsite > 0) THEN
     ALLOCATE(cst( ntot, rismt%nsite))
