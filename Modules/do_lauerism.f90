@@ -57,7 +57,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   INTEGER                  :: ntot
   INTEGER                  :: nright
   INTEGER                  :: nleft
-  LOGICAL,     ALLOCATABLE :: dofft(:)
+  LOGICAL,     ALLOCATABLE :: nofft(:)
   LOGICAL                  :: lconv
   REAL(DP)                 :: rmscurr
   REAL(DP)                 :: rmssave
@@ -120,7 +120,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   !
   ! ... allocate memory
   IF (rismt%cfft%dfftt%nr3 > 0) THEN
-    ALLOCATE(dofft(rismt%cfft%dfftt%nr3))
+    ALLOCATE(nofft(rismt%cfft%dfftt%nr3))
   END IF
   IF (ntot * rismt%nsite > 0) THEN
     ALLOCATE(cst( ntot, rismt%nsite))
@@ -135,7 +135,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   rmssave     = 1.0E+99_DP
   rmswarn     = 0
   !
-  CALL setup_dofft()
+  CALL setup_nofft()
   !
   ! ... start Laue-RISM iteration
   WRITE(stdout, '()')
@@ -411,7 +411,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
 100 CONTINUE
   !
   IF (rismt%cfft%dfftt%nr3 > 0) THEN
-    DEALLOCATE(dofft)
+    DEALLOCATE(nofft)
   END IF
   IF (ntot * rismt%nsite > 0) THEN
     DEALLOCATE(cst)
@@ -422,7 +422,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   !
 CONTAINS
   !
-  SUBROUTINE setup_dofft()
+  SUBROUTINE setup_nofft()
     IMPLICIT NONE
     INTEGER :: iz
     INTEGER :: iiz
@@ -433,19 +433,19 @@ CONTAINS
       iz = iiz + rismt%lfft%izcell_start - 1
       !
       IF (iz >= rismt%lfft%izright_start .AND. iz <= rismt%lfft%izright_end) THEN
-        dofft(iiz) = .TRUE.
+        nofft(iiz) = .FALSE.
         !
       ELSE IF (iz >= rismt%lfft%izleft_start .AND. iz <= rismt%lfft%izleft_end) THEN
-        dofft(iiz) = .TRUE.
+        nofft(iiz) = .FALSE.
         !
       ELSE
-        dofft(iiz) = .FALSE.
+        nofft(iiz) = .TRUE.
       END IF
       !
     END DO
 !$omp end parallel do
     !
-  END SUBROUTINE setup_dofft
+  END SUBROUTINE setup_nofft
   !
   SUBROUTINE fft_csr_to_cslaue()
     IMPLICIT NONE
@@ -464,7 +464,7 @@ CONTAINS
       !
       IF (rismt%cfft%dfftt%nnr > 0 .AND. (rismt%nrzs * rismt%ngxy) > 0) THEN
         CALL fw_lauefft_2xy(rismt%lfft, &
-           & rismt%csr(:, jsite), rismt%csgz(:, jsite), rismt%nrzs, 1, dofft)
+           & rismt%csr(:, jsite), rismt%csgz(:, jsite), rismt%nrzs, 1, nofft)
       END IF
     END DO
 #if defined (__DEBUG_RISM)
@@ -491,7 +491,7 @@ CONTAINS
       !
       IF (rismt%cfft%dfftt%nnr > 0 .AND. (rismt%nrzs * rismt%ngxy) > 0) THEN
         CALL inv_lauefft_2xy(rismt%lfft, &
-           & rismt%hgz(:, jsite), rismt%nrzs, 1, rismt%hr(:, jsite), dofft)
+           & rismt%hgz(:, jsite), rismt%nrzs, 1, rismt%hr(:, jsite), nofft)
       END IF
     END DO
 #if defined (__DEBUG_RISM)
