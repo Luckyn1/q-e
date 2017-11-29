@@ -424,13 +424,20 @@ CONTAINS
   !
   SUBROUTINE setup_nofft()
     IMPLICIT NONE
+    INTEGER :: i3
     INTEGER :: iz
     INTEGER :: iiz
     !
-!$omp parallel do default(shared) private(iz, iiz)
-    DO iiz = 1, rismt%cfft%dfftt%nr3
+!$omp parallel do default(shared) private(i3, iz, iiz)
+    DO i3 = 0, (rismt%cfft%dfftt%nr3 - 1)
       !
-      iz = iiz + rismt%lfft%izcell_start - 1
+      IF (i3 < (rismt%cfft%dfftt%nr3 - (rismt%cfft%dfftt%nr3 / 2))) THEN
+        iiz = i3 + (rismt%cfft%dfftt%nr3 / 2)
+      ELSE
+        iiz = i3 - rismt%cfft%dfftt%nr3 + (rismt%cfft%dfftt%nr3 / 2)
+      END IF
+      iz  = iiz + rismt%lfft%izcell_start
+      iiz = iiz + 1
       !
       IF (iz >= rismt%lfft%izright_start .AND. iz <= rismt%lfft%izright_end) THEN
         nofft(iiz) = .FALSE.
