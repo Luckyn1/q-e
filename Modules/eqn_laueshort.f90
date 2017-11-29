@@ -35,13 +35,25 @@ SUBROUTINE eqn_laueshort(rismt, lboth, lgxy0, ierr)
   !
   ! ... Laue-RISM equation of short-range (Gxy /= 0)
   IF (.NOT. lgxy0) THEN
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_eqnSx')
+    !
+#endif
     CALL eqn_laueshort_x(rismt, lboth, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       RETURN
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_eqnSx')
+#endif
   END IF
   !
   ! ... Laue-RISM equation of short-range (Gxy = 0)
+#if defined (__DEBUG_RISM)
+  CALL start_clock('3DRISM_eqnS0')
+  !
+#endif
   CALL eqn_lauegxy0(rismt, lboth, .TRUE., .FALSE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
     RETURN
@@ -58,6 +70,10 @@ SUBROUTINE eqn_laueshort(rismt, lboth, lgxy0, ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
     RETURN
   END IF
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('3DRISM_eqnS0')
+#endif
   !
   ! ... normally done
   ierr = IERR_RISM_NULL

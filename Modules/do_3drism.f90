@@ -141,10 +141,18 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     CALL fft_hg_to_hr()
     !
     ! ... Closure: H(r) -> G(r)
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_clos')
+    !
+#endif
     CALL closure(rismt, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_clos')
+#endif
     !
     ! ... Residual: G(r) -> dCs(r)
     CALL prepare_csr_dcsr()
@@ -207,11 +215,19 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     END IF
     !
     ! ... MDIIS: dCs(r) -> Cs(r)
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_mdiis')
+    !
+#endif
     IF (rismt%nr * rismt%nsite > 0) THEN
       CALL update_by_mdiis(mdiist, csr,  dcsr_, rismt%intra_comm)
     ELSE
       CALL update_by_mdiis(mdiist, csr_, dcsr_, rismt%intra_comm)
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_mdiis')
+#endif
     !
     CALL restore_csr()
     !
@@ -296,6 +312,10 @@ CONTAINS
     INTEGER :: ir
     INTEGER :: ig
     !
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_fft')
+    !
+#endif
     DO isite = rismt%mp_site%isite_start, rismt%mp_site%isite_end
       jsite = isite - rismt%mp_site%isite_start + 1
       IF (rismt%cfft%ngmt > 0) THEN
@@ -317,6 +337,10 @@ CONTAINS
       END DO
 !$omp end parallel do
     END DO
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_fft')
+#endif
     !
   END SUBROUTINE fft_csr_to_csg
   !
@@ -327,6 +351,10 @@ CONTAINS
     INTEGER :: ir
     INTEGER :: ig
     !
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_fft')
+    !
+#endif
     DO isite = rismt%mp_site%isite_start, rismt%mp_site%isite_end
       jsite = isite - rismt%mp_site%isite_start + 1
       IF (rismt%cfft%dfftt%nnr > 0) THEN
@@ -358,6 +386,10 @@ CONTAINS
       END DO
 !$omp end parallel do
     END DO
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_fft')
+#endif
     !
   END SUBROUTINE fft_hg_to_hr
   !

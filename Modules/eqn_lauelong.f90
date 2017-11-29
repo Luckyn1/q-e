@@ -48,6 +48,10 @@ SUBROUTINE eqn_lauelong(rismt, lboth, ierr)
   REAL(DP), ALLOCATABLE :: yz(:)
   REAL(DP), ALLOCATABLE :: ygz(:)
   REAL(DP), ALLOCATABLE :: ygzt(:,:)
+#if defined (__DEBUG_RISM)
+  !
+  CALL start_clock('3DRISM_eqnL')
+#endif
   !
   ! ... number of sites in solvents
   nq = get_nuniq_in_solVs()
@@ -194,6 +198,10 @@ SUBROUTINE eqn_lauelong(rismt, lboth, ierr)
   !
   ! ... normally done
   ierr = IERR_RISM_NULL
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('3DRISM_eqnL')
+#endif
   !
 CONTAINS
   !

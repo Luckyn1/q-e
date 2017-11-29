@@ -191,10 +191,18 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     CALL fft_hlaue_to_hr()
     !
     ! ... Closure: H(r) -> G(r)
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_clos')
+    !
+#endif
     CALL closure(rismt, ierr)
     IF (ierr /= IERR_RISM_NULL) THEN
       GOTO 100
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_clos')
+#endif
     !
     ! ... barrier G(r)
     CALL barrier_gr()
@@ -266,11 +274,19 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
     END IF
     !
     ! ... MDIIS: dCs(r) -> Cs(r)
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_mdiis')
+    !
+#endif
     IF (ntot * rismt%nsite > 0) THEN
       CALL update_by_mdiis(mdiist, cst,  dcst,  rismt%intra_comm)
     ELSE
       CALL update_by_mdiis(mdiist, cst_, dcst_, rismt%intra_comm)
     END IF
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_mdiis')
+#endif
     !
     CALL restore_cst()
     !
@@ -384,6 +400,10 @@ CONTAINS
     INTEGER :: isite
     INTEGER :: jsite
     !
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_fft')
+    !
+#endif
     DO isite = rismt%mp_site%isite_start, rismt%mp_site%isite_end
       jsite = isite - rismt%mp_site%isite_start + 1
       IF (rismt%nrzs * rismt%ngxy > 0) THEN
@@ -394,6 +414,10 @@ CONTAINS
         CALL fw_lauefft_2xy(rismt%lfft, rismt%csr(:, jsite), rismt%csgz(:, jsite), rismt%nrzs, 1)
       END IF
     END DO
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_fft')
+#endif
     !
   END SUBROUTINE fft_csr_to_cslaue
   !
@@ -402,6 +426,10 @@ CONTAINS
     INTEGER :: isite
     INTEGER :: jsite
     !
+#if defined (__DEBUG_RISM)
+    CALL start_clock('3DRISM_fft')
+    !
+#endif
     DO isite = rismt%mp_site%isite_start, rismt%mp_site%isite_end
       jsite = isite - rismt%mp_site%isite_start + 1
       IF (rismt%cfft%dfftt%nnr > 0) THEN
@@ -412,6 +440,10 @@ CONTAINS
         CALL inv_lauefft_2xy(rismt%lfft, rismt%hgz(:, jsite), rismt%nrzs, 1, rismt%hr(:, jsite))
       END IF
     END DO
+#if defined (__DEBUG_RISM)
+    !
+    CALL stop_clock('3DRISM_fft')
+#endif
     !
   END SUBROUTINE fft_hlaue_to_hr
   !

@@ -36,6 +36,10 @@ SUBROUTINE eqn_3drism(rismt, ierr)
   REAL(DP)                 :: xg21
   COMPLEX(DP)              :: cgz2
   COMPLEX(DP), ALLOCATABLE :: hgz1(:)
+#if defined (__DEBUG_RISM)
+  !
+  CALL start_clock('3DRISM_eqn')
+#endif
   !
   ! ... number of sites in solvents
   nq = get_nuniq_in_solVs()
@@ -124,5 +128,9 @@ SUBROUTINE eqn_3drism(rismt, ierr)
   !
   ! ... normally done
   ierr = IERR_RISM_NULL
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('3DRISM_eqn')
+#endif
   !
 END SUBROUTINE eqn_3drism

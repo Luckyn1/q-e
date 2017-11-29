@@ -34,12 +34,24 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
   INTEGER :: iirz
   !
   ! ... Laue-RISM equation (Gxy /= 0)
+#if defined (__DEBUG_RISM)
+  CALL start_clock('3DRISM_eqnx')
+  !
+#endif
   CALL eqn_lauerism_x(rismt, lboth, ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
     RETURN
   END IF
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('3DRISM_eqnx')
+#endif
   !
   ! ... Laue-RISM equation of short-range and long-range (Gxy = 0)
+#if defined (__DEBUG_RISM)
+  CALL start_clock('3DRISM_eqn0')
+  !
+#endif
   CALL eqn_lauegxy0(rismt, lboth, .FALSE., .TRUE., ierr)
   IF (ierr /= IERR_RISM_NULL) THEN
     RETURN
@@ -73,6 +85,10 @@ SUBROUTINE eqn_lauerism(rismt, lboth, ierr)
     END DO
     !
   END IF
+#if defined (__DEBUG_RISM)
+  !
+  CALL stop_clock('3DRISM_eqn0')
+#endif
   !
   ! ... normally done
   ierr = IERR_RISM_NULL
