@@ -119,7 +119,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   ntot = rismt%cfft%dfftt%nnr + nright + nleft
   !
   ! ... allocate memory
-  IF (rismt%cfft%nr3 > 0) THEN
+  IF (rismt%cfft%dfftt%nr3 > 0) THEN
     ALLOCATE(dofft(rismt%cfft%nr3))
   END IF
   IF (ntot * rismt%nsite > 0) THEN
@@ -410,7 +410,7 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   ! ... deallocate memory
 100 CONTINUE
   !
-  IF (rismt%cfft%nr3 > 0) THEN
+  IF (rismt%cfft%dfftt%nr3 > 0) THEN
     DEALLOCATE(dofft)
   END IF
   IF (ntot * rismt%nsite > 0) THEN
@@ -428,7 +428,7 @@ CONTAINS
     INTEGER :: iiz
     !
 !$omp parallel do default(shared) private(iz)
-    DO iiz = 1, rismt%cfft%nr3
+    DO iiz = 1, rismt%cfft%dfftt%nr3
       !
       iz = iiz + rismt%lfft%izcell_start - 1
       !
