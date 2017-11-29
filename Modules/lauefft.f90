@@ -663,8 +663,8 @@ CONTAINS
       ! ... 2D-FFT for specified planes
       i3min = lauefft0%dfft%ipp(me_p)
       i3max = lauefft0%dfft%npp(me_p) + i3min
-      i3sta = 0
-      i3end = 0
+      i3sta = i3min
+      i3end = i3min
       !
       DO i3 = (i3min + 1), i3max
         IF (i3mask(i3)) THEN
@@ -818,8 +818,8 @@ CONTAINS
       ! ... 2D-FFT for specified planes
       i3min = lauefft0%dfft%ipp(me_p)
       i3max = lauefft0%dfft%npp(me_p) + i3min
-      i3sta = 0
-      i3end = 0
+      i3sta = i3min
+      i3end = i3min
       !
       DO i3 = (i3min + 1), i3max
         IF (i3mask(i3)) THEN
