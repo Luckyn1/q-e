@@ -668,9 +668,9 @@ CONTAINS
       !
       DO i3 = (i3min + 1), i3max
         IF (i3mask(i3)) THEN
-          ista = i3
+          i3sta = i3
         ELSE
-          iend = i3
+          i3end = i3
         END IF
         !
         do_fft = (.NOT. i3mask(i3))
@@ -678,10 +678,10 @@ CONTAINS
           do_fft = do_fft .AND. i3mask(i3 + 1)
         END IF
         !
-        IF (do_fft .AND. ista < iend) THEN
-          j3sta = nx1 * nx2 * ista + 1
-          j3end = nx1 * nx2 * iend
-          CALL cft_2xy(cinp(j3sta:j3end), iend - ista, n1, n2, nx1, nx2, -1, planes)
+        IF (do_fft .AND. i3sta < i3end) THEN
+          j3sta = nx1 * nx2 * i3sta + 1
+          j3end = nx1 * nx2 * i3end
+          CALL cft_2xy(cinp(j3sta:j3end), i3end - i3sta, n1, n2, nx1, nx2, -1, planes)
         END IF
       END DO
       !
@@ -823,9 +823,9 @@ CONTAINS
       !
       DO i3 = (i3min + 1), i3max
         IF (i3mask(i3)) THEN
-          ista = i3
+          i3sta = i3
         ELSE
-          iend = i3
+          i3end = i3
         END IF
         !
         do_fft = (.NOT. i3mask(i3))
@@ -833,10 +833,10 @@ CONTAINS
           do_fft = do_fft .AND. i3mask(i3 + 1)
         END IF
         !
-        IF (do_fft .AND. ista < iend) THEN
-          j3sta = nx1 * nx2 * ista + 1
-          j3end = nx1 * nx2 * iend
-          CALL cft_2xy(cout(j3sta:j3end), iend - ista, n1, n2, nx1, nx2, +1, planes)
+        IF (do_fft .AND. i3sta < i3end) THEN
+          j3sta = nx1 * nx2 * i3sta + 1
+          j3end = nx1 * nx2 * i3end
+          CALL cft_2xy(cout(j3sta:j3end), i3end - i3sta, n1, n2, nx1, nx2, +1, planes)
         END IF
       END DO
       !
