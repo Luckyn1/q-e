@@ -199,12 +199,15 @@ SUBROUTINE eqn_lauevoid(rismt, expand, ierr)
       DO iz = izsta, izend
         izint  = iz - izsta + 1
         izdelt = ABS(iz - izvoid) + 1
-        z  = zoffs + zstep * DBLE(iz - 1)
-        cz = c2(iiq2) + d2(iiq2) * (z - zedge)
-        dz = d2(iiq2) * vsign
-        h1(izint) = h1(izint) &
-        & + cz * rismt%xgs0(izdelt, iiq2, iq1) &
-        & + dz * rismt%xgs1(izdelt, iiq2, iq1)
+        !
+        IF (izdelt <= rismt%lfft%nrz) THEN
+          z  = zoffs + zstep * DBLE(iz - 1)
+          cz = c2(iiq2) + d2(iiq2) * (z - zedge)
+          dz = d2(iiq2) * vsign
+          h1(izint) = h1(izint) &
+          & + cz * rismt%xgs0(izdelt, iiq2, iq1) &
+          & + dz * rismt%xgs1(izdelt, iiq2, iq1)
+        END IF
       END DO
 !$omp end parallel do
     END DO
