@@ -50,35 +50,35 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   CHARACTER(LEN=*), INTENT(IN)    :: title
   INTEGER,          INTENT(OUT)   :: ierr
   !
-  INTEGER                  :: nq
-  INTEGER                  :: iter
-  INTEGER                  :: ngrid
-  INTEGER                  :: nsite
-  INTEGER                  :: ntot
-  INTEGER                  :: nright
-  INTEGER                  :: nleft
-  LOGICAL,     ALLOCATABLE :: nofft(:)
-  LOGICAL                  :: lconv
-  REAL(DP)                 :: rmscurr
-  REAL(DP)                 :: rmssave
-  INTEGER                  :: rmswarn
-  REAL(DP),    ALLOCATABLE :: cst (:,:)
-  REAL(DP),    ALLOCATABLE :: dcst(:,:)
-  TYPE(mdiis_type)         :: mdiist
+  INTEGER               :: nq
+  INTEGER               :: iter
+  INTEGER               :: ngrid
+  INTEGER               :: nsite
+  INTEGER               :: ntot
+  INTEGER               :: nright
+  INTEGER               :: nleft
+  LOGICAL,  ALLOCATABLE :: nofft(:)
+  LOGICAL               :: lconv
+  REAL(DP)              :: rmscurr
+  REAL(DP)              :: rmssave
+  INTEGER               :: rmswarn
+  REAL(DP), ALLOCATABLE :: cst (:,:)
+  REAL(DP), ALLOCATABLE :: dcst(:,:)
+  TYPE(mdiis_type)      :: mdiist
   ! if mdiist is an automatic variable,
   ! pointers in mdiis_type may not work well.
-  SAVE                     :: mdiist
-  REAL(DP)                 :: cst_ (1, 1)
-  REAL(DP)                 :: dcst_(1, 1)
+  SAVE                  :: mdiist
+  REAL(DP)              :: cst_ (1, 1)
+  REAL(DP)              :: dcst_(1, 1)
 #if defined (__DEBUG_RISM)
-  CHARACTER(LEN=5)         :: str
+  CHARACTER(LEN=5)      :: str
 #endif
   !
-  INTEGER,     PARAMETER   :: NPRINT      = 10
-  INTEGER,     PARAMETER   :: MDIIS_EXT   = 3
-  INTEGER,     PARAMETER   :: RMSWARN_MAX = 16
-  REAL(DP),    PARAMETER   :: RMS_SMALL   = 0.95_DP
-  REAL(DP),    PARAMETER   :: RMS_LARGE   = 2.00_DP
+  INTEGER,  PARAMETER   :: NPRINT      = 10
+  INTEGER,  PARAMETER   :: MDIIS_EXT   = 3
+  INTEGER,  PARAMETER   :: RMSWARN_MAX = 16
+  REAL(DP), PARAMETER   :: RMS_SMALL   = 0.95_DP
+  REAL(DP), PARAMETER   :: RMS_LARGE   = 2.00_DP
   !
   ! ... check data type
   IF (rismt%itype /= ITYPE_LAUERISM) THEN
