@@ -25,17 +25,17 @@ SUBROUTINE do_lauerism(rismt, maxiter, rmsconv, nbox, eta, charge, lboth, iref, 
   ! ...   title:   subtitle of calculation
   ! ...   ierr:    status of calculation
   !
-  USE check_stop,     ONLY : check_stop_now, stopped_by_user
-  USE control_flags,  ONLY : iverbosity
-  USE err_rism,       ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE, IERR_RISM_NOT_CONVERGED
-  USE io_global,      ONLY : stdout
-  USE kinds,          ONLY : DP
-  USE lauefft,        ONLY : fw_lauefft_2xy, inv_lauefft_2xy
-  USE mdiis,          ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis, reset_mdiis
-  USE mp,             ONLY : mp_sum, mp_bcast
-  USE rism,           ONLY : rism_type, ITYPE_LAUERISM
-  USE solvmol,        ONLY : get_nuniq_in_solVs, get_nsite_in_solVs, nsolV, solVs, &
-                           & iuniq_to_nsite, iuniq_to_isite, isite_to_isolV
+  USE check_stop,    ONLY : check_stop_now, stopped_by_user
+  USE control_flags, ONLY : iverbosity
+  USE err_rism,      ONLY : IERR_RISM_NULL, IERR_RISM_INCORRECT_DATA_TYPE, IERR_RISM_NOT_CONVERGED
+  USE io_global,     ONLY : stdout
+  USE kinds,         ONLY : DP
+  USE lauefft,       ONLY : fw_lauefft_2xy, inv_lauefft_2xy
+  USE mdiis,         ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis, reset_mdiis
+  USE mp,            ONLY : mp_sum, mp_bcast
+  USE rism,          ONLY : rism_type, ITYPE_LAUERISM
+  USE solvmol,       ONLY : get_nuniq_in_solVs, get_nsite_in_solVs, nsolV, solVs, &
+                          & iuniq_to_nsite, iuniq_to_isite, isite_to_isolV
   !
   IMPLICIT NONE
   !
