@@ -220,7 +220,7 @@ SUBROUTINE do_3drism(rismt, maxiter, rmsconv, nbox, eta, title, ierr)
     !
 #endif
     IF (rismt%nr * rismt%nsite > 0) THEN
-      CALL update_by_mdiis(mdiist, csr,  dcsr_, rismt%intra_comm)
+      CALL update_by_mdiis(mdiist, csr,  dcsr,  rismt%intra_comm)
     ELSE
       CALL update_by_mdiis(mdiist, csr_, dcsr_, rismt%intra_comm)
     END IF
