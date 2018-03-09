@@ -119,7 +119,31 @@ input_description -distribution {Quantum Espresso} -package PWscf -program ppris
 
         choose {
 
-            when -test "iflag = 0 or 1" {
+            when -test "iflag = 0" {
+                label { the following variables are REQUIRED: }
+
+                dimension x0 -start 1 -end 3  -type REAL {
+                    info {
+                        3D vector, origin of the line
+                        (in alat units)
+                    }
+                }
+
+                var nx -type INTEGER {
+                    info {
+                        number of radial grids
+                    }
+                }
+
+                var lebedev -type INTEGER {
+                    info {
+                        number of spherical grids of Lebedev quadrature
+                        (only for @ref interpolation = 'bspline')
+                    }
+                }
+            }
+
+            elsewhen -test "iflag = 1" {
                 label { the following variables are REQUIRED: }
 
                 dimension e1 -start 1 -end 3 -type REAL {
