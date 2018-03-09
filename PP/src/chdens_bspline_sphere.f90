@@ -91,7 +91,7 @@ SUBROUTINE plot_sphere_bspline(nr, lebedev, m1, x0, rhor, alat, ounit, laue)
   END DO
   !
   ! ... interpolate
-  CALL bspline_interpolation(nptx, rg, rhor, vg, laue)
+  CALL bspline_interpolation(nr, rg, rhor, vg, laue)
   !
   ! ... calculate spherical average
   DO ir = 1, nr
