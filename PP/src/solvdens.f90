@@ -430,6 +430,16 @@ SUBROUTINE solvdens(filplot, lpunch)
     CALL infomsg('solvdens', 'FOURIER cannot be use for Laue-RISM, B-SPLINE is substituted.')
   END IF
   !
+  ! ... Initialize FFT
+  IF (.NOT. avoid_fft) THEN
+    gamma_only = .FALSE.
+    CALL data_structure(gamma_only)
+    CALL allocate_fft()
+    CALL ggen(gamma_only, at, bg)
+    !
+    ALLOCATE(rhog(ngm))
+  END IF
+  !
   ! ...
   ! ... Plot to Files
   ! .................................................................................
@@ -463,11 +473,6 @@ SUBROUTINE solvdens(filplot, lpunch)
     ! ... FFT rho(r) -> rho(G)
     IF (.NOT. avoid_fft) THEN
       !
-      gamma_only = .FALSE.
-      CALL data_structure(gamma_only)
-      CALL allocate_fft()
-      CALL ggen(gamma_only, at, bg)
-      !
       ALLOCATE(caux(dfftp%nnr))
       !
 #if defined(__MPI)
@@ -491,7 +496,6 @@ SUBROUTINE solvdens(filplot, lpunch)
 #endif
       CALL fwfft('Dense', caux, dfftp)
       !
-      ALLOCATE(rhog(ngm))
       rhog(:) = caux(nl(:))
       !
       DEALLOCATE(caux)
@@ -632,6 +636,10 @@ SUBROUTINE solvdens(filplot, lpunch)
   ! ... deallocate punched data
   DEALLOCATE(asite)
   DEALLOCATE(rhor)
+  !
+  IF (.NOT. avoid_fft) THEN
+    DEALLOCATE(rhog)
+  END IF
   !
 CONTAINS
   !
