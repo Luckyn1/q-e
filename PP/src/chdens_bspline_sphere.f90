@@ -52,7 +52,7 @@ SUBROUTINE plot_sphere_bspline(nr, lebedev, m1, x0, rhor, alat, ounit, laue)
   nlebedev = SIZE(LEBEDEV_ORDER)
   !
   DO ilebedev = 1, nlebedev
-    IF (lebedev >= LEBEDEV_ORDER(ilebedev)) THEN
+    IF (lebedev <= LEBEDEV_ORDER(ilebedev)) THEN
       lebedev_ = LEBEDEV_ORDER(ilebedev)
       EXIT
     END IF
