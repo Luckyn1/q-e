@@ -657,6 +657,7 @@ solvdens.o : ../../Modules/mp_images.o
 solvdens.o : ../../Modules/recvec.o
 solvdens.o : ../../Modules/recvec_subs.o
 solvdens.o : ../../Modules/run_info.o
+solvdens.o : ../../PW/src/pwcom.o
 solvdens.o : chdens_module.o
 spinsym.o : ../../Modules/kind.o
 spinsym.o : ../../PW/src/symm_base.o
