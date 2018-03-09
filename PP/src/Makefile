@@ -16,6 +16,7 @@ atomic_wfc_nc_proj.o \
 cft.o \
 chdens_module.o \
 chdens_bspline.o \
+chdens_bspline_sphere.o \
 compute_ppsi.o \
 compute_sigma_avg.o \
 cube.o \

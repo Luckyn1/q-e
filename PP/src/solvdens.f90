@@ -54,6 +54,7 @@ SUBROUTINE solvdens(filplot, lpunch)
   INTEGER                        :: ifft
   INTEGER                        :: nfft
   INTEGER                        :: na, ipol
+  INTEGER                        :: lebedev
   REAL(DP)                       :: e1(3), e2(3), e3(3)
   REAL(DP)                       :: x0(3)
   REAL(DP)                       :: radius
@@ -120,7 +121,8 @@ SUBROUTINE solvdens(filplot, lpunch)
         & '2D polar on a sphere' /)
   !
   NAMELIST / plot / iflag, output_format, fileout, &
-                  & e1, e2, e3, x0, nx, ny, nz, radius, interpolation
+                  & e1, e2, e3, x0, nx, ny, nz, radius, interpolation, &
+                  & lebedev
   !
   ! ... check filplot
   IF (LEN_TRIM(filplot) < 1) THEN
@@ -144,6 +146,7 @@ SUBROUTINE solvdens(filplot, lpunch)
   nz            = 0
   radius        = 1.0_DP
   interpolation = NAME_FOURIER
+  lebedev       = 302
   !
   ! ... read the namelist 'plot'
   IF (ionode) THEN
@@ -183,6 +186,7 @@ SUBROUTINE solvdens(filplot, lpunch)
   CALL mp_bcast(nz,            ionode_id, intra_image_comm)
   CALL mp_bcast(radius,        ionode_id, intra_image_comm)
   CALL mp_bcast(interpolation, ionode_id, intra_image_comm)
+  CALL mp_bcast(lebedev,       ionode_id, intra_image_comm)
   !
   ! ...
   ! ... Check Input
@@ -430,7 +434,7 @@ SUBROUTINE solvdens(filplot, lpunch)
     CALL infomsg('solvdens', 'FOURIER cannot be use for Laue-RISM, B-SPLINE is substituted.')
   END IF
   !
-  ! ... Initialize FFT
+  ! ... initialize FFT
   IF (.NOT. avoid_fft) THEN
     gamma_only = .FALSE.
     CALL data_structure(gamma_only)
@@ -510,8 +514,15 @@ SUBROUTINE solvdens(filplot, lpunch)
         CALL plot_1d(nx, m1, x0, e1, ngm, g, rhog, alat, iflag, ounit)
         !
       ELSE IF (TRIM(interpolation) == NAME_BSPLINE) THEN
-        IF (ionode) THEN
-          CALL plot_1d_bspline(nx, m1, x0, e1, rhor(:, isite), alat, iflag, ounit, laue)
+        IF (iflag == 0) THEN
+          ! ... spherical average by Lebedev Quadrature
+          IF (ionode) THEN
+            CALL plot_sphere_bspline(nx, lebedev, m1, x0, rhor(:, isite), alat, ounit, laue)
+          END IF
+        ELSE !IF (iflag == 1) THEN
+          IF (ionode) THEN
+            CALL plot_1d_bspline(nx, m1, x0, e1, rhor(:, isite), alat, iflag, ounit, laue)
+          END IF
         END IF
       END IF
       !
