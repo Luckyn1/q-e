@@ -28,6 +28,7 @@ SUBROUTINE solvdens(filplot, lpunch)
   USE io_global,      ONLY : stdin, stdout, ionode, ionode_id
   USE ions_base,      ONLY : nat, ityp, atm, ntyp => nsp, tau, zv
   USE kinds,          ONLY : DP
+  USE lsda_mod,       ONLY : nspin
   USE mp,             ONLY : mp_bcast
   USE mp_bands,       ONLY : intra_bgrp_comm
   USE mp_images,      ONLY : intra_image_comm
@@ -293,6 +294,14 @@ SUBROUTINE solvdens(filplot, lpunch)
   ! ... clean data, if punched
   IF (lpunch) THEN
     CALL clean_pw(.FALSE.)
+    !
+    dfftp%nr1 = 0
+    dfftp%nr2 = 0
+    dfftp%nr3 = 0
+    !
+    dffts%nr1 = 0
+    dffts%nr2 = 0
+    dffts%nr3 = 0
   END IF
   !
   ! ... read header
@@ -436,7 +445,9 @@ SUBROUTINE solvdens(filplot, lpunch)
   !
   ! ... initialize FFT
   IF (.NOT. avoid_fft) THEN
+    nspin      = 1
     gamma_only = .FALSE.
+    !
     CALL data_structure(gamma_only)
     CALL allocate_fft()
     CALL ggen(gamma_only, at, bg)
