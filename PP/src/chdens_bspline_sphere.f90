@@ -1,5 +1,5 @@
 !
-! Copyright (C) 2016 National Institute of Advanced Industrial Science and Technology (AIST)
+! Copyright (C) 2018 National Institute of Advanced Industrial Science and Technology (AIST)
 ! [ This code is written by Satomichi Nishihara. ]
 !
 ! This file is distributed under the terms of the
