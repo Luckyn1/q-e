@@ -14,6 +14,7 @@ SUBROUTINE plot_sphere_bspline(nr, lebedev, m1, x0, rhor, alat, ounit, laue)
   ! ... Use B-spline interpolation instead of Fourier,
   ! ... and calculate spherical average with Lebedev Quadrature.
   !
+  USE constants, ONLY : fpi
   USE io_global, ONLY : stdout, ionode
   USE kinds,     ONLY : DP
   USE fft_base,  ONLY : dfftp
@@ -35,6 +36,7 @@ SUBROUTINE plot_sphere_bspline(nr, lebedev, m1, x0, rhor, alat, ounit, laue)
   INTEGER  :: ilebedev
   INTEGER  :: nlebedev
   INTEGER  :: lebedev_
+  REAL(DP) :: weight
   REAL(DP) :: r, dr
   REAL(DP) :: e(3)
   REAL(DP) :: deltar
@@ -98,8 +100,11 @@ SUBROUTINE plot_sphere_bspline(nr, lebedev, m1, x0, rhor, alat, ounit, laue)
     carica(ir) = 0.0_DP
     !
     DO il = 1, lebedev_
+      weight = fpi * lg(4, il)
+      !
       itot = il + (ir - 1) * lebedev_
-      carica(ir) = carica(ir) + vg(itot) * lg(4, il)
+      !
+      carica(ir) = carica(ir) + vg(itot) * weight
     END DO
   END DO
   !
